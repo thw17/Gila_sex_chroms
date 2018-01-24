@@ -1,5 +1,25 @@
 {
 	"genome_paths": {
 		"gila1": "reference/GilaMonster_fastas__assembly_raw.fasta"
+	},
+
+	"G_10_dna":{
+		"fq1": [""],
+		"fq2": [""],
+		"ID": ["G_10_dna"],
+		"SM": ["G_10"],
+		"LB": ["G_10_dna"],
+		"PU": ["C28REACXX.6"],
+		"PL": ["Illumina"]
+	},
+
+	"G_10_rna":{
+		"fq1": [""],
+		"fq2": [""],
+		"ID": ["G_10_rna"],
+		"SM": ["G_10"],
+		"LB": ["G_10_rna"],
+		"PU": ["C28REACXX.6"],
+		"PL": ["Illumina"]
 	}
 }

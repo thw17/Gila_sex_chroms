@@ -1,0 +1,11 @@
+{
+	"__default__" :
+	{
+		"n": 4
+	},
+
+	"prepare_reference":
+	{
+		"n": 2
+	}
+}
