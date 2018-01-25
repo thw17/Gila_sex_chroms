@@ -9,6 +9,12 @@ bwa_path = "bwa"
 fastqc_path = "fastqc"
 samtools_path = "samtools"
 
+samples = [
+	"G_10_dna", "G_10_rna", "G_16_dna", "G_16_rna", "G_30_dna", "G_30_rna",
+	"G_35_dna", "G_35_rna", "G_KI01_dna", "G_KI01_rna", "G_L_dna", "G_L_rna"]
+
+fastq_prefixes = [config[x]["fq1"] for x in samples] + [config[x]["fq2"] for x in samples]
+
 rule all:
 	input:
 		expand("reference/{assembly}.fasta.fai", assembly=["gila1"])
@@ -34,12 +40,12 @@ rule prepare_reference:
 		# bwa
 		shell("{params.bwa} index {input}")
 
-# rule fastqc_analysis:
-# 	input:
-#
-# 	output:
-# 		"fastqc/{fq_prefix}_fastqc.html"
-# 	params:
-# 		fastqc = fastqc_path
-# 	shell:
-# 		"{params.fastqc} -o fastqc {input}"
+rule fastqc_analysis:
+	input:
+		os.path.join(fastq_directory, "{fq_prefix}.fastq.gz")
+	output:
+		"fastqc/{fq_prefix}_fastqc.html"
+	params:
+		fastqc = fastqc_path
+	shell:
+		"{params.fastqc} -o fastqc {input}"

@@ -4,22 +4,122 @@
 	},
 
 	"G_10_dna":{
-		"fq1": [""],
-		"fq2": [""],
-		"ID": ["G_10_dna"],
-		"SM": ["G_10"],
-		"LB": ["G_10_dna"],
-		"PU": ["C28REACXX.6"],
-		"PL": ["Illumina"]
+		"fq1": "10-004_S1_L001_R1_001.fastq.gz",
+		"fq2": "10-004_S1_L001_R2_001.fastq.gz",
+		"ID": "G_10_dna",
+		"SM": "G_10",
+		"LB": "G_10_dna",
+		"PU": "",
+		"PL": "Illumina"
 	},
 
 	"G_10_rna":{
-		"fq1": [""],
-		"fq2": [""],
+		"fq1": ["gila-10-002_S1_L007_R1_001.fastq.gz"],
+		"fq2": ["gila-10-002_S1_L007_R2_001.fastq.gz"],
 		"ID": ["G_10_rna"],
 		"SM": ["G_10"],
 		"LB": ["G_10_rna"],
-		"PU": ["C28REACXX.6"],
+		"PU": [""],
+		"PL": ["Illumina"]
+	},
+
+	"G_16_dna":{
+		"fq1": ["16-006_S2_L001_R1_001.fastq.gz"],
+		"fq2": ["16-006_S2_L001_R2_001.fastq.gz"],
+		"ID": ["G_16_dna"],
+		"SM": ["G_16"],
+		"LB": ["G_16_dna"],
+		"PU": [""],
+		"PL": ["Illumina"]
+	},
+
+	"G_16_rna":{
+		"fq1": ["gila-16-004_S2_L007_R1_001.fastq.gz"],
+		"fq2": ["gila-16-004_S2_L007_R2_001.fastq.gz"],
+		"ID": ["G_16_rna"],
+		"SM": ["G_16"],
+		"LB": ["G_16_rna"],
+		"PU": [""],
+		"PL": ["Illumina"]
+	},
+
+	"G_30_dna":{
+		"fq1": ["30-012_S3_L001_R1_001.fastq.gz"],
+		"fq2": ["30-012_S3_L001_R2_001.fastq.gz"],
+		"ID": ["G_30_dna"],
+		"SM": ["G_30"],
+		"LB": ["G_30_dna"],
+		"PU": [""],
+		"PL": ["Illumina"]
+	},
+
+	"G_30_rna":{
+		"fq1": ["gila-30-005_S3_L007_R1_001.fastq.gz"],
+		"fq2": ["gila-30-005_S3_L007_R2_001.fastq.gz"],
+		"ID": ["G_30_rna"],
+		"SM": ["G_30"],
+		"LB": ["G_30_rna"],
+		"PU": [""],
+		"PL": ["Illumina"]
+	},
+
+	"G_35_dna":{
+		"fq1": ["35-004_S4_L002_R1_001.fastq.gz"],
+		"fq2": ["35-004_S4_L002_R2_001.fastq.gz"],
+		"ID": ["G_35_dna"],
+		"SM": ["G_35"],
+		"LB": ["G_35_dna"],
+		"PU": [""],
+		"PL": ["Illumina"]
+	},
+
+	"G_35_rna":{
+		"fq1": ["gila-35-006_S4_L007_R1_001.fastq.gz"],
+		"fq2": ["gila-35-006_S4_L007_R2_001.fastq.gz"],
+		"ID": ["G_35_rna"],
+		"SM": ["G_35"],
+		"LB": ["G_35_rna"],
+		"PU": [""],
+		"PL": ["Illumina"]
+	},
+
+	"G_KI01_dna":{
+		"fq1": ["KI01-006_S5_L002_R1_001.fastq.gz"],
+		"fq2": ["KI01-006_S5_L002_R2_001.fastq.gz"],
+		"ID": ["G_KI01_dna"],
+		"SM": ["G_KI01"],
+		"LB": ["G_KI01_dna"],
+		"PU": [""],
+		"PL": ["Illumina"]
+	},
+
+	"G_KI01_rna":{
+		"fq1": ["gila-KI01-012_S6_L007_R1_001.fastq.gz"],
+		"fq2": ["gila-KI01-012_S6_L007_R2_001.fastq.gz"],
+		"ID": ["G_KI01_rna"],
+		"SM": ["G_KI01"],
+		"LB": ["G_KI01_rna"],
+		"PU": [""],
+		"PL": ["Illumina"]
+	},
+
+	"G_L_dna":{
+		"fq1": ["L-012_S6_L002_R1_001.fastq.gz"],
+		"fq2": ["L-012_S6_L002_R2_001.fastq.gz"],
+		"ID": ["G_L_dna"],
+		"SM": ["G_L"],
+		"LB": ["G_L_dna"],
+		"PU": [""],
+		"PL": ["Illumina"]
+	},
+
+	"G_L_rna":{
+		"fq1": ["gila-L-007_S5_L007_R1_001.fastq.gz"],
+		"fq2": ["gila-L-007_S5_L007_R2_001.fastq.gz"],
+		"ID": ["G_L_rna"],
+		"SM": ["G_L"],
+		"LB": ["G_L_rna"],
+		"PU": [""],
 		"PL": ["Illumina"]
 	}
 }
