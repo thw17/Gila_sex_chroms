@@ -17,7 +17,8 @@ fastq_prefixes = [config[x]["fq1"] for x in samples] + [config[x]["fq2"] for x i
 
 rule all:
 	input:
-		expand("reference/{assembly}.fasta.fai", assembly=["gila1"])
+		# expand("reference/{assembly}.fasta.fai", assembly=["gila1"])
+		"reference/gila1.fasta.fai"
 
 
 rule prepare_reference:
