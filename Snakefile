@@ -20,17 +20,17 @@ print(config)
 rule all:
 	input:
 		# expand("reference/{assembly}.fasta.fai", assembly=["gila1"])
-		"reference/gila1.fasta.fai"
+		"new_reference/gila1.fasta.fai"
 
 
 rule prepare_reference:
 	input:
 		ref = lambda wildcards: config["genome_paths"][wildcards.assembly]
 	output:
-		new = "reference/{assembly}.fasta",
-		fai = "reference/{assembly}.fasta.fai",
-		amb = "reference/{assembly}.fasta.amb",
-		dict = "reference/{assembly}.dict"
+		new = "new_reference/{assembly}.fasta",
+		fai = "new_reference/{assembly}.fasta.fai",
+		amb = "new_reference/{assembly}.fasta.amb",
+		dict = "new_reference/{assembly}.dict"
 	params:
 		samtools = samtools_path,
 		bwa = bwa_path
