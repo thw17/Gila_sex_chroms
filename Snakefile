@@ -34,11 +34,11 @@ rule prepare_reference:
 	run:
 		shell("ln -s ../{} {{output.new}} && touch -h {{output.new}}".format(input.ref))
 		# faidx
-		shell("{params.samtools} faidx {input}")
+		shell("{params.samtools} faidx {output.new}")
 		# .dict
-		shell("{params.samtools} dict -o {output.dict} {input}")
+		shell("{params.samtools} dict -o {output.dict} {output.new}")
 		# bwa
-		shell("{params.bwa} index {input}")
+		shell("{params.bwa} index {output.new}")
 
 rule fastqc_analysis:
 	input:
