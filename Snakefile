@@ -7,17 +7,19 @@ temp_directory = "temp/"
 
 bwa_path = "bwa"
 fastqc_path = "fastqc"
+multiqc_path = "multiqc"
 samtools_path = "samtools"
 
 samples = [
 	"G_10_dna", "G_10_rna", "G_16_dna", "G_16_rna", "G_30_dna", "G_30_rna",
 	"G_35_dna", "G_35_rna", "G_KI01_dna", "G_KI01_rna", "G_L_dna", "G_L_rna"]
 
-fastq_prefixes = [config[x]["fq1"] for x in samples] + [config[x]["fq2"] for x in samples]
+fastq_prefixes = [config[x]["fq1"][:-9] for x in samples] + [config[x]["fq2"][:-9] for x in samples]
 
 rule all:
 	input:
-		expand("new_reference/{assembly}.fasta.fai", assembly=["gila1"])
+		expand("new_reference/{assembly}.fasta.fai", assembly=["gila1"]),
+		"multiqc/multiqc_report.html"
 
 
 rule prepare_reference:
@@ -32,13 +34,17 @@ rule prepare_reference:
 		samtools = samtools_path,
 		bwa = bwa_path
 	run:
-		shell("ln -s ../{} {{output.new}} && touch -h {{output.new}}".format(input.ref))
+		shell(
+			"ln -s ../{} {{output.new}} && touch -h {{output.new}}".format(input.ref))
 		# faidx
-		shell("{params.samtools} faidx {output.new}")
+		shell(
+			"{params.samtools} faidx {output.new}")
 		# .dict
-		shell("{params.samtools} dict -o {output.dict} {output.new}")
+		shell(
+			"{params.samtools} dict -o {output.dict} {output.new}")
 		# bwa
-		shell("{params.bwa} index {output.new}")
+		shell(
+			"{params.bwa} index {output.new}")
 
 rule fastqc_analysis:
 	input:
@@ -49,3 +55,13 @@ rule fastqc_analysis:
 		fastqc = fastqc_path
 	shell:
 		"{params.fastqc} -o fastqc {input}"
+
+rule multiqc_analysis:
+	input:
+		expand("fastqc/{fq_prefix}_fastqc.html", fq_prefix=fastq_prefixes)
+	output:
+		"multiqc/multiqc_report.html"
+	params:
+		multiqc = multiqc_path
+	shell:
+		"{params.multiqc} -o multiqc fastqc"

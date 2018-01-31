@@ -7,5 +7,15 @@
 	"prepare_reference":
 	{
 		"n": 4
+	},
+
+	"fastqc_analysis":
+	{
+		"n": 1
+	},
+
+	"multiqc_analysis":
+	{
+		"n": 2
 	}
 }
