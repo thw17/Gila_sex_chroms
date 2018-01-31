@@ -1,6 +1,6 @@
 {
 	"genome_paths": {
-		"gila1": "reference/GilaMonster_fastas__assembly_raw.fasta"
+		"gila1": "reference/GilaMonster_fastas__assembly_pseudohap.fasta"
 	},
 
 	"G_10_dna":{
