@@ -64,4 +64,4 @@ rule multiqc_analysis:
 	params:
 		multiqc = multiqc_path
 	shell:
-		"{params.multiqc} -o multiqc fastqc"
+		"export LC_ALL=en_US.UTF-8 && export LANG=en_US.UTF-8 && {params.multiqc} -o multiqc fastqc"
