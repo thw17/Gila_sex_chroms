@@ -5,6 +5,7 @@ configfile: "gilas_config.json"
 fastq_directory = "/mnt/storage/SAYRES/GilaMonster/all_fastqs/"
 temp_directory = "temp/"
 
+bbduksh_path = "bbduk.sh"
 bwa_path = "bwa"
 fastqc_path = "fastqc"
 multiqc_path = "multiqc"
