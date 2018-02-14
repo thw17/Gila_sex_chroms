@@ -23,10 +23,14 @@ fastq_prefixes = [config[x]["fq1"][:-9] for x in samples] + [config[x]["fq2"][:-
 
 rule all:
 	input:
-		expand("new_reference/{assembly}.fasta.fai", assembly=["gila1"]),
+		expand(
+			"new_reference/{assembly}.fasta.fai",
+			assembly=["gila1"]),
 		"multiqc/multiqc_report.html",
-		"multiqc_trimmed_dna/multiqc_report.html"
-
+		"multiqc_trimmed_dna/multiqc_report.html",
+		expand(
+			"processed_bams/{sample}.{genome}.mkdup.sorted.bam.bai",
+			sample=dna, genome=["gila1"])
 
 rule prepare_reference:
 	input:
@@ -112,3 +116,39 @@ rule multiqc_analysis_trimmed_dna:
 	shell:
 		"export LC_ALL=en_US.UTF-8 && export LANG=en_US.UTF-8 && "
 		"{params.multiqc} -o multiqc_trimmed_dna fastqc_trimmed_dna"
+
+rule map_and_process_trimmed_reads:
+	input:
+		fq1 = "trimmed_dna_fastqs/{sample}_trimmed_read1.fastq.gz",
+		fq2 = "trimmed_dna_fastqs/{sample}_trimmed_read2.fastq.gz",
+		amb = "new_reference/{genome}.fasta.amb",
+		ref = "new_reference/{genome}.fasta"
+	output:
+		"processed_bams/{sample}.{genome}.mkdup.sorted.bam"
+	params:
+		id = lambda wildcards: config[wildcards.sample]["ID"],
+		sm = lambda wildcards: config[wildcards.sample]["SM"],
+		lb = lambda wildcards: config[wildcards.sample]["LB"],
+		pu = lambda wildcards: config[wildcards.sample]["PU"],
+		pl = lambda wildcards: config[wildcards.sample]["PL"],
+		bwa = bwa_path,
+		samblaster = samblaster_path,
+		samtools = samtools_path,
+		threads = 4
+	threads: 4
+	shell:
+		"{params.bwa} mem -t {params.threads} -R "
+		"'@RG\\tID:{params.id}\\tSM:{params.sm}\\tLB:{params.lb}\\tPU:{params.pu}\\tPL:{params.pl}' "
+		"{input.ref} {input.fq1} {input.fq2}"
+		"| {params.samblaster} | {params.samtools} fixmate -O bam - - "
+		"| {params.samtools} sort -O bam -o {output}"
+
+rule index_bam:
+	input:
+		"processed_bams/{sample}.{genome}.mkdup.sorted.bam"
+	output:
+		"processed_bams/{sample}.{genome}.mkdup.sorted.bam.bai"
+	params:
+		samtools = samtools_path
+	shell:
+		"{params.samtools} index {input}"
