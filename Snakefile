@@ -9,6 +9,7 @@ bbduksh_path = "bbduk.sh"
 bwa_path = "bwa"
 fastqc_path = "fastqc"
 multiqc_path = "multiqc"
+samblaster_path = "samblaster"
 samtools_path = "samtools"
 
 samples = [
