@@ -31,7 +31,10 @@ rule all:
 		"multiqc_trimmed_dna/multiqc_report.html",
 		expand(
 			"processed_bams/{sample}.{genome}.mkdup.sorted.bam.bai",
-			sample=dna, genome=["gila1"])
+			sample=dna, genome=["gila1"]),
+		expand(
+			"stats/{sample}.{genome}.dna.mkdup.sorted.bam.stats",
+			sample=dna, genome=["gila1"]),
 
 rule prepare_reference:
 	input:
@@ -153,3 +156,14 @@ rule index_bam:
 		samtools = samtools_path
 	shell:
 		"{params.samtools} index {input}"
+
+rule bam_stats_dna:
+	input:
+		bam = "processed_bams/{sample}.{genome}.mkdup.sorted.bam",
+		bai = "processed_bams/{sample}.{genome}.mkdup.sorted.bam.bai"
+	output:
+		"stats/{sample}.{genome}.dna.mkdup.sorted.bam.stats"
+	params:
+		samtools = samtools_path
+	shell:
+		"{params.samtools} stats {input.bam} | grep ^SN | cut -f 2- > {output}"
