@@ -11,6 +11,7 @@ fastqc_path = "fastqc"
 multiqc_path = "multiqc"
 samblaster_path = "samblaster"
 samtools_path = "samtools"
+xyalign_path = "xyalign"
 
 samples = [
 	"G_10_dna", "G_10_rna", "G_16_dna", "G_16_rna", "G_30_dna", "G_30_rna",
@@ -34,7 +35,7 @@ rule all:
 			sample=dna, genome=["gila1"]),
 		expand(
 			"stats/{sample}.{genome}.dna.mkdup.sorted.bam.stats",
-			sample=dna, genome=["gila1"]),
+			sample=dna, genome=["gila1"])
 
 rule prepare_reference:
 	input:
@@ -167,3 +168,24 @@ rule bam_stats_dna:
 		samtools = samtools_path
 	shell:
 		"{params.samtools} stats {input.bam} | grep ^SN | cut -f 2- > {output}"
+
+rule chrom_stats_dna:
+	input:
+		bams = lambda wildcards: expand(
+			"processed_bams/{sample}.{genome}.mkdup.sorted.bam",
+			sample=dna, genome=[wildcards.genome]),
+		bais = lambda wildcards: expand(
+			"processed_bams/{sample}.{genome}.mkdup.sorted.bam.bai",
+			sample=dna, genome=[wildcards.genome])
+	output:
+		counts = "xyalign_analyses/{genome}/results/{genome}_chrom_stats_count.txt"
+	params:
+		xyalign = xyalign_path,
+		sample_id = "{genome}",
+		xyalign_env = xyalign_anaconda_env
+	shell:
+		"source activate {params.xyalign_env} && "
+		"{params.xyalign} --CHROM_STATS --use_counts "
+		"--chromosomes ALL --bam {input.bams} --ref null "
+		"--sample_id {params.sample_id} "
+		"--output_dir xyalign_analyses/{params.sample_id}"
