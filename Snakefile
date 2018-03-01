@@ -38,7 +38,7 @@ rule all:
 		expand(
 			"stats/{sample}.{genome}.dna.mkdup.sorted.bam.stats",
 			sample=dna, genome=["gila1"]),
-		"hisat2_index/{assembly}.8.ht2",
+		expand("hisat2_index/{assembly}.8.ht2", assembly=["gila1"]),
 		"multiqc_trimmed_rna/multiqc_report.html"
 
 rule prepare_reference:
