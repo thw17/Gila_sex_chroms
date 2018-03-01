@@ -12,6 +12,11 @@
 	"map_and_process_trimmed_reads":
 	{
 		"n": 4
+	},
+
+	"prepare_hisat_index":
+	{
+		"n": 4
 	}
 
 }
