@@ -12,6 +12,7 @@ multiqc_path = "multiqc"
 samblaster_path = "samblaster"
 samtools_path = "samtools"
 xyalign_path = "xyalign"
+hisat2-build_path = "hisat2-build"
 
 samples = [
 	"G_10_dna", "G_10_rna", "G_16_dna", "G_16_rna", "G_30_dna", "G_30_rna",
@@ -35,7 +36,9 @@ rule all:
 			sample=dna, genome=["gila1"]),
 		expand(
 			"stats/{sample}.{genome}.dna.mkdup.sorted.bam.stats",
-			sample=dna, genome=["gila1"])
+			sample=dna, genome=["gila1"]),
+		"hisat2_index/{assembly}.8.ht2",
+		"multiqc_trimmed_rna/multiqc_report.html"
 
 rule prepare_reference:
 	input:
@@ -60,6 +63,17 @@ rule prepare_reference:
 		# bwa
 		shell(
 			"{params.bwa} index {output.new}")
+
+rule prepare_hisat_index:
+	input:
+		"new_reference/{assembly}.fasta"
+	output:
+		"hisat2_index/{assembly}.8.ht2"
+	params:
+		hisat2-build = hisat2-build_path,
+		prefix = "{assembly}"
+	shell:
+		"{params.hisat2-build} {input} {params.prefix}"
 
 rule fastqc_analysis:
 	input:
@@ -121,6 +135,46 @@ rule multiqc_analysis_trimmed_dna:
 	shell:
 		"export LC_ALL=en_US.UTF-8 && export LANG=en_US.UTF-8 && "
 		"{params.multiqc} -o multiqc_trimmed_dna fastqc_trimmed_dna"
+
+rule trim_adapters_paired_bbduk_rna:
+	input:
+		fq1 = lambda wildcards: os.path.join(
+			fastq_directory, config[wildcards.sample]["fq1"]),
+		fq2 = lambda wildcards: os.path.join(
+			fastq_directory, config[wildcards.sample]["fq2"])
+	output:
+		out_fq1 = "trimmed_rna_fastqs/{sample}_trimmed_read1.fastq.gz",
+		out_fq2 = "trimmed_rna_fastqs/{sample}_trimmed_read2.fastq.gz"
+	params:
+		bbduksh = bbduksh_path
+	shell:
+		"{params.bbduksh} -Xmx3g in1={input.fq1} in2={input.fq2} "
+		"out1={output.out_fq1} out2={output.out_fq2} "
+		"ref=misc/adapter_sequence.fa ktrim=r k=21 mink=11 hdist=2 tbo tpe "
+		"qtrim=rl trimq=25 minlen=60 maq=25"
+
+rule fastqc_analysis_trimmed_rna:
+	input:
+		"trimmed_rna_fastqs/{sample}_trimmed_{read}.fastq.gz"
+	output:
+		"fastqc_trimmed_rna/{sample}_trimmed_{read}_fastqc.html"
+	params:
+		fastqc = fastqc_path
+	shell:
+		"{params.fastqc} -o fastqc_trimmed_rna {input}"
+
+rule multiqc_analysis_trimmed_rna:
+	input:
+		expand(
+			"fastqc_trimmed_rna/{sample}_trimmed_{read}_fastqc.html",
+			sample=rna, read=["read1", "read2"])
+	output:
+		"multiqc_trimmed_rna/multiqc_report.html"
+	params:
+		multiqc = multiqc_path
+	shell:
+		"export LC_ALL=en_US.UTF-8 && export LANG=en_US.UTF-8 && "
+		"{params.multiqc} -o multiqc_trimmed_rna fastqc_trimmed_rna"
 
 rule map_and_process_trimmed_reads:
 	input:
