@@ -13,6 +13,7 @@ samblaster_path = "samblaster"
 samtools_path = "samtools"
 xyalign_path = "xyalign"
 hisat2_build_path = "hisat2-build"
+xyalign_anaconda_env = "xyalign_env"
 
 samples = [
 	"G_10_dna", "G_10_rna", "G_16_dna", "G_16_rna", "G_30_dna", "G_30_rna",
