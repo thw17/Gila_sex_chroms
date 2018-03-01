@@ -12,7 +12,7 @@ multiqc_path = "multiqc"
 samblaster_path = "samblaster"
 samtools_path = "samtools"
 xyalign_path = "xyalign"
-hisat2-build_path = "hisat2-build"
+hisat2_build_path = "hisat2-build"
 
 samples = [
 	"G_10_dna", "G_10_rna", "G_16_dna", "G_16_rna", "G_30_dna", "G_30_rna",
@@ -70,10 +70,10 @@ rule prepare_hisat_index:
 	output:
 		"hisat2_index/{assembly}.8.ht2"
 	params:
-		hisat2-build = hisat2-build_path,
+		hisat2_build = hisat2_build_path,
 		prefix = "{assembly}"
 	shell:
-		"{params.hisat2-build} {input} {params.prefix}"
+		"{params.hisat2_build} {input} {params.prefix}"
 
 rule fastqc_analysis:
 	input:
