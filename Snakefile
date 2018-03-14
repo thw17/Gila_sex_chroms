@@ -77,7 +77,7 @@ rule prepare_hisat_index:
 		"hisat2_index/{assembly}.8.ht2"
 	params:
 		hisat2_build = hisat2_build_path,
-		prefix = "{assembly}"
+		prefix = "hisat2_index/{assembly}"
 	shell:
 		"{params.hisat2_build} {input} {params.prefix}"
 
