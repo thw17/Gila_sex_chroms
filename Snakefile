@@ -23,7 +23,9 @@ dna = ["G_10_dna", "G_16_dna", "G_30_dna", "G_35_dna", "G_KI01_dna", "G_L_dna"]
 
 rna = ["G_10_rna", "G_16_rna", "G_30_rna", "G_35_rna", "G_KI01_rna", "G_L_rna"]
 
-fastq_prefixes = [config[x]["fq1"][:-9] for x in samples] + [config[x]["fq2"][:-9] for x in samples]
+fastq_prefixes = [
+	config[x]["fq1"][:-9] for x in samples] + [
+		config[x]["fq2"][:-9] for x in samples]
 
 rule all:
 	input:
@@ -39,7 +41,10 @@ rule all:
 			"stats/{sample}.{genome}.dna.mkdup.sorted.bam.stats",
 			sample=dna, genome=["gila1"]),
 		expand("hisat2_index/{assembly}.8.ht2", assembly=["gila1"]),
-		"multiqc_trimmed_rna/multiqc_report.html"
+		"multiqc_trimmed_rna/multiqc_report.html",
+		expand(
+			"xyalign_analyses/{genome}/results/{genome}_chrom_stats_count.txt",
+			genome=["gila1"])
 
 rule prepare_reference:
 	input:
@@ -152,7 +157,7 @@ rule trim_adapters_paired_bbduk_rna:
 		"{params.bbduksh} -Xmx3g in1={input.fq1} in2={input.fq2} "
 		"out1={output.out_fq1} out2={output.out_fq2} "
 		"ref=misc/adapter_sequence.fa ktrim=r k=21 mink=11 hdist=2 tbo tpe "
-		"qtrim=rl trimq=25 minlen=60 maq=25"
+		"qtrim=rl trimq=15 minlen=60 maq=20"
 
 rule fastqc_analysis_trimmed_rna:
 	input:
