@@ -8,6 +8,7 @@ temp_directory = "temp/"
 bbduksh_path = "bbduk.sh"
 bwa_path = "bwa"
 fastqc_path = "fastqc"
+gatk_path = "gatk-launch"
 multiqc_path = "multiqc"
 samblaster_path = "samblaster"
 samtools_path = "samtools"
@@ -49,9 +50,12 @@ rule all:
 		expand(
 			"xyalign_analyses/{genome}/results/{genome}_chrom_stats_count.txt",
 			genome=["gila1"]),
+		# expand(
+		# 	"vcf/{sample}.{genome}.{chunk}.g.vcf.gz",
+		# 	sample=dna, genome=["gila1"], chunk=chunk_range),
 		expand(
-			"vcf/{sample}.{genome}.{chunk}.g.vcf.gz",
-			sample=dna, genome=["gila1"], chunk=chunk_range)
+			"vcf/{genome}.{chunk}.gatk.raw.vcf.gz",
+			genome=["gila1"], chunk=chunk_range)
 
 rule prepare_reference:
 	input:
@@ -282,6 +286,27 @@ rule gatk_gvcf_per_chunk:
 	threads:
 		4
 	shell:
-		"""gatk --java-options "-Xmx15g -Djava.io.tmpdir={params.temp_dir}" """
+		"""{params.gatk} --java-options "-Xmx15g -Djava.io.tmpdir={params.temp_dir}" """
 		"""HaplotypeCaller -R {input.ref} -I {input.bam} -L {wildcards.chunk} """
 		"""-ERC GVCF -O {output}"""
+
+rule gatk_combinegvcfs_per_chunk:
+	input:
+		ref = "new_reference/{genome}.fasta",
+		gvcfs = expand(
+			"vcf/{sample}.{{genome}}.{{chunk}}.g.vcf.gz", sample=dna)
+	output:
+		"vcf/{genome}.{chunk}.gatk.raw.vcf.gz"
+	params:
+		temp_dir = temp_directory,
+		gatk = gatk_path
+	threads:
+		4
+	run:
+		variant_files = []
+		for i in input.gvcfs:
+			variant_files.append("--variant " + i)
+		variant_files = " ".join(variant_files)
+		shell(
+			"""{params.gatk} --java-options "-Xmx15g -Djava.io.tmpdir={params.temp_dir}" """
+			"""CombineGVCFs -R {input.ref} {variant_files} -O {output}"""
