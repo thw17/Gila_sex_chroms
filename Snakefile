@@ -85,7 +85,7 @@ rule chunk_reference:
 	input:
 		fai = "new_reference/{assembly}.fasta.fai"
 	output:
-		expand("new_reference/split_chunk{num}.bed", num=chunk_range)
+		expand("new_reference/{assembly}_split_chunk{num}.bed", num=chunk_range)
 	params:
 		chunks = num_chunks
 	shell:
@@ -277,7 +277,7 @@ rule gatk_gvcf_per_chunk:
 		ref = "new_reference/{genome}.fasta",
 		bam = "processed_bams/{sample}.{genome}.mkdup.sorted.bam",
 		bai = "processed_bams/{sample}.{genome}.mkdup.sorted.bam.bai",
-		chunkfile = "new_reference/split_chunk{chunk}.bed"
+		chunkfile = "new_reference/{assembly}_split_chunk{chunk}.bed"
 	output:
 		"vcf/{sample}.{genome}.{chunk}.g.vcf.gz"
 	params:
