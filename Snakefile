@@ -27,6 +27,10 @@ fastq_prefixes = [
 	config[x]["fq1"][:-9] for x in samples] + [
 		config[x]["fq2"][:-9] for x in samples]
 
+# Parameters for splitting reference
+num_chunks = 25
+chunk_range = [x for x in range(1, num_chunks + 1)]
+
 rule all:
 	input:
 		expand(
@@ -44,7 +48,10 @@ rule all:
 		"multiqc_trimmed_rna/multiqc_report.html",
 		expand(
 			"xyalign_analyses/{genome}/results/{genome}_chrom_stats_count.txt",
-			genome=["gila1"])
+			genome=["gila1"]),
+		expand(
+			"vcf/{sample}.{genome}.{chunk}.g.vcf.gz",
+			sample=dna, genome=["gila1"], chunk=chunk_range)
 
 rule prepare_reference:
 	input:
@@ -69,6 +76,17 @@ rule prepare_reference:
 		# bwa
 		shell(
 			"{params.bwa} index {output.new}")
+
+rule chunk_reference:
+	input:
+		fai = "new_reference/{assembly}.fasta.fai"
+	output:
+		expand("new_reference/split_chunk{num}.bed", num=chunk_range)
+	params:
+		chunks = num_chunks
+	shell:
+		"python scripts/Chunk_fai.py --fai {input.fai} "
+		"--out_prefix new_reference/split --chunks {params.chunks}"
 
 rule prepare_hisat_index:
 	input:
@@ -249,3 +267,21 @@ rule chrom_stats_dna:
 		"--chromosomes ALL --bam {input.bams} --ref null "
 		"--sample_id {params.sample_id} "
 		"--output_dir xyalign_analyses/{params.sample_id}"
+
+rule gatk_gvcf_per_chunk:
+	input:
+		ref = "new_reference/{genome}.fasta",
+		bam = "processed_bams/{sample}.{genome}.mkdup.sorted.bam",
+		bai = "processed_bams/{sample}.{genome}.mkdup.sorted.bam.bai",
+		chunkfile = "new_reference/split_chunk{chunk}.bed"
+	output:
+		"vcf/{sample}.{genome}.{chunk}.g.vcf.gz"
+	params:
+		temp_dir = temp_directory,
+		gatk = gatk_path
+	threads:
+		4
+	shell:
+		"""gatk --java-options "-Xmx15g -Djava.io.tmpdir={params.temp_dir}" """
+		"""HaplotypeCaller -R {input.ref} -I {input.bam} -L {wildcards.chunk} """
+		"""-ERC GVCF -O {output}"""
