@@ -277,7 +277,7 @@ rule gatk_gvcf_per_chunk:
 		ref = "new_reference/{genome}.fasta",
 		bam = "processed_bams/{sample}.{genome}.mkdup.sorted.bam",
 		bai = "processed_bams/{sample}.{genome}.mkdup.sorted.bam.bai",
-		chunkfile = "new_reference/{assembly}_split_chunk{chunk}.bed"
+		chunkfile = "new_reference/{genome}_split_chunk{chunk}.bed"
 	output:
 		"vcf/{sample}.{genome}.{chunk}.g.vcf.gz"
 	params:
