@@ -309,4 +309,4 @@ rule gatk_combinegvcfs_per_chunk:
 		variant_files = " ".join(variant_files)
 		shell(
 			"""{params.gatk} --java-options "-Xmx15g -Djava.io.tmpdir={params.temp_dir}" """
-			"""CombineGVCFs -R {input.ref} {variant_files} -O {output}"""
+			"""CombineGVCFs -R {input.ref} {variant_files} -O {output}""")
