@@ -85,7 +85,7 @@ rule chunk_reference:
 	input:
 		fai = "new_reference/{assembly}.fasta.fai"
 	output:
-		expand("new_reference/{assembly}_split_chunk{num}.bed", num=chunk_range)
+		expand("new_reference/{{assembly}}_split_chunk{num}.bed", num=chunk_range)
 	params:
 		chunks = num_chunks
 	shell:
