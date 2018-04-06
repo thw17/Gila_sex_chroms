@@ -87,10 +87,11 @@ rule chunk_reference:
 	output:
 		expand("new_reference/{{assembly}}_split_chunk{num}.bed", num=chunk_range)
 	params:
-		chunks = num_chunks
+		chunks = num_chunks,
+		out_prefix = "new_reference/{assembly}_split"
 	shell:
 		"python scripts/Chunk_fai.py --fai {input.fai} "
-		"--out_prefix new_reference/split --chunks {params.chunks}"
+		"--out_prefix {params.out_prefix} --chunks {params.chunks}"
 
 rule prepare_hisat_index:
 	input:
