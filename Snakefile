@@ -55,7 +55,8 @@ rule all:
 		# 	sample=dna, genome=["gila1"], chunk=chunk_range),
 		expand(
 			"vcf/{genome}.{chunk}.gatk.raw.vcf.gz",
-			genome=["gila1"], chunk=chunk_range)
+			genome=["gila1"], chunk=chunk_range),
+		"xyalign_analyses/{genome}/logfiles/{sample}.{genome}_xyalign.log"
 
 rule prepare_reference:
 	input:
@@ -272,6 +273,27 @@ rule chrom_stats_dna:
 		"--chromosomes ALL --bam {input.bams} --ref null "
 		"--sample_id {params.sample_id} "
 		"--output_dir xyalign_analyses/{params.sample_id}"
+
+rule bam_analysis_dna:
+	input:
+		bam = "processed_bams/{sample}.{genome}.mkdup.sorted.bam",
+		bai = "processed_bams/{sample}.{genome}.mkdup.sorted.bam.bai"
+	output:
+		"xyalign_analyses/{genome}/logfiles/{sample}.{genome}_xyalign.log"
+	params:
+		xyalign = xyalign_path,
+		sample_id = "{sample}.{genome}",
+		xyalign_env = xyalign_anaconda_env,
+		threads = 4
+	threads: 4
+	shell:
+		"source activate {params.xyalign_env} && "
+		"{params.xyalign} --BAM_ANALYSIS "
+		"--chromosomes 1759 3281 2585 3374 1225 3544 1960 260213 3468 2594 3068 259577 3245 259781 "
+		"--bam {input.bam} --ref null "
+		"--sample_id {params.sample_id} "
+		"--output_dir xyalign_analyses/{params.sample_id} "
+		"--cpus 4 --window_size 5000"
 
 rule gatk_gvcf_per_chunk:
 	input:
