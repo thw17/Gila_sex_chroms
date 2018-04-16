@@ -56,7 +56,9 @@ rule all:
 		expand(
 			"vcf/{genome}.{chunk}.gatk.raw.vcf.gz",
 			genome=["gila1"], chunk=chunk_range),
-		"xyalign_analyses/{genome}/logfiles/{sample}.{genome}_xyalign.log"
+		expand(
+			"xyalign_analyses/{genome}/logfiles/{sample}.{genome}_xyalign.log",
+			sample=dna, genome=["gila1"])
 
 rule prepare_reference:
 	input:
