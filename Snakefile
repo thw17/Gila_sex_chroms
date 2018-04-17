@@ -290,7 +290,7 @@ rule bam_analysis_dna:
 	threads: 4
 	shell:
 		"source activate {params.xyalign_env} && "
-		"{params.xyalign} --BAM_ANALYSIS "
+		"{params.xyalign} --ANALYZE_BAM "
 		"--chromosomes 1759 3281 2585 3374 1225 3544 1960 260213 3468 2594 3068 259577 3245 259781 "
 		"--bam {input.bam} --ref null "
 		"--sample_id {params.sample_id} "
