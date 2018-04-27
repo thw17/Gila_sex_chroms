@@ -54,11 +54,14 @@ rule all:
 		# 	"vcf/{sample}.{genome}.{chunk}.g.vcf.gz",
 		# 	sample=dna, genome=["gila1"], chunk=chunk_range),
 		expand(
-			"vcf/{genome}.{chunk}.gatk.raw.vcf.gz",
+			"vcf/{genome}.{chunk}.gatk.combinegvcf.g.vcf.gz",
 			genome=["gila1"], chunk=chunk_range),
 		expand(
 			"xyalign_analyses/{genome}/logfiles/{sample}.{genome}_xyalign.log",
-			sample=dna, genome=["gila1"])
+			sample=dna, genome=["gila1"]),
+		expand(
+			"vcf/{genome}.{chunk}.gatk.called.raw.vcf.gz",
+			genome=["gila1"], chunk=chunk_range)
 
 rule prepare_reference:
 	input:
@@ -321,7 +324,7 @@ rule gatk_combinegvcfs_per_chunk:
 		gvcfs = expand(
 			"vcf/{sample}.{{genome}}.{{chunk}}.g.vcf.gz", sample=dna)
 	output:
-		"vcf/{genome}.{chunk}.gatk.raw.vcf.gz"
+		"vcf/{genome}.{chunk}.gatk.combinegvcf.g.vcf.gz"
 	params:
 		temp_dir = temp_directory,
 		gatk = gatk_path
@@ -335,3 +338,18 @@ rule gatk_combinegvcfs_per_chunk:
 		shell(
 			"""{params.gatk} --java-options "-Xmx15g -Djava.io.tmpdir={params.temp_dir}" """
 			"""CombineGVCFs -R {input.ref} {variant_files} -O {output}""")
+
+rule gatk_genotypegvcf_per_chunk:
+	input:
+		ref = "new_reference/{genome}.fasta",
+		gvcf = "vcf/{genome}.{chunk}.gatk.combinegvcf.g.vcf.gz"
+	output:
+		"vcf/{genome}.{chunk}.gatk.called.raw.vcf.gz"
+	params:
+		temp_dir = temp_directory,
+		gatk = gatk_path
+	threads:
+		4
+	run:
+		"""{params.gatk} --java-options "-Xmx15g -Djava.io.tmpdir={params.temp_dir}" """
+		"""GenotypeGVCFs -R {input.ref} -V {input.gvcf} -O {output}"""
