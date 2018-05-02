@@ -53,14 +53,14 @@ rule all:
 		# expand(
 		# 	"vcf/{sample}.{genome}.{chunk}.g.vcf.gz",
 		# 	sample=dna, genome=["gila1"], chunk=chunk_range),
-		expand(
-			"vcf/{genome}.{chunk}.gatk.combinegvcf.g.vcf.gz",
-			genome=["gila1"], chunk=chunk_range),
+		# expand(
+		# 	"combined_gvcfs/{genome}.{chunk}.gatk.combinegvcf.g.vcf.gz",
+		# 	genome=["gila1"], chunk=chunk_range),
 		expand(
 			"xyalign_analyses/{genome}/logfiles/{sample}.{genome}_xyalign.log",
 			sample=dna, genome=["gila1"]),
 		expand(
-			"vcf/{genome}.{chunk}.gatk.called.raw.vcf.gz",
+			"genotyped_vcfs/{genome}.{chunk}.gatk.called.raw.vcf.gz",
 			genome=["gila1"], chunk=chunk_range)
 
 rule prepare_reference:
@@ -307,7 +307,7 @@ rule gatk_gvcf_per_chunk:
 		bai = "processed_bams/{sample}.{genome}.mkdup.sorted.bam.bai",
 		chunkfile = "new_reference/{genome}_split_chunk{chunk}.bed"
 	output:
-		"vcf/{sample}.{genome}.{chunk}.g.vcf.gz"
+		"gvcfs/{sample}.{genome}.{chunk}.g.vcf.gz"
 	params:
 		temp_dir = temp_directory,
 		gatk = gatk_path
@@ -322,9 +322,9 @@ rule gatk_combinegvcfs_per_chunk:
 	input:
 		ref = "new_reference/{genome}.fasta",
 		gvcfs = expand(
-			"vcf/{sample}.{{genome}}.{{chunk}}.g.vcf.gz", sample=dna)
+			"gvcfs/{sample}.{{genome}}.{{chunk}}.g.vcf.gz", sample=dna)
 	output:
-		"vcf/{genome}.{chunk}.gatk.combinegvcf.g.vcf.gz"
+		"combined_gvcfs/{genome}.{chunk}.gatk.combinegvcf.g.vcf.gz"
 	params:
 		temp_dir = temp_directory,
 		gatk = gatk_path
@@ -342,9 +342,9 @@ rule gatk_combinegvcfs_per_chunk:
 rule gatk_genotypegvcf_per_chunk:
 	input:
 		ref = "new_reference/{genome}.fasta",
-		gvcf = "vcf/{genome}.{chunk}.gatk.combinegvcf.g.vcf.gz"
+		gvcf = "combined_gvcfs/{genome}.{chunk}.gatk.combinegvcf.g.vcf.gz"
 	output:
-		"vcf/{genome}.{chunk}.gatk.called.raw.vcf.gz"
+		"genotyped_vcfs/{genome}.{chunk}.gatk.called.raw.vcf.gz"
 	params:
 		temp_dir = temp_directory,
 		gatk = gatk_path
