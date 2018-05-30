@@ -13,7 +13,9 @@ multiqc_path = "multiqc"
 samblaster_path = "samblaster"
 samtools_path = "samtools"
 xyalign_path = "xyalign"
+hisat2_path = "hisat2"
 hisat2_build_path = "hisat2-build"
+stringtie_path = "stringtie"
 xyalign_anaconda_env = "xyalign_env"
 
 samples = [
@@ -61,7 +63,10 @@ rule all:
 			sample=dna, genome=["gila1"]),
 		expand(
 			"genotyped_vcfs/{genome}.{chunk}.gatk.called.raw.vcf.gz",
-			genome=["gila1"], chunk=chunk_range)
+			genome=["gila1"], chunk=chunk_range),
+		expand(
+			"stringtie_gtfs/{sample}.{genome}.secondpass.gtf",
+			genome=["gila1"], sample=rna)
 
 rule prepare_reference:
 	input:
@@ -99,16 +104,100 @@ rule chunk_reference:
 		"python scripts/Chunk_fai.py --fai {input.fai} "
 		"--out_prefix {params.out_prefix} --chunks {params.chunks}"
 
-rule prepare_hisat_index:
+rule hisat2_reference_index:
 	input:
-		"new_reference/{assembly}.fasta"
+		"new_reference/{genome}.fasta"
 	output:
-		"hisat2_index/{assembly}.8.ht2"
+		expand(
+			"new_reference/hisat2/{{genome}}.{suffix}.ht2",
+			suffix=[
+				"1", "2", "3", "4", "5", "6", "7", "8"])
 	params:
-		hisat2_build = hisat2_build_path,
-		prefix = "hisat2_index/{assembly}"
+		hisat2_build = hisat2_build_path
 	shell:
-		"{params.hisat2_build} {input} {params.prefix}"
+		"{params.hisat2_build} {input} new_reference/hisat2/{wildcards.genome}"
+
+rule hisat2_map_reads:
+	input:
+		idx = expand(
+			"new_reference/hisat2/{{genome}}.{suffix}.ht2",
+			suffix=["1", "2", "3", "4", "5", "6", "7", "8"]),
+		fq1 = "trimmed_rna_fastqs/{sample}_trimmed_read1.fastq.gz",
+		fq2 = "trimmed_rna_fastqs/{sample}_trimmed_read2.fastq.gz"
+	output:
+		"processed_rna_bams/{sample}.{genome}.sorted.bam"
+	threads:
+		4
+	params:
+		threads = 4,
+		hisat2 = hisat2_path,
+		samtools = samtools_path,
+		id = lambda wildcards: config[wildcards.sample]["ID"],
+		sm = lambda wildcards: config[wildcards.sample]["SM"],
+		lb = lambda wildcards: config[wildcards.sample]["LB"],
+		pu = lambda wildcards: config[wildcards.sample]["PU"],
+		pl = lambda wildcards: config[wildcards.sample]["PL"]
+	shell:
+		"{params.hisat2} -p {params.threads} --dta "
+		"--rg-id {params.id} --rg SM:{params.sm} --rg LB:{params.lb} "
+		"--rg PU:{params.pu} --rg PL:{params.pl} "
+		"-x new_reference/hisat2/{wildcards.genome} "
+		"-1 {input.fq1} -2 {input.fq2} | "
+		"{params.samtools} sort -O bam -o {output}"
+
+rule stringtie_first_pass:
+	input:
+		bam = "processed_rna_bams/{sample}.{genome}.sorted.bam"
+	output:
+		"stringtie_gtfs/{sample}.{genome}.firstpass.gtf"
+	threads:
+		4
+	params:
+		stringtie = stringtie_path,
+		threads = 4
+	shell:
+		"{params.stringtie} {input.bam} -o {output} -p {params.threads}"
+
+rule create_stringtie_merged_list:
+	input:
+		lambda wildcards: expand(
+			"stringtie_gtfs/{sample}.{genome}.firstpass.gtf",
+			genome=wildcards.genome,
+			sample=rna)
+	output:
+		"stringtie_gtfs/{genome}_gtflist.txt"
+	run:
+		shell("echo -n > {output}")
+		for i in input:
+			shell("echo {} >> {{output}}".format(i))
+
+rule stringtie_merge:
+	input:
+		bam_list = "stringtie_gtfs/{genome}_gtflist.txt"
+	output:
+		"stringtie_gtfs/{genome}.merged.gtf"
+	threads:
+		4
+	params:
+		stringtie = stringtie_path,
+		threads = 4
+	shell:
+		"{params.stringtie} --merge {input.bam_list} -o {output} -p {params.threads}"
+
+rule stringtie_second_pass:
+	input:
+		bam = "processed_rna_bams/{sample}.{genome}.sorted.bam",
+		gtf = "stringtie_gtfs/{genome}.merged.gtf"
+	output:
+		"stringtie_gtfs/{sample}.{genome}.secondpass.gtf"
+	threads:
+		4
+	params:
+		stringtie = stringtie_path,
+		threads = 4
+	shell:
+		"{params.stringtie} {input.bam} -o {output} -p {params.threads} "
+		"-G {input.gtf} -B -e"
 
 rule fastqc_analysis:
 	input:
