@@ -371,7 +371,9 @@ rule chrom_stats_dna:
 rule bam_analysis_dna:
 	input:
 		bam = "processed_bams/{sample}.{genome}.mkdup.sorted.bam",
-		bai = "processed_bams/{sample}.{genome}.mkdup.sorted.bam.bai"
+		bai = "processed_bams/{sample}.{genome}.mkdup.sorted.bam.bai",
+		ref = "new_reference/{assembly}.fasta",
+		fai = "new_reference/{assembly}.fasta.fai",
 	output:
 		"xyalign_analyses/{genome}/logfiles/{sample}.{genome}_xyalign.log"
 	params:
@@ -384,7 +386,7 @@ rule bam_analysis_dna:
 		"source activate {params.xyalign_env} && "
 		"{params.xyalign} --ANALYZE_BAM "
 		"--chromosomes 1759 3281 2585 3374 1225 3544 1960 260213 3468 2594 3068 259577 3245 259781 "
-		"--bam {input.bam} --ref null "
+		"--bam {input.bam} --ref {input.ref} "
 		"--sample_id {params.sample_id} "
 		"--output_dir xyalign_analyses/{params.sample_id} "
 		"--cpus 4 --window_size 5000"
