@@ -372,8 +372,8 @@ rule bam_analysis_dna:
 	input:
 		bam = "processed_bams/{sample}.{genome}.mkdup.sorted.bam",
 		bai = "processed_bams/{sample}.{genome}.mkdup.sorted.bam.bai",
-		ref = "new_reference/{assembly}.fasta",
-		fai = "new_reference/{assembly}.fasta.fai",
+		ref = "new_reference/{genome}.fasta",
+		fai = "new_reference/{genome}.fasta.fai",
 	output:
 		"xyalign_analyses/{genome}/logfiles/{sample}.{genome}_xyalign.log"
 	params:
