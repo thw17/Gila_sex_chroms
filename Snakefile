@@ -65,7 +65,7 @@ rule all:
 			"genotyped_vcfs/{genome}.{chunk}.gatk.called.raw.vcf.gz",
 			genome=["gila1"], chunk=chunk_range),
 		expand(
-			"stringtie_gtfs/{sample}.{genome}.secondpass.gtf",
+			"stringtie_gtfs/{sample}/{sample}.{genome}.secondpass.gtf",
 			genome=["gila1"], sample=rna)
 
 rule prepare_reference:
@@ -149,7 +149,7 @@ rule stringtie_first_pass:
 	input:
 		bam = "processed_rna_bams/{sample}.{genome}.sorted.bam"
 	output:
-		"stringtie_gtfs/{sample}.{genome}.firstpass.gtf"
+		"stringtie_gtfs/{sample}/{sample}.{genome}.firstpass.gtf"
 	threads:
 		4
 	params:
@@ -161,7 +161,7 @@ rule stringtie_first_pass:
 rule create_stringtie_merged_list:
 	input:
 		lambda wildcards: expand(
-			"stringtie_gtfs/{sample}.{genome}.firstpass.gtf",
+			"stringtie_gtfs/{sample}/{sample}.{genome}.firstpass.gtf",
 			genome=wildcards.genome,
 			sample=rna)
 	output:
@@ -189,7 +189,7 @@ rule stringtie_second_pass:
 		bam = "processed_rna_bams/{sample}.{genome}.sorted.bam",
 		gtf = "stringtie_gtfs/{genome}.merged.gtf"
 	output:
-		"stringtie_gtfs/{sample}.{genome}.secondpass.gtf"
+		"stringtie_gtfs/{sample}/{sample}.{genome}.secondpass.gtf"
 	threads:
 		4
 	params:
