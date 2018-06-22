@@ -441,6 +441,6 @@ rule gatk_genotypegvcf_per_chunk:
 		gatk = gatk_path
 	threads:
 		4
-	run:
+	shell:
 		"""{params.gatk} --java-options "-Xmx15g -Djava.io.tmpdir={params.temp_dir}" """
 		"""GenotypeGVCFs -R {input.ref} -V {input.gvcf} -O {output}"""
