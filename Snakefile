@@ -47,7 +47,8 @@ rule all:
 		expand(
 			"stats/{sample}.{genome}.dna.mkdup.sorted.bam.stats",
 			sample=dna, genome=["gila1"]),
-		expand("hisat2_index/{assembly}.8.ht2", assembly=["gila1"]),
+		expand(
+			"hisat2_index/{assembly}.8.ht2", assembly=["gila1"]),
 		"multiqc_trimmed_rna/multiqc_report.html",
 		expand(
 			"xyalign_analyses/{genome}/results/{genome}_chrom_stats_count.txt",
@@ -58,14 +59,17 @@ rule all:
 		# expand(
 		# 	"combined_gvcfs/{genome}.{chunk}.gatk.combinegvcf.g.vcf.gz",
 		# 	genome=["gila1"], chunk=chunk_range),
-		expand(
-			"xyalign_analyses/{genome}/logfiles/{sample}.{genome}_xyalign.log",
-			sample=dna, genome=["gila1"]),
+		# expand(
+		# 	"xyalign_analyses/{genome}/logfiles/{sample}.{genome}_xyalign.log",
+		# 	sample=dna, genome=["gila1"]),
 		expand(
 			"genotyped_vcfs/{genome}.{chunk}.gatk.called.raw.vcf.gz",
 			genome=["gila1"], chunk=chunk_range),
 		expand(
 			"stringtie_gtfs/{sample}/{sample}.{genome}.secondpass.gtf",
+			genome=["gila1"], sample=rna),
+		expand(
+			"stats/{sample}.{genome}.rna.sorted.bam.stats",
 			genome=["gila1"], sample=rna)
 
 rule prepare_reference:
@@ -144,6 +148,27 @@ rule hisat2_map_reads:
 		"-x new_reference/hisat2/{wildcards.genome} "
 		"-1 {input.fq1} -2 {input.fq2} | "
 		"{params.samtools} sort -O bam -o {output}"
+
+rule index_bam_rna:
+	input:
+		"processed_rna_bams/{sample}.{genome}.sorted.bam"
+	output:
+		"processed_rna_bams/{sample}.{genome}.sorted.bam.bai"
+	params:
+		samtools = samtools_path
+	shell:
+		"{params.samtools} index {input}"
+
+rule bam_stats_rna:
+	input:
+		bam = "processed_rna_bams/{sample}.{genome}.sorted.bam",
+		bai = "processed_rna_bams/{sample}.{genome}.sorted.bam.bai"
+	output:
+		"stats/{sample}.{genome}.rna.sorted.bam.stats"
+	params:
+		samtools = samtools_path
+	shell:
+		"{params.samtools} stats {input.bam} | grep ^SN | cut -f 2- > {output}"
 
 rule stringtie_first_pass:
 	input:
