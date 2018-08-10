@@ -18,6 +18,8 @@ hisat2_build_path = "hisat2-build"
 stringtie_path = "stringtie"
 xyalign_anaconda_env = "xyalign_env"
 
+assembly_list = ["gila1", "gila2"]
+
 samples = [
 	"G_10_dna", "G_10_rna", "G_16_dna", "G_16_rna", "G_30_dna", "G_30_rna",
 	"G_35_dna", "G_35_rna", "G_KI01_dna", "G_KI01_rna", "G_L_dna", "G_L_rna"]
@@ -38,21 +40,21 @@ rule all:
 	input:
 		expand(
 			"new_reference/{assembly}.fasta.fai",
-			assembly=["gila1"]),
+			assembly=assembly_list),
 		"multiqc/multiqc_report.html",
 		"multiqc_trimmed_dna/multiqc_report.html",
 		expand(
 			"processed_bams/{sample}.{genome}.mkdup.sorted.bam.bai",
-			sample=dna, genome=["gila1"]),
+			sample=dna, genome=assembly_list),
 		expand(
 			"stats/{sample}.{genome}.dna.mkdup.sorted.bam.stats",
-			sample=dna, genome=["gila1"]),
+			sample=dna, genome=assembly_list),
 		expand(
-			"hisat2_index/{assembly}.8.ht2", assembly=["gila1"]),
+			"hisat2_index/{assembly}.8.ht2", assembly=assembly_list),
 		"multiqc_trimmed_rna/multiqc_report.html",
 		expand(
 			"xyalign_analyses/{genome}/results/{genome}_chrom_stats_count.txt",
-			genome=["gila1"]),
+			genome=assembly_list),
 		# expand(
 		# 	"vcf/{sample}.{genome}.{chunk}.g.vcf.gz",
 		# 	sample=dna, genome=["gila1"], chunk=chunk_range),
@@ -64,13 +66,13 @@ rule all:
 		# 	sample=dna, genome=["gila1"]),
 		expand(
 			"genotyped_vcfs/{genome}.{chunk}.gatk.called.raw.vcf.gz",
-			genome=["gila1"], chunk=chunk_range),
+			genome=assembly_list, chunk=chunk_range),
 		expand(
 			"stringtie_gtfs/{sample}/{sample}.{genome}.secondpass.gtf",
-			genome=["gila1"], sample=rna),
+			genome=assembly_list, sample=rna),
 		expand(
 			"stats/{sample}.{genome}.rna.sorted.bam.stats",
-			genome=["gila1"], sample=rna)
+			genome=assembly_list, sample=rna)
 
 rule prepare_reference:
 	input:
