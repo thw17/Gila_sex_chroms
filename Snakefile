@@ -50,9 +50,6 @@ rule all:
 			"stats/{sample}.{genome}.dna.mkdup.sorted.bam.stats",
 			sample=dna, genome=assembly_list),
 		expand(
-			"hisat2_index/{assembly}.8.ht2", assembly=assembly_list),
-		"multiqc_trimmed_rna/multiqc_report.html",
-		expand(
 			"xyalign_analyses/{genome}/results/{genome}_chrom_stats_count.txt",
 			genome=assembly_list),
 		# expand(
