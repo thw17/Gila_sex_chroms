@@ -477,11 +477,11 @@ rule compile_stringtie_results:
 	input:
 		fai = "new_reference/{assembly}.fasta.fai",
 		ctabs = lambda wildcards: expand(
-			"stringtie_gtfs/{sample}_{genome}/t_data.ctab",
-			genome=wildcards.genome,
+			"stringtie_gtfs/{sample}_{assembly}/t_data.ctab",
+			assembly=wildcards.genome,
 			sample=rna)
 	output:
-		"results/{genome}.stringtie_compiled.txt"
+		"results/{assembly}.stringtie_compiled.txt"
 	run:
 		ctab_sexes = []
 		for i in input.ctabs:
