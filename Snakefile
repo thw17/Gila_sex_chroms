@@ -65,11 +65,14 @@ rule all:
 			"genotyped_vcfs/{genome}.{chunk}.gatk.called.raw.vcf.gz",
 			genome=assembly_list, chunk=chunk_range),
 		expand(
-			"stringtie_gtfs/{sample}/{sample}.{genome}.secondpass.gtf",
+			"stringtie_gtfs/{sample}_{genome}/{sample}.{genome}.secondpass.gtf",
 			genome=assembly_list, sample=rna),
 		expand(
 			"stats/{sample}.{genome}.rna.sorted.bam.stats",
-			genome=assembly_list, sample=rna)
+			genome=assembly_list, sample=rna),
+		expand(
+			"results/{genome}.stringtie_compiled.txt",
+			genome=assembly_list)
 
 rule prepare_reference:
 	input:
@@ -173,7 +176,7 @@ rule stringtie_first_pass:
 	input:
 		bam = "processed_rna_bams/{sample}.{genome}.sorted.bam"
 	output:
-		"stringtie_gtfs/{sample}/{sample}.{genome}.firstpass.gtf"
+		"stringtie_gtfs/{sample}_{genome}/{sample}.{genome}.firstpass.gtf"
 	threads:
 		4
 	params:
@@ -185,7 +188,7 @@ rule stringtie_first_pass:
 rule create_stringtie_merged_list:
 	input:
 		lambda wildcards: expand(
-			"stringtie_gtfs/{sample}/{sample}.{genome}.firstpass.gtf",
+			"stringtie_gtfs/{sample}_{genome}/{sample}.{genome}.firstpass.gtf",
 			genome=wildcards.genome,
 			sample=rna)
 	output:
@@ -213,14 +216,15 @@ rule stringtie_second_pass:
 		bam = "processed_rna_bams/{sample}.{genome}.sorted.bam",
 		gtf = "stringtie_gtfs/{genome}.merged.gtf"
 	output:
-		"stringtie_gtfs/{sample}/{sample}.{genome}.secondpass.gtf"
+		gtf = "stringtie_gtfs/{sample}_{genome}/{sample}.{genome}.secondpass.gtf",
+		ctab = "stringtie_gtfs/{sample}_{genome}/t_data.ctab"
 	threads:
 		4
 	params:
 		stringtie = stringtie_path,
 		threads = 4
 	shell:
-		"{params.stringtie} {input.bam} -o {output} -p {params.threads} "
+		"{params.stringtie} {input.bam} -o {output.gtf} -p {params.threads} "
 		"-G {input.gtf} -B -e"
 
 rule fastqc_analysis:
@@ -468,3 +472,23 @@ rule gatk_genotypegvcf_per_chunk:
 	shell:
 		"""{params.gatk} --java-options "-Xmx15g -Djava.io.tmpdir={params.temp_dir}" """
 		"""GenotypeGVCFs -R {input.ref} -V {input.gvcf} -O {output}"""
+
+rule compile_stringtie_results:
+	input:
+		fai = "new_reference/{assembly}.fasta.fai",
+		ctabs = lambda wildcards: expand(
+			"stringtie_gtfs/{sample}_{genome}/t_data.ctab",
+			genome=wildcards.genome,
+			sample=rna)
+	output:
+		"results/{genome}.stringtie_compiled.txt"
+	run:
+		ctab_sexes = []
+		for i in input.ctabs:
+			i_split = i.split("/")[1]
+			sample_id = i_split.split("_")[0]
+			ctab_sexes.append(config["sexes"][sample_id])
+		shell(
+			"python scripts/Compile_stringtie_results.py --fai {input.fai} "
+			"--output_file {output} --input_files {input.ctabs} "
+			"--sexes {ctab_sexes}")

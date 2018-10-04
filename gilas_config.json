@@ -4,6 +4,21 @@
 		"gila2": "reference/assembly_pseudohap.fasta"
 	},
 
+	"sexes": {
+		"G_10_dna": "male",
+		"G_10_rna": "male",
+		"G_16_dna": "male",
+		"G_16_rna": "male",
+		"G_30_dna": "female",
+		"G_30_rna": "female",
+		"G_35_dna": "female",
+		"G_35_rna": "female",
+		"G_KI01_dna": "male",
+		"G_KI01_rna": "male",
+		"G_L_dna": "female",
+		"G_L_rna": "female"
+	},
+
 	"G_10_dna":{
 		"fq1": "10-004_S1_L001_R1_001.fastq.gz",
 		"fq2": "10-004_S1_L001_R2_001.fastq.gz",
