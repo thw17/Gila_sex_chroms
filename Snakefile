@@ -477,8 +477,8 @@ rule compile_stringtie_results:
 	input:
 		fai = "new_reference/{assembly}.fasta.fai",
 		ctabs = lambda wildcards: expand(
-			"stringtie_gtfs/{sample}_{assembly}/t_data.ctab",
-			assembly=wildcards.genome,
+			"stringtie_gtfs/{sample}_{genome}/t_data.ctab",
+			genome=wildcards.assembly,
 			sample=rna)
 	output:
 		"results/{assembly}.stringtie_compiled.txt"
