@@ -492,4 +492,4 @@ rule compile_stringtie_results:
 		shell(
 			"python scripts/Compile_stringtie_results.py --fai {input.fai} "
 			"--output_file {output} --input_files {input.ctabs} "
-			"--sexes {ctab_sexes}")
+			"--sex {ctab_sexes}")
