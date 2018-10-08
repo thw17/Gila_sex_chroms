@@ -486,7 +486,8 @@ rule compile_stringtie_results:
 		ctab_sexes = []
 		for i in input.ctabs:
 			i_split = i.split("/")[1]
-			sample_id = i_split.split("_")[0]
+			sample_id = "{}_{}".format(
+				i_split.split("_")[0], i_split.split("_")[0])
 			ctab_sexes.append(config["sexes"][sample_id])
 		shell(
 			"python scripts/Compile_stringtie_results.py --fai {input.fai} "
