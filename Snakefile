@@ -72,7 +72,7 @@ rule all:
 			"stats/{sample}.{genome}.rna.sorted.bam.stats",
 			genome=assembly_list, sample=rna),
 		expand(
-			"results/{genome}.{stragegy}.stringtie_compiled.txt",
+			"results/{genome}.{strategy}.stringtie_compiled.txt",
 			strategy=["mixed", "denovo", "refbased"],
 			genome=assembly_list),
 		expand(
