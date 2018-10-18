@@ -577,15 +577,15 @@ rule compile_stringtie_results:
 
 rule compile_chrom_stats:
 	input:
-		stats = "xyalign_analyses/{genome}/results/{genome}_chrom_stats_count.txt",
+		stats = "xyalign_analyses/{assembly}/results/{assembly}_chrom_stats_count.txt",
 		males = lambda wildcards: expand(
 			"processed_bams/{sample}.{genome}.mkdup.sorted.bam",
 			sample=[x for x in dna if config["sexes"][x] == "male"],
-			genome=[wildcards.genome]),
+			genome=[wildcards.assembly]),
 		females = lambda wildcards: expand(
 			"processed_bams/{sample}.{genome}.mkdup.sorted.bam",
 			sample=[x for x in dna if config["sexes"][x] == "female"],
-			genome=[wildcards.genome])
+			genome=[wildcards.assembly])
 	output:
 		df = "results/{assembly}.chromstats_compiled.txt",
 		html = "results/{assembly}.chromstats_compiled.html",
