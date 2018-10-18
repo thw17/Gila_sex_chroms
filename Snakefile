@@ -18,7 +18,8 @@ hisat2_build_path = "hisat2-build"
 stringtie_path = "stringtie"
 xyalign_anaconda_env = "xyalign_env"
 
-assembly_list = ["gila1", "gila2"]
+# assembly_list = ["gila1", "gila2"]
+assembly_list = ["gila2"]
 
 samples = [
 	"G_10_dna", "G_10_rna", "G_16_dna", "G_16_rna", "G_30_dna", "G_30_rna",
@@ -71,7 +72,11 @@ rule all:
 			"stats/{sample}.{genome}.rna.sorted.bam.stats",
 			genome=assembly_list, sample=rna),
 		expand(
-			"results/{genome}.stringtie_compiled.txt",
+			"results/{genome}.{stragegy}.stringtie_compiled.txt",
+			strategy=["mixed", "denovo", "refbased"],
+			genome=assembly_list),
+		expand(
+			"results/{genome}.chromstats_compiled.txt",
 			genome=assembly_list)
 
 rule prepare_reference:
@@ -172,11 +177,11 @@ rule bam_stats_rna:
 	shell:
 		"{params.samtools} stats {input.bam} | grep ^SN | cut -f 2- > {output}"
 
-rule stringtie_first_pass:
+rule stringtie_first_pass_denovo:
 	input:
 		bam = "processed_rna_bams/{sample}.{genome}.sorted.bam"
 	output:
-		"stringtie_gtfs/{sample}_{genome}/{sample}.{genome}.firstpass.gtf"
+		"stringtie_gtfs_denovo/{sample}_{genome}/{sample}.{genome}.firstpass.gtf"
 	threads:
 		4
 	params:
@@ -185,24 +190,24 @@ rule stringtie_first_pass:
 	shell:
 		"{params.stringtie} {input.bam} -o {output} -p {params.threads}"
 
-rule create_stringtie_merged_list:
+rule create_stringtie_merged_list_denovo:
 	input:
 		lambda wildcards: expand(
-			"stringtie_gtfs/{sample}_{genome}/{sample}.{genome}.firstpass.gtf",
+			"stringtie_gtfs_denovo/{sample}_{genome}/{sample}.{genome}.firstpass.gtf",
 			genome=wildcards.genome,
 			sample=rna)
 	output:
-		"stringtie_gtfs/{genome}_gtflist.txt"
+		"stringtie_gtfs_denovo/{genome}_gtflist.txt"
 	run:
 		shell("echo -n > {output}")
 		for i in input:
 			shell("echo {} >> {{output}}".format(i))
 
-rule stringtie_merge:
+rule stringtie_merge_denovo:
 	input:
-		bam_list = "stringtie_gtfs/{genome}_gtflist.txt"
+		bam_list = "stringtie_gtfs_denovo/{genome}_gtflist.txt"
 	output:
-		"stringtie_gtfs/{genome}.merged.gtf"
+		"stringtie_gtfs_denovo/{genome}.merged.gtf"
 	threads:
 		4
 	params:
@@ -211,13 +216,86 @@ rule stringtie_merge:
 	shell:
 		"{params.stringtie} --merge {input.bam_list} -o {output} -p {params.threads}"
 
-rule stringtie_second_pass:
+rule stringtie_second_pass_denovo:
 	input:
 		bam = "processed_rna_bams/{sample}.{genome}.sorted.bam",
-		gtf = "stringtie_gtfs/{genome}.merged.gtf"
+		gtf = "stringtie_gtfs_denovo/{genome}.merged.gtf"
 	output:
-		gtf = "stringtie_gtfs/{sample}_{genome}/{sample}.{genome}.secondpass.gtf",
-		ctab = "stringtie_gtfs/{sample}_{genome}/t_data.ctab"
+		gtf = "stringtie_gtfs_denovo/{sample}_{genome}/{sample}.{genome}.secondpass.gtf",
+		ctab = "stringtie_gtfs_denovo/{sample}_{genome}/t_data.ctab"
+	threads:
+		4
+	params:
+		stringtie = stringtie_path,
+		threads = 4
+	shell:
+		"{params.stringtie} {input.bam} -o {output.gtf} -p {params.threads} "
+		"-G {input.gtf} -B -e"
+
+rule stringtie_refbased:
+	input:
+		bam = "processed_rna_bams/{sample}.{genome}.sorted.bam",
+		gff = lambda wildcards: config["annotation"][wildcards.genome]
+	output:
+		gtf = "stringtie_gtfs_refbased/{sample}_{genome}/{sample}.{genome}.secondpass.gtf",
+		ctab = "stringtie_gtfs_refbased/{sample}_{genome}/t_data.ctab"
+	threads:
+		4
+	params:
+		stringtie = stringtie_path,
+		threads = 4
+	shell:
+		"{params.stringtie} {input.bam} -o {output.gtf} -p {params.threads} "
+		"-G {input.gff} -B -e"
+
+rule stringtie_first_pass_mixed:
+	input:
+		bam = "processed_rna_bams/{sample}.{genome}.sorted.bam",
+		gff = lambda wildcards: config["annotation"][wildcards.genome]
+	output:
+		"stringtie_gtfs_mixed/{sample}_{genome}/{sample}.{genome}.firstpass.gtf"
+	threads:
+		4
+	params:
+		stringtie = stringtie_path,
+		threads = 4
+	shell:
+		"{params.stringtie} {input.bam} -o {output} -p {params.threads} "
+		"-G {input.gff}"
+
+rule create_stringtie_merged_list_mixed:
+	input:
+		lambda wildcards: expand(
+			"stringtie_gtfs_mixed/{sample}_{genome}/{sample}.{genome}.firstpass.gtf",
+			genome=wildcards.genome,
+			sample=rna)
+	output:
+		"stringtie_gtfs_mixed/{genome}_gtflist.txt"
+	run:
+		shell("echo -n > {output}")
+		for i in input:
+			shell("echo {} >> {{output}}".format(i))
+
+rule stringtie_merge_mixed:
+	input:
+		bam_list = "stringtie_gtfs_mixed/{genome}_gtflist.txt"
+	output:
+		"stringtie_gtfs_mixed/{genome}.merged.gtf"
+	threads:
+		4
+	params:
+		stringtie = stringtie_path,
+		threads = 4
+	shell:
+		"{params.stringtie} --merge {input.bam_list} -o {output} -p {params.threads}"
+
+rule stringtie_second_pass_mixed:
+	input:
+		bam = "processed_rna_bams/{sample}.{genome}.sorted.bam",
+		gtf = "stringtie_gtfs_mixed/{genome}.merged.gtf"
+	output:
+		gtf = "stringtie_gtfs_mixed/{sample}_{genome}/{sample}.{genome}.secondpass.gtf",
+		ctab = "stringtie_gtfs_mixed/{sample}_{genome}/t_data.ctab"
 	threads:
 		4
 	params:
@@ -477,11 +555,13 @@ rule compile_stringtie_results:
 	input:
 		fai = "new_reference/{assembly}.fasta.fai",
 		ctabs = lambda wildcards: expand(
-			"stringtie_gtfs/{sample}_{genome}/t_data.ctab",
+			"stringtie_gtfs_{strategy}/{sample}_{genome}/t_data.ctab",
 			genome=wildcards.assembly,
 			sample=rna)
 	output:
-		"results/{assembly}.stringtie_compiled.txt"
+		"results/{assembly}.{strategy}.stringtie_compiled.txt"
+	params:
+		strat = "{strategy}"
 	run:
 		ctab_sexes = []
 		for i in input.ctabs:
@@ -492,4 +572,35 @@ rule compile_stringtie_results:
 		shell(
 			"python scripts/Compile_stringtie_results.py --fai {input.fai} "
 			"--output_file {output} --input_files {input.ctabs} "
-			"--sex {ctab_sexes}")
+			"--sex {ctab_sexes} --suffix {params.strat}")
+
+rule compile_chrom_stats:
+	input:
+		stats = "xyalign_analyses/{genome}/results/{genome}_chrom_stats_count.txt",
+		males = lambda wildcards: expand(
+			"processed_bams/{sample}.{genome}.mkdup.sorted.bam",
+			sample=[x for x in dna if config["sexes"][x] == "male"],
+			genome=[wildcards.genome]),
+		females = lambda wildcards: expand(
+			"processed_bams/{sample}.{genome}.mkdup.sorted.bam",
+			sample=[x for x in dna if config["sexes"][x] == "female"],
+			genome=[wildcards.genome])
+	output:
+		df = "results/{assembly}.chromstats_compiled.txt",
+		html = "results/{assembly}.chromstats_compiled.html",
+		html_no_nan = "results/{assembly}.chromstats_compiled.html_nonan.html",
+		html_cutoff = "results/{assembly}.chromstats_compiled.html_cutoff.html",
+		plot = "results/{assembly}.chromstats_compiled.plot",
+	params:
+		cov_cutoff = "0.95"
+	shell:
+		"python scripts/Compile_chromstats_results.py "
+		"--input_file {input.stats} "
+		"--male_list {input.males} "
+		"--female_list {input.females} "
+		"--output_dataframe {output.df} "
+		"--output_html {output.html} "
+		"--output_html_no_nan {output.html_no_nan} "
+		"--output_html_cutoff_df {output.html_cutoff} "
+		"--coverage_cutoff {params.cov_cutoff} "
+		"--plot_title {output.plot}"

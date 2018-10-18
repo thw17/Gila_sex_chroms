@@ -4,6 +4,10 @@
 		"gila2": "reference/assembly_pseudohap.fasta"
 	},
 
+	"annotation": {
+		"gila2": "reference/Gila.gff3"
+	},
+
 	"sexes": {
 		"G_10_dna": "male",
 		"G_10_rna": "male",

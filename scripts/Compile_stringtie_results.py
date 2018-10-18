@@ -26,6 +26,12 @@ def parse_args():
 		help="Name of and full path to fai file.")
 
 	parser.add_argument(
+		"--suffix", required=True,
+		help="String of text to append to the end of relevant column names. "
+		"E.g., '--suffix denovo' would add '_denovo' to the end of count, sum, "
+		"mean, and ratio columns.")
+
+	parser.add_argument(
 		"--output_file", required=True,
 		help="Name of and full path to output tab-delimited file. "
 		"Will overwrite if already exists.")
@@ -108,10 +114,20 @@ def main():
 	table_df = pd.DataFrame.from_dict(out_dict, orient='index').reset_index()
 	table_df = table_df.rename(
 		index=str,
-		columns={'index': 'scaffold', 'count': 'trans_count', 'm_sum': 'male_sum', 'f_sum': 'female_sum'})
-	table_df['male_mean'] = table_df.male_sum / table_df.trans_count
-	table_df['female_mean'] = table_df.female_sum / table_df.trans_count
-	table_df['f_m_ratio'] = table_df.female_mean / table_df.male_mean
+		columns={
+			'index': 'scaffold',
+			'count': 'trans_count_{}'.format(args.suffix),
+			'm_sum': 'male_sum_{}'.format(args.suffix),
+			'f_sum': 'female_sum_{}'.format(args.suffix)})
+	table_df[
+		'male_mean_{}'.format(
+			args.suffix)] = table_df.male_sum / table_df.trans_count
+	table_df[
+		'female_mean_{}'.format(
+			args.suffix)] = table_df.female_sum / table_df.trans_count
+	table_df[
+		'f_m_ratio_{}'.format(
+			args.suffix)] = table_df.female_mean / table_df.male_mean
 	print('done 2')
 	out_df = pd.merge(len_dict_df, table_df, on='scaffold')
 
