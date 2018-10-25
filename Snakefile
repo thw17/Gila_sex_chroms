@@ -6,12 +6,15 @@ fastq_directory = "/mnt/storage/SAYRES/GilaMonster/all_fastqs/"
 temp_directory = "temp/"
 
 bbduksh_path = "bbduk.sh"
+bcftools_path = "bcftools"
 bwa_path = "bwa"
 fastqc_path = "fastqc"
 gatk_path = "gatk-launch"
+bgzip_path = "bgzip"
 multiqc_path = "multiqc"
 samblaster_path = "samblaster"
 samtools_path = "samtools"
+tabix_path = "tabix"
 xyalign_path = "xyalign"
 hisat2_path = "hisat2"
 hisat2_build_path = "hisat2-build"
@@ -77,6 +80,9 @@ rule all:
 			genome=assembly_list),
 		expand(
 			"results/{genome}.chromstats_compiled.txt",
+			genome=assembly_list),
+		expand(
+			"combined_vcfs/combined.{genome}.filtered.vcf.gz.tbi",
 			genome=assembly_list)
 
 rule prepare_reference:
@@ -550,6 +556,54 @@ rule gatk_genotypegvcf_per_chunk:
 	shell:
 		"""{params.gatk} --java-options "-Xmx15g -Djava.io.tmpdir={params.temp_dir}" """
 		"""GenotypeGVCFs -R {input.ref} -V {input.gvcf} -O {output}"""
+
+rule concatenate_split_vcfs:
+	input:
+		vcf = lambda wildcards: expand(
+			"genotyped_vcfs/{gen}.{chunk}.gatk.called.raw.vcf.gz",
+			gen=wildcards.genome,
+			chunk=chunk_range)
+	output:
+		"combined_vcfs/combined.{genome}.raw.vcf.gz"
+	params:
+		bcftools = bcftools_path
+	shell:
+		"{params.bcftools} concat -O z -o {output} {input.vcf}"
+
+rule index_concatenated_vcf:
+	input:
+		"combined_vcfs/combined.{genome}.raw.vcf.gz"
+	output:
+		"combined_vcfs/combined.{genome}.raw.vcf.gz.tbi"
+	params:
+		tabix = tabix_path
+	shell:
+		"{params.tabix} -p vcf {input}"
+
+rule filter_concatenated_vcf:
+	input:
+		vcf = "combined_vcfs/combined.{genome}.raw.vcf.gz",
+		idx = "combined_vcfs/combined.{genome}.raw.vcf.gz.tbi"
+	output:
+		"combined_vcfs/combined.{genome}.filtered.vcf.gz"
+	params:
+		bgzip = bgzip_path,
+		bcftools = bcftools_path
+	shell:
+		"{params.bcftools} filter -i "
+		"'QUAL >= 30 && MQ >= 30 && QD > 2' {input} | "
+		"{params.bcftools} filter -i 'FMT/DP >= 10 & FMT/GQ >= 30' -S . - | "
+		"{params.bgzip} > {output}"
+
+rule index_filtered_vcf:
+	input:
+		"combined_vcfs/combined.{genome}.filtered.vcf.gz"
+	output:
+		"combined_vcfs/combined.{genome}.filtered.vcf.gz.tbi"
+	params:
+		tabix = tabix_path
+	shell:
+		"{params.tabix} -p vcf {input}"
 
 rule compile_stringtie_results:
 	input:
