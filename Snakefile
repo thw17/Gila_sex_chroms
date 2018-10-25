@@ -577,15 +577,7 @@ rule compile_stringtie_results:
 
 rule compile_chrom_stats:
 	input:
-		stats = "xyalign_analyses/{assembly}/results/{assembly}_chrom_stats_count.txt",
-		males = lambda wildcards: expand(
-			"processed_bams/{sample}.{genome}.mkdup.sorted.bam",
-			sample=[x for x in dna if config["sexes"][x] == "male"],
-			genome=[wildcards.assembly]),
-		females = lambda wildcards: expand(
-			"processed_bams/{sample}.{genome}.mkdup.sorted.bam",
-			sample=[x for x in dna if config["sexes"][x] == "female"],
-			genome=[wildcards.assembly])
+		stats = "xyalign_analyses/{assembly}/results/{assembly}_chrom_stats_count.txt"
 	output:
 		df = "results/{assembly}.chromstats_compiled.txt",
 		html = "results/{assembly}.chromstats_compiled.html",
@@ -593,12 +585,20 @@ rule compile_chrom_stats:
 		html_cutoff = "results/{assembly}.chromstats_compiled.html_cutoff.html",
 		plot = "results/{assembly}.chromstats_compiled.plot",
 	params:
-		cov_cutoff = "0.95"
+		cov_cutoff = "0.95",
+		males = lambda wildcards: expand(
+			"{sample}.{genome}.mkdup.sorted.bam",
+			sample=[x for x in dna if config["sexes"][x] == "male"],
+			genome=[wildcards.assembly]),
+		females = lambda wildcards: expand(
+			"{sample}.{genome}.mkdup.sorted.bam",
+			sample=[x for x in dna if config["sexes"][x] == "female"],
+			genome=[wildcards.assembly])
 	shell:
 		"python scripts/Compile_chromstats_results.py "
 		"--input_file {input.stats} "
-		"--male_list {input.males} "
-		"--female_list {input.females} "
+		"--male_list {params.males} "
+		"--female_list {params.females} "
 		"--output_dataframe {output.df} "
 		"--output_html {output.html} "
 		"--output_html_no_nan {output.html_no_nan} "
