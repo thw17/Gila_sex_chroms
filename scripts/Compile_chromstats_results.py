@@ -90,7 +90,7 @@ def main():
 	plt.title("Female to Male Ratio Across Scaffolds")
 	plt.xlabel("Scaffold Number")
 	plt.ylabel("Female to Male Ratio")
-	plt.savefig(args.plot_title)
+	plt.savefig(args.plot_title, format="png")
 
 
 if __name__ == "__main__":

@@ -583,7 +583,7 @@ rule compile_chrom_stats:
 		html = "results/{assembly}.chromstats_compiled.html",
 		html_no_nan = "results/{assembly}.chromstats_compiled.html_nonan.html",
 		html_cutoff = "results/{assembly}.chromstats_compiled.html_cutoff.html",
-		plot = "results/{assembly}.chromstats_compiled.plot",
+		plot = "results/{assembly}.chromstats_compiled.png",
 	params:
 		cov_cutoff = "0.95",
 		males = lambda wildcards: expand(
