@@ -519,7 +519,7 @@ rule gatk_gvcf_per_chunk:
 	shell:
 		"""{params.gatk} --java-options "-Xmx15g -Djava.io.tmpdir={params.temp_dir}" """
 		"""HaplotypeCaller -R {input.ref} -I {input.bam} -L {input.chunkfile} """
-		"""-ERC GVCF -O {output}"""
+		"""-ERC GVCF --do-not-run-physical-phasing -O {output}"""
 
 rule gatk_combinegvcfs_per_chunk:
 	input:

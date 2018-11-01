@@ -119,12 +119,8 @@ def main():
 			'count': 'trans_count',
 			'm_sum': 'male_sum',
 			'f_sum': 'female_sum'})
-	table_df[
-		'male_mean_{}'.format(
-			args.suffix)] = table_df.male_sum / table_df.trans_count
-	table_df[
-		'female_mean_{}'.format(
-			args.suffix)] = table_df.female_sum / table_df.trans_count
+	table_df['male_mean'] = table_df.male_sum / table_df.trans_count
+	table_df['female_mean'] = table_df.female_sum / table_df.trans_count
 	table_df[
 		'f_m_ratio_{}'.format(
 			args.suffix)] = table_df.female_mean / table_df.male_mean
@@ -133,7 +129,9 @@ def main():
 		columns={
 			'trans_count': 'trans_count_{}'.format(args.suffix),
 			'male_sum': 'male_sum_{}'.format(args.suffix),
-			'female_sum': 'female_sum_{}'.format(args.suffix)})
+			'female_sum': 'female_sum_{}'.format(args.suffix),
+			'male_mean': 'male_mean_{}'.format(args.suffix),
+			'female_mean': 'female_mean_{}'.format(args.suffix)})
 	print('done 2')
 	out_df = pd.merge(len_dict_df, table_df, on='scaffold')
 
