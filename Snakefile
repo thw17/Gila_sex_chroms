@@ -591,7 +591,7 @@ rule filter_concatenated_vcf:
 		bcftools = bcftools_path
 	shell:
 		"{params.bcftools} filter -i "
-		"'QUAL >= 30 && MQ >= 30 && QD > 2' {input} | "
+		"'QUAL >= 30 && MQ >= 30 && QD > 2' {input.vcf} | "
 		"{params.bcftools} filter -i 'FMT/DP >= 10 & FMT/GQ >= 30' -S . - | "
 		"{params.bgzip} > {output}"
 
