@@ -94,7 +94,7 @@ def main():
 		fem_vals = []
 
 		for idx, k in enumerate(dict1[i]):
-			sex = sex_dict[str(idx)]
+			sex = sample_dict[str(idx)]
 			if k[0] >= args.min_sites:
 				if sex == "male":
 					male_vals.append(float(k[1]) / k[0])
