@@ -103,7 +103,7 @@ def main():
 				else:
 					raise ValueError("Sexes need to be the strings 'male' or 'female'.")
 
-		if male_vals >= args.min_ind and fem_vals >= args.min_ind:
+		if len(male_vals) >= args.min_ind and len(fem_vals) >= args.min_ind:
 			results_dict[i] = [i, statistics.mean(male_vals), statistics.mean(fem_vals)]
 		else:
 			results_dict[i] = [i, -1, -1]
