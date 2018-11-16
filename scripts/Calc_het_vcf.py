@@ -48,6 +48,7 @@ def main():
 			if record[0] == "#CHROM":
 				for idx, i in enumerate(record[9:]):
 					sample_dict[str(idx)] = i
+				continue
 
 			chrom = record[0]
 			if chrom not in dict1:
