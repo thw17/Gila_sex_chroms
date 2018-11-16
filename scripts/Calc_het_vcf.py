@@ -48,7 +48,7 @@ def main():
 			chrom = record[0]
 			if chrom not in dict1:
 				dict1[chrom] = []
-				for i in len(sample_dict):
+				for i in range(len(sample_dict)):
 					dict1[chrom].append([0, 0])
 
 			# Looking for biallelic snps
@@ -103,6 +103,9 @@ def main():
 			results_dict[i] = [i, statistics.mean(male_vals), statistics.mean(fem_vals)]
 		else:
 			results_dict[i] = [i, -1, -1]
+
+		print(i)
+		print(results_dict[i])
 
 	df = pd.DataFrame.from_dict(results_dict, orient='index')
 	df.columns = ["chrom", "male_het_rate", "female_het_rate"]
