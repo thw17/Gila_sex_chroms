@@ -14,11 +14,11 @@ def parse_args():
 		help="")
 
 	parser.add_argument(
-		"--min_sites", required=True, type="int",
+		"--min_sites", required=True, type=int,
 		help="")
 
 	parser.add_argument(
-		"--min_ind", required=True, type="int",
+		"--min_ind", required=True, type=int,
 		help="")
 
 	parser.add_argument(
