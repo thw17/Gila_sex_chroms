@@ -617,6 +617,7 @@ rule calc_het_rate:
 	shell:
 		"python scripts/Calc_het_vcf.py "
 		"--vcf {input} "
+		"--sexes misc/sample_sexes.txt "
 		"--min_sites 5 "
 		"--min_ind 1 "
 		"--output_file {output} "

@@ -14,6 +14,10 @@ def parse_args():
 		help="")
 
 	parser.add_argument(
+		"--sexes", required=True,
+		help="")
+
+	parser.add_argument(
 		"--min_sites", required=True, type=int,
 		help="")
 
