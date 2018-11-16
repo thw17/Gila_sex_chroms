@@ -1,0 +1,6 @@
+G_10	male
+G_16	male
+G_30	female
+G_35	female
+G_KI01	male
+G_L	female

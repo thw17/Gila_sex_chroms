@@ -83,6 +83,9 @@ rule all:
 			genome=assembly_list),
 		expand(
 			"combined_vcfs/combined.{genome}.filtered.vcf.gz.tbi",
+			genome=assembly_list),
+		expand(
+			"results/{genome}.het_rate.txt",
 			genome=assembly_list)
 
 rule prepare_reference:
@@ -604,6 +607,19 @@ rule index_filtered_vcf:
 		tabix = tabix_path
 	shell:
 		"{params.tabix} -p vcf {input}"
+
+
+rule calc_het_rate:
+	input:
+		"combined_vcfs/combined.{genome}.filtered.vcf.gz"
+	output:
+		"results/{genome}.het_rate.txt"
+	shell:
+		"python scripts/Calc_het_vcf.py "
+		"--vcf {input} "
+		"--min_sites 5 "
+		"--min_ind 1 "
+		"--output_file {output} "
 
 rule compile_stringtie_results:
 	input:
