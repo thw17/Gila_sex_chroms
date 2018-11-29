@@ -86,6 +86,10 @@ rule all:
 			genome=assembly_list),
 		expand(
 			"results/{genome}.het_rate.txt",
+			genome=assembly_list),
+		expand(
+			"results/all_compiled.{genome}.{strategy}.txt",
+			strategy=["mixed", "denovo", "refbased"],
 			genome=assembly_list)
 
 rule prepare_reference:
@@ -676,3 +680,17 @@ rule compile_chrom_stats:
 		"--output_html_cutoff_df {output.html_cutoff} "
 		"--coverage_cutoff {params.cov_cutoff} "
 		"--plot_title {output.plot}"
+
+rule combine_into_big_dataframe:
+	input:
+		expr = "results/{assembly}.{strategy}.stringtie_compiled.txt",
+		cov = "results/{assembly}.chromstats_compiled.txt",
+		het = "results/{assembly}.het_rate.txt"
+	output:
+		txt = "results/all_compiled.{assembly}.{strategy}.txt",
+		html = "results/all_compiled.{assembly}.{strategy}.html"
+	shell:
+		"python scripts/Compile_big_dataframe.py "
+		"--input_files {input.expr} {input.cov} {input.het} "
+		"--output_html_df {output.html} "
+		"--output_csv_df {output.txt}"
