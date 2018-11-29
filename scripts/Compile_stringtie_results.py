@@ -107,7 +107,7 @@ def main():
 
 	len_dict_df = pd.DataFrame.from_dict(
 		len_dict, orient='index').reset_index().rename(
-		index=str, columns={'index': 'scaffold', 0: 'length'})
+		index=str, columns={'index': 'chrom', 0: 'length'})
 
 	print(len(mean_table))
 	print(len(t_ids))
@@ -115,7 +115,7 @@ def main():
 	table_df = table_df.rename(
 		index=str,
 		columns={
-			'index': 'scaffold',
+			'index': 'chrom',
 			'count': 'trans_count',
 			'm_sum': 'male_sum',
 			'f_sum': 'female_sum'})
@@ -133,7 +133,7 @@ def main():
 			'male_mean': 'male_mean_{}'.format(args.suffix),
 			'female_mean': 'female_mean_{}'.format(args.suffix)})
 	print('done 2')
-	out_df = pd.merge(len_dict_df, table_df, on='scaffold')
+	out_df = pd.merge(len_dict_df, table_df, on='chrom')
 
 	out_df.to_csv(args.output_file, sep='\t', index=False)
 	# table_df.to_csv(args.output_file, sep='\t', index=False)
