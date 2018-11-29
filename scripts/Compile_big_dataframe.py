@@ -16,7 +16,8 @@ def parse_args():
 	parser.add_argument(
 		'--input_files', nargs='+',
 		help='Enter the output from gila_chromstats.py followed by the output '
-		'from gila_expression.py seperated by a space. ')
+		'from gila_expression.py followed by the output of Calc_het_vcf.py, each'
+		'seperated by a space. ')
 
 	parser.add_argument(
 		'--output_html_df',
@@ -58,7 +59,8 @@ def main():
 	df_2 = pd.read_csv(input_2, sep='\t')
 	df_3 = pd.read_csv(input_3, sep='\t')
 
-	big_df = pd.merge(df_1, df_2, df_3, on='chrom')
+	big_df1 = pd.merge(df_1, df_2, on='chrom')
+	big_df = pd.merge(big_df1, df_3, on='chrom')
 	big_df = big_df.drop({
 		'G_10_dna.gila1.mkdup.sorted.bam', 'G_16_dna.gila1.mkdup.sorted.bam',
 		'G_30_dna.gila1.mkdup.sorted.bam', 'G_35_dna.gila1.mkdup.sorted.bam',
