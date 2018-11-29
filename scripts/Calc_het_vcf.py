@@ -116,7 +116,7 @@ def main():
 	df.columns = ["chrom", "male_het_rate", "female_het_rate"]
 	print(df)
 	df = df.sort_values(["chrom"])
-	df.to_csv(args.output_file, index=False)
+	df.to_csv(args.output_file, sep='\t', index=False)
 
 
 if __name__ == "__main__":
