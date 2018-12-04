@@ -61,10 +61,10 @@ def main():
 
 	big_df1 = pd.merge(df_1, df_2, on='chrom')
 	big_df = pd.merge(big_df1, df_3, on='chrom')
-	big_df = big_df.drop({
-		'G_10_dna.gila1.mkdup.sorted.bam', 'G_16_dna.gila1.mkdup.sorted.bam',
-		'G_30_dna.gila1.mkdup.sorted.bam', 'G_35_dna.gila1.mkdup.sorted.bam',
-		'G_KI01_dna.gila1.mkdup.sorted.bam', 'G_L_dna.gila1.mkdup.sorted.bam'},
+	big_df = big_df.drop([
+		'G_10_dna.gila2.mkdup.sorted.bam', 'G_16_dna.gila2.mkdup.sorted.bam',
+		'G_30_dna.gila2.mkdup.sorted.bam', 'G_35_dna.gila2.mkdup.sorted.bam',
+		'G_KI01_dna.gila2.mkdup.sorted.bam', 'G_L_dna.gila2.mkdup.sorted.bam'],
 		axis=1)
 	big_df = big_df.rename(
 		columns={
