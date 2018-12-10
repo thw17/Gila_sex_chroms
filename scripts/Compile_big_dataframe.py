@@ -15,8 +15,10 @@ def parse_args():
 
 	parser.add_argument(
 		'--input_files', nargs='+',
-		help='Enter the output from gila_chromstats.py followed by the output '
-		'from gila_expression.py followed by the output of Calc_het_vcf.py, each'
+		help='Enter the output from Compile_chromstats_results.py '
+		'followed by the output from Compile_stringtie_results.py '
+		'followed by the output of Calc_het_vcf.py for DNA, '
+		'followed by the output of Calc_het_vcf.py for RNA, each'
 		'seperated by a space. ')
 
 	parser.add_argument(
@@ -53,14 +55,18 @@ def main():
 	args = parse_args()
 	input_1 = args.input_files[0]  # Chromstats file
 	input_2 = args.input_files[1]  # FPKM data Want to keep the nargs here because it needs multiple files and only the first 2.
-	input_3 = args.input_files[2]  # from calc_het_rate.py
+	input_3 = args.input_files[2]  # from calc_het_rate.py for DNA
+	input_4 = args.input_files[2]  # from calc_het_rate.py for RNA
 
 	df_1 = pd.read_csv(input_1, sep='\t')
 	df_2 = pd.read_csv(input_2, sep='\t')
 	df_3 = pd.read_csv(input_3, sep='\t')
+	df_4 = pd.read_csv(input_4, sep='\t')
 
 	big_df1 = pd.merge(df_1, df_2, on='chrom')
-	big_df = pd.merge(big_df1, df_3, on='chrom')
+	big_df2 = pd.merge(big_df1, df_3, on='chrom')
+	big_df = pd.merge(big_df1, df_4, on='chrom')
+
 	big_df = big_df.drop([
 		'G_10_dna.gila2.mkdup.sorted.bam', 'G_16_dna.gila2.mkdup.sorted.bam',
 		'G_30_dna.gila2.mkdup.sorted.bam', 'G_35_dna.gila2.mkdup.sorted.bam',

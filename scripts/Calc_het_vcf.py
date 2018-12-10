@@ -29,6 +29,10 @@ def parse_args():
 		"--output_file", required=True,
 		help="Path to and name of output file")
 
+	parser.add_argumen(
+		"--suffix", default="",
+		help="Text to add to end of column names (except chrom). Dafault is nothing")
+
 	args = parser.parse_args()
 
 	return args
@@ -73,6 +77,8 @@ def main():
 				format = i.split(":")
 				gt = format[0]
 				if gt == "./.":
+					continue
+				if gt == "0/0":
 					continue
 				dict1[chrom][idx][0] += 1
 				if gt[0] != gt[2]:

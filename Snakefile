@@ -74,19 +74,19 @@ rule all:
 		expand(
 			"stats/{sample}.{genome}.rna.sorted.bam.stats",
 			genome=assembly_list, sample=rna),
-		expand(
-			"results/{genome}.{strategy}.stringtie_compiled.txt",
-			strategy=["mixed", "denovo", "refbased"],
-			genome=assembly_list),
-		expand(
-			"results/{genome}.chromstats_compiled.txt",
-			genome=assembly_list),
-		expand(
-			"combined_vcfs/combined.{genome}.filtered.vcf.gz.tbi",
-			genome=assembly_list),
-		expand(
-			"results/{genome}.het_rate.txt",
-			genome=assembly_list),
+		# expand(
+		# 	"results/{genome}.{strategy}.stringtie_compiled.txt",
+		# 	strategy=["mixed", "denovo", "refbased"],
+		# 	genome=assembly_list),
+		# expand(
+		# 	"results/{genome}.chromstats_compiled.txt",
+		# 	genome=assembly_list),
+		# expand(
+		# 	"combined_vcfs/combined.{genome}.filtered.vcf.gz.tbi",
+		# 	genome=assembly_list),
+		# expand(
+		# 	"results/{genome}.het_rate.txt",
+		# 	genome=assembly_list),
 		expand(
 			"results/all_compiled.{genome}.{strategy}.txt",
 			strategy=["mixed", "denovo", "refbased"],
@@ -613,11 +613,115 @@ rule index_filtered_vcf:
 		"{params.tabix} -p vcf {input}"
 
 
+rule gatk_gvcf_per_chunk_rna:
+	input:
+		ref = "new_reference/{genome}.fasta",
+		bam = "processed_rna_bams/{sample}.{genome}.sorted.bam",
+		bai = "processed_rna_bams/{sample}.{genome}.sorted.bam.bai",
+		chunkfile = "new_reference/{genome}_split_chunk{chunk}.bed"
+	output:
+		"gvcfs_rna/{sample}.{genome}.{chunk}.g.vcf.gz"
+	params:
+		temp_dir = temp_directory,
+		gatk = gatk_path
+	threads:
+		4
+	shell:
+		"""{params.gatk} --java-options "-Xmx15g -Djava.io.tmpdir={params.temp_dir}" """
+		"""HaplotypeCaller -R {input.ref} -I {input.bam} -L {input.chunkfile} """
+		"""-ERC GVCF --do-not-run-physical-phasing -O {output}"""
+
+rule gatk_combinegvcfs_per_chunk_rna:
+	input:
+		ref = "new_reference/{genome}.fasta",
+		gvcfs = expand(
+			"gvcfs_rna/{sample}.{{genome}}.{{chunk}}.g.vcf.gz", sample=rna)
+	output:
+		"combined_gvcfs_rna/{genome}.{chunk}.gatk.combinegvcf.g.vcf.gz"
+	params:
+		temp_dir = temp_directory,
+		gatk = gatk_path
+	threads:
+		4
+	run:
+		variant_files = []
+		for i in input.gvcfs:
+			variant_files.append("--variant " + i)
+		variant_files = " ".join(variant_files)
+		shell(
+			"""{params.gatk} --java-options "-Xmx15g -Djava.io.tmpdir={params.temp_dir}" """
+			"""CombineGVCFs -R {input.ref} {variant_files} -O {output}""")
+
+rule gatk_genotypegvcf_per_chunk_rna:
+	input:
+		ref = "new_reference/{genome}.fasta",
+		gvcf = "combined_gvcfs_rna/{genome}.{chunk}.gatk.combinegvcf.g.vcf.gz"
+	output:
+		"genotyped_vcfs_rna/{genome}.{chunk}.gatk.called.raw.vcf.gz"
+	params:
+		temp_dir = temp_directory,
+		gatk = gatk_path
+	threads:
+		4
+	shell:
+		"""{params.gatk} --java-options "-Xmx15g -Djava.io.tmpdir={params.temp_dir}" """
+		"""GenotypeGVCFs -R {input.ref} -V {input.gvcf} -O {output}"""
+
+rule concatenate_split_vcfs_rna:
+	input:
+		vcf = lambda wildcards: expand(
+			"genotyped_vcfs_rna/{gen}.{chunk}.gatk.called.raw.vcf.gz",
+			gen=wildcards.genome,
+			chunk=chunk_range)
+	output:
+		"combined_vcfs_rna/combined.{genome}.raw.vcf.gz"
+	params:
+		bcftools = bcftools_path
+	shell:
+		"{params.bcftools} concat -O z -o {output} {input.vcf}"
+
+rule index_concatenated_vcf_rna:
+	input:
+		"combined_vcfs_rna/combined.{genome}.raw.vcf.gz"
+	output:
+		"combined_vcfs_rna/combined.{genome}.raw.vcf.gz.tbi"
+	params:
+		tabix = tabix_path
+	shell:
+		"{params.tabix} -p vcf {input}"
+
+rule filter_concatenated_vcf_rna:
+	input:
+		vcf = "combined_vcfs_rna/combined.{genome}.raw.vcf.gz",
+		idx = "combined_vcfs_rna/combined.{genome}.raw.vcf.gz.tbi"
+	output:
+		"combined_vcfs_rna/combined.{genome}.filtered.vcf.gz"
+	params:
+		bgzip = bgzip_path,
+		bcftools = bcftools_path
+	shell:
+		"{params.bcftools} filter -i "
+		"'QUAL >= 30 && MQ >= 30 && QD > 2' {input.vcf} | "
+		"{params.bcftools} filter -i 'FMT/DP >= 10 & FMT/GQ >= 30' -S . - | "
+		"{params.bgzip} > {output}"
+
+rule index_filtered_vcf_rna:
+	input:
+		"combined_vcfs_rna/combined.{genome}.filtered.vcf.gz"
+	output:
+		"combined_vcfs_rna/combined.{genome}.filtered.vcf.gz.tbi"
+	params:
+		tabix = tabix_path
+	shell:
+		"{params.tabix} -p vcf {input}"
+
 rule calc_het_rate:
 	input:
-		"combined_vcfs/combined.{genome}.filtered.vcf.gz"
+		"combined_vcfs_{type}/combined.{genome}.filtered.vcf.gz"
 	output:
-		"results/{genome}.het_rate.txt"
+		"results/{genome}.{type}.het_rate.txt"
+	params:
+		t = "{type}"
 	shell:
 		"python scripts/Calc_het_vcf.py "
 		"--vcf {input} "
@@ -625,6 +729,7 @@ rule calc_het_rate:
 		"--min_sites 5 "
 		"--min_ind 1 "
 		"--output_file {output} "
+		"--suffix {params.t}"
 
 rule compile_stringtie_results:
 	input:
@@ -685,12 +790,13 @@ rule combine_into_big_dataframe:
 	input:
 		expr = "results/{assembly}.{strategy}.stringtie_compiled.txt",
 		cov = "results/{assembly}.chromstats_compiled.txt",
-		het = "results/{assembly}.het_rate.txt"
+		het_dna = "results/{assembly}.dna.het_rate.txt",
+		het_rna = "results/{assembly}.rna.het_rate.txt"
 	output:
 		txt = "results/all_compiled.{assembly}.{strategy}.txt",
 		html = "results/all_compiled.{assembly}.{strategy}.html"
 	shell:
 		"python scripts/Compile_big_dataframe.py "
-		"--input_files {input.expr} {input.cov} {input.het} "
+		"--input_files {input.expr} {input.cov} {input.het_dna} {input.het_rna}"
 		"--output_html_df {output.html} "
 		"--output_csv_df {output.txt}"
