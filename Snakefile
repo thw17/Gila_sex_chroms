@@ -715,13 +715,29 @@ rule index_filtered_vcf_rna:
 	shell:
 		"{params.tabix} -p vcf {input}"
 
-rule calc_het_rate:
+rule calc_het_rate_rna:
 	input:
-		"combined_vcfs_{type}/combined.{genome}.filtered.vcf.gz"
+		"combined_vcfs_rna/combined.{genome}.filtered.vcf.gz"
 	output:
-		"results/{genome}.{type}.het_rate.txt"
+		"results/{genome}.rna.het_rate.txt"
 	params:
-		t = "{type}"
+		t = "rna"
+	shell:
+		"python scripts/Calc_het_vcf.py "
+		"--vcf {input} "
+		"--sexes misc/sample_sexes.txt "
+		"--min_sites 5 "
+		"--min_ind 1 "
+		"--output_file {output} "
+		"--suffix {params.t}"
+
+rule calc_het_rate_dna:
+	input:
+		"combined_vcfs/combined.{genome}.filtered.vcf.gz"
+	output:
+		"results/{genome}.dna.het_rate.txt"
+	params:
+		t = "dna"
 	shell:
 		"python scripts/Calc_het_vcf.py "
 		"--vcf {input} "

@@ -119,7 +119,10 @@ def main():
 		print(results_dict[i])
 
 	df = pd.DataFrame.from_dict(results_dict, orient='index')
-	df.columns = ["chrom", "male_het_rate", "female_het_rate"]
+	df.columns = [
+		"chrom",
+		"male_het_rate_{}".format(args.suffix),
+		"female_het_rate_{}".format(args.suffix)]
 	print(df)
 	df = df.sort_values(["chrom"])
 	df.to_csv(args.output_file, sep='\t', index=False)
