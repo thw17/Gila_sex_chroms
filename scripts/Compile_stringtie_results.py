@@ -79,8 +79,10 @@ def main():
 	for ts in t_data:
 		if len(t_data[ts]['m']) < 2:
 			print('male: ', ts)
+			continue
 		if len(t_data[ts]['f']) < 2:
 			print('female: ', ts)
+			continue
 		m_mean = np.mean(np.nan_to_num(t_data[ts]['m']))
 		f_mean = np.mean(np.nan_to_num(t_data[ts]['f']))
 		mean_table[ts] = {'m': m_mean, 'f': f_mean}
