@@ -32,6 +32,15 @@ dna = ["G_10_dna", "G_16_dna", "G_30_dna", "G_35_dna", "G_KI01_dna", "G_L_dna"]
 
 rna = ["G_10_rna", "G_16_rna", "G_30_rna", "G_35_rna", "G_KI01_rna", "G_L_rna"]
 
+rna_to_dna = {
+	"G_10_rna": "G_10_dna",
+	"G_16_rna": "G_16_dna",
+	"G_30_rna": "G_30_dna",
+	"G_35_rna": "G_35_dna",
+	"G_KI01_rna": "G_KI01_dna",
+	"G_L_rna": "G_L_dna"
+}
+
 fastq_prefixes = [
 	config[x]["fq1"][:-9] for x in samples] + [
 		config[x]["fq2"][:-9] for x in samples]
@@ -612,12 +621,52 @@ rule index_filtered_vcf:
 	shell:
 		"{params.tabix} -p vcf {input}"
 
+rule create_rna_bam_header:
+	input:
+		rbam = "processed_rna_bams/{sample}.{genome}.sorted.bam",
+		rbai = "processed_rna_bams/{sample}.{genome}.sorted.bam.bai",
+		gbam = lambda wildcards: expand(
+			"processed_bams/{gsample}.{{genome}}.mkdup.sorted.bam",
+			gsample=[rna_to_dna[wildcards.sample]]),
+		gbam = lambda wildcards: expand(
+			"processed_bams/{gsample}.{{genome}}.mkdup.sorted.bam.bai",
+			gsample=[rna_to_dna[wildcards.sample]]),
+	output:
+		"processed_rna_bams/{sample}.{genome}.newheader.sam"
+	params:
+		samtools = samtools_path
+	run:
+		shell("{params.samtools} view -H {input.rbam} | grep '@HD' > {output}")
+		shell("{params.samtools} view -H {input.gbam} | grep '@SQ' >> {output}")
+		shell("{params.samtools} view -H {input.rbam} | grep '@RG' >> {output}")
+		shell("{params.samtools} view -H {input.rbam} | grep '@PG' >> {output}")
+
+rule rna_bam_reheader:
+	input:
+		rbam = "processed_rna_bams/{sample}.{genome}.sorted.bam",
+		header = "processed_rna_bams/{sample}.{genome}.newheader.sam"
+	output:
+		"processed_rna_bams/{sample}.{genome}.sorted.reheadered.bam"
+	params:
+		samtools = samtools_path
+	shell:
+		"{params.samtools} reheader -P {input.header} {input.rbam} > {output}"
+
+rule index_reheadered_bam:
+	input:
+		"processed_rna_bams/{sample}.{genome}.sorted.reheadered.bam"
+	output:
+		"processed_rna_bams/{sample}.{genome}.sorted.reheadered.bam.bai"
+	params:
+		samtools = samtools_path
+	shell:
+		"{params.samtools} index {input}"
 
 rule gatk_gvcf_per_chunk_rna:
 	input:
 		ref = "new_reference/{genome}.fasta",
-		bam = "processed_rna_bams/{sample}.{genome}.sorted.bam",
-		bai = "processed_rna_bams/{sample}.{genome}.sorted.bam.bai",
+		bam = "processed_rna_bams/{sample}.{genome}.sorted.reheadered.bam",
+		bai = "processed_rna_bams/{sample}.{genome}.sorted.reheadered.bam.bai",
 		chunkfile = "new_reference/{genome}_split_chunk{chunk}.bed"
 	output:
 		"gvcfs_rna/{sample}.{genome}.{chunk}.g.vcf.gz"
