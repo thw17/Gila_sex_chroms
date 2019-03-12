@@ -630,7 +630,7 @@ rule create_rna_bam_header:
 			gsample=[rna_to_dna[wildcards.sample]]),
 		gbam = lambda wildcards: expand(
 			"processed_bams/{gsample}.{{genome}}.mkdup.sorted.bam.bai",
-			gsample=[rna_to_dna[wildcards.sample]]),
+			gsample=[rna_to_dna[wildcards.sample]])
 	output:
 		"processed_rna_bams/{sample}.{genome}.newheader.sam"
 	params:
