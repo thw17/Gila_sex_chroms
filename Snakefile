@@ -78,8 +78,8 @@ rule all:
 			"genotyped_vcfs/{genome}.{chunk}.gatk.called.raw.vcf.gz",
 			genome=assembly_list, chunk=chunk_range),
 		expand(
-			"stringtie_gtfs/{sample}_{genome}/{sample}.{genome}.secondpass.gtf",
-			genome=assembly_list, sample=rna),
+			"stringtie_gtfs_{strategy}/{sample}_{genome}/{sample}.{genome}.secondpass.gtf",
+			strategy=["mixed", "denovo", "refbased"], genome=assembly_list, sample=rna),
 		expand(
 			"stats/{sample}.{genome}.rna.sorted.bam.stats",
 			genome=assembly_list, sample=rna),
