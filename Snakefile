@@ -626,11 +626,13 @@ rule create_rna_bam_header:
 		rbam = "processed_rna_bams/{sample}.{genome}.sorted.bam",
 		rbai = "processed_rna_bams/{sample}.{genome}.sorted.bam.bai",
 		gbam = lambda wildcards: expand(
-			"processed_bams/{gsample}.{{genome}}.mkdup.sorted.bam",
-			gsample=[rna_to_dna[wildcards.sample]]),
+			"processed_bams/{gsample}.{assembly}.mkdup.sorted.bam",
+			gsample=[rna_to_dna[wildcards.sample]],
+			assembly=wildcards.genome),
 		gbai = lambda wildcards: expand(
-			"processed_bams/{gsample}.{{genome}}.mkdup.sorted.bam.bai",
-			gsample=[rna_to_dna[wildcards.sample]])
+			"processed_bams/{gsample}.{assembly}.mkdup.sorted.bam.bai",
+			gsample=[rna_to_dna[wildcards.sample]],
+			assembly=wildcards.genome)
 	output:
 		"processed_rna_bams/{sample}.{genome}.newheader.sam"
 	params:
