@@ -664,31 +664,31 @@ rule index_reheadered_bam:
 	shell:
 		"{params.samtools} index {input}"
 
-rule gatk_gvcf_per_chunk_rna:
+rule gatk_gvcf_per_scaff_rna:
 	input:
 		ref = "new_reference/{genome}.fasta",
 		bam = "processed_rna_bams/{sample}.{genome}.sorted.reheadered.bam",
-		bai = "processed_rna_bams/{sample}.{genome}.sorted.reheadered.bam.bai",
-		chunkfile = "new_reference/{genome}_split_chunk{chunk}.bed"
+		bai = "processed_rna_bams/{sample}.{genome}.sorted.reheadered.bam.bai"
 	output:
-		"gvcfs_rna/{sample}.{genome}.{chunk}.g.vcf.gz"
+		"gvcfs_rna/{sample}.{genome}.{scaffold}.g.vcf.gz"
 	params:
 		temp_dir = temp_directory,
-		gatk = gatk_path
+		gatk = gatk_path,
+		scaff = "{scaffold}"
 	threads:
 		4
 	shell:
 		"""{params.gatk} --java-options "-Xmx15g -Djava.io.tmpdir={params.temp_dir}" """
-		"""HaplotypeCaller -R {input.ref} -I {input.bam} -L {input.chunkfile} """
+		"""HaplotypeCaller -R {input.ref} -I {input.bam} -L {params.scaff} """
 		"""-ERC GVCF --do-not-run-physical-phasing -O {output}"""
 
-rule gatk_combinegvcfs_per_chunk_rna:
+rule gatk_combinegvcfs_per_scaffold_rna:
 	input:
 		ref = "new_reference/{genome}.fasta",
 		gvcfs = expand(
-			"gvcfs_rna/{sample}.{{genome}}.{{chunk}}.g.vcf.gz", sample=rna)
+			"gvcfs_rna/{sample}.{{genome}}.{{scaffold}}.g.vcf.gz", sample=rna)
 	output:
-		"combined_gvcfs_rna/{genome}.{chunk}.gatk.combinegvcf.g.vcf.gz"
+		"combined_gvcfs_rna/{genome}.{scaffold}.gatk.combinegvcf.g.vcf.gz"
 	params:
 		temp_dir = temp_directory,
 		gatk = gatk_path
@@ -703,12 +703,12 @@ rule gatk_combinegvcfs_per_chunk_rna:
 			"""{params.gatk} --java-options "-Xmx15g -Djava.io.tmpdir={params.temp_dir}" """
 			"""CombineGVCFs -R {input.ref} {variant_files} -O {output}""")
 
-rule gatk_genotypegvcf_per_chunk_rna:
+rule gatk_genotypegvcf_per_scaffold_rna:
 	input:
 		ref = "new_reference/{genome}.fasta",
-		gvcf = "combined_gvcfs_rna/{genome}.{chunk}.gatk.combinegvcf.g.vcf.gz"
+		gvcf = "combined_gvcfs_rna/{genome}.{scaffold}.gatk.combinegvcf.g.vcf.gz"
 	output:
-		"genotyped_vcfs_rna/{genome}.{chunk}.gatk.called.raw.vcf.gz"
+		"genotyped_vcfs_rna/{genome}.{scaffold}.gatk.called.raw.vcf.gz"
 	params:
 		temp_dir = temp_directory,
 		gatk = gatk_path
@@ -721,9 +721,9 @@ rule gatk_genotypegvcf_per_chunk_rna:
 rule concatenate_split_vcfs_rna:
 	input:
 		vcf = lambda wildcards: expand(
-			"genotyped_vcfs_rna/{gen}.{chunk}.gatk.called.raw.vcf.gz",
+			"genotyped_vcfs_rna/{gen}.{scaffold}.gatk.called.raw.vcf.gz",
 			gen=wildcards.genome,
-			chunk=chunk_range)
+			scaffold=config["100kb_scaffolds"])
 	output:
 		"combined_vcfs_rna/combined.{genome}.raw.vcf.gz"
 	params:
