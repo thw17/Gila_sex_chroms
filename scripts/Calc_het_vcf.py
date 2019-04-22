@@ -29,7 +29,7 @@ def parse_args():
 		"--output_file", required=True,
 		help="Path to and name of output file")
 
-	parser.add_argumen(
+	parser.add_argument(
 		"--suffix", default="",
 		help="Text to add to end of column names (except chrom). Dafault is nothing")
 
