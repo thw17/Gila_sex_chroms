@@ -126,9 +126,6 @@ def main():
 		else:
 			results_dict[i] = [i, -1, -1, -1, -1, -1, -1]
 
-		print(i)
-		print(results_dict[i])
-
 	df = pd.DataFrame.from_dict(results_dict, orient='index')
 	df.columns = [
 		"chrom",

@@ -860,8 +860,7 @@ rule combine_into_big_dataframe:
 		het_dna = "results/{assembly}.dna.het_rate.txt",
 		het_rna = "results/{assembly}.rna.het_rate.txt"
 	output:
-		txt = "results/all_compiled.{assembly}.{strategy}.txt",
-		html = "results/all_compiled.{assembly}.{strategy}.html"
+		txt = "results/all_compiled.{assembly}.{strategy}.txt"
 	shell:
 		"python scripts/Compile_big_dataframe.py "
 		"--input_files {input.cov} {input.expr} {input.het_dna} {input.het_rna}"
