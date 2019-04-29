@@ -71,7 +71,7 @@ def main():
 			'chrom': 'scaffold', 'male_sum': 'male_sum_exp',
 			'female_sum': 'female_sum_exp'})
 
-	big_df = big_df.pipe(shifter, 'length', 1)  # works like a charm
+	# big_df = big_df.pipe(shifter, 'length', 1)  # works like a charm
 
 	big_df.to_html(args.output_html_df)
 	big_df.to_csv(args.output_csv_df)
