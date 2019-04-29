@@ -98,22 +98,33 @@ def main():
 	results_dict = collections.OrderedDict()
 	for i in dict1:
 		male_vals = []
+		male_het_count = []
+		male_var_count = []
 		fem_vals = []
+		female_het_count = []
+		female_var_count = []
 
 		for idx, k in enumerate(dict1[i]):
 			sex = sample_dict[str(idx)]
 			if k[0] >= args.min_sites:
 				if sex == "male":
 					male_vals.append(float(k[1]) / k[0])
+					male_het_count.append(k[1])
+					male_var_count.append(k[0])
 				elif sex == "female":
 					fem_vals.append(float(k[1]) / k[0])
+					female_het_count.append(k[1])
+					female_var_count.append(k[0])
 				else:
 					raise ValueError("Sexes need to be the strings 'male' or 'female'.")
 
 		if len(male_vals) >= args.min_ind and len(fem_vals) >= args.min_ind:
-			results_dict[i] = [i, statistics.mean(male_vals), statistics.mean(fem_vals)]
+			results_dict[i] = [
+				i, statistics.mean(male_vals), statistics.mean(male_var_count),
+				statistics.mean(male_het_count), statistics.mean(fem_vals),
+				statistics.mean(female_var_count), statistics.mean(female_het_count)]
 		else:
-			results_dict[i] = [i, -1, -1]
+			results_dict[i] = [i, -1, -1, -1, -1, -1, -1]
 
 		print(i)
 		print(results_dict[i])
@@ -122,7 +133,11 @@ def main():
 	df.columns = [
 		"chrom",
 		"male_het_rate_{}".format(args.suffix),
-		"female_het_rate_{}".format(args.suffix)]
+		"male_variant_count_{}".format(args.suffix),
+		"male_het_count_{}".format(args.suffix),
+		"female_het_rate_{}".format(args.suffix),
+		"female_variant_count_{}".format(args.suffix),
+		"female_het_count_{}".format(args.suffix)]
 	print(df)
 	df = df.sort_values(["chrom"])
 	df.to_csv(args.output_file, sep='\t', index=False)
