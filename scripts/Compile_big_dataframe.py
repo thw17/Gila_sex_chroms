@@ -1,11 +1,5 @@
 import argparse
 import pandas as pd
-import numpy as np
-import matplotlib
-matplotlib.use('TkAgg')
-import matplotlib.mlab as mlab
-import matplotlib.pyplot as plt
-from string import ascii_uppercase
 
 
 def parse_args():
@@ -85,6 +79,3 @@ def main():
 
 if __name__ == "__main__":
 	main()
-
-# RUNME
-#     python gila_big_dataframe.py --input_files 'gila_chromstats_df.txt' 'gila_expression_1.txt' --output_csv_df gila_big_dataframe_csv_df.txt --output_html_df gila_big_dataframe_html_df.html
