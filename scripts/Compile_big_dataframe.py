@@ -59,7 +59,7 @@ def main():
 
 	big_df1 = pd.merge(df_1, df_2, on='chrom')
 	big_df2 = pd.merge(big_df1, df_3, on='chrom')
-	big_df = pd.merge(big_df1, df_4, on='chrom')
+	big_df = pd.merge(big_df2, df_4, on='chrom')
 
 	big_df = big_df.drop([
 		'G_10_dna.gila2.mkdup.sorted.bam', 'G_16_dna.gila2.mkdup.sorted.bam',
