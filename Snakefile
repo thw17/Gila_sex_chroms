@@ -83,10 +83,10 @@ rule all:
 		expand(
 			"stats/{sample}.{genome}.rna.sorted.bam.stats",
 			genome=assembly_list, sample=rna),
-		# expand(
-		# 	"results/{genome}.{strategy}.stringtie_compiled.txt",
-		# 	strategy=["mixed", "denovo", "refbased"],
-		# 	genome=assembly_list),
+		expand(
+			"results/{genome}.{strategy}.stringtie_compiled_per_transcript.txt",
+		 	strategy=["mixed", "denovo", "refbased"],
+		 	genome=assembly_list),
 		# expand(
 		# 	"results/{genome}.chromstats_compiled.txt",
 		# 	genome=assembly_list),
@@ -819,6 +819,29 @@ rule compile_stringtie_results:
 			ctab_sexes.append(config["sexes"][sample_id])
 		shell(
 			"python scripts/Compile_stringtie_results.py --fai {input.fai} "
+			"--output_file {output} --input_files {input.ctabs} "
+			"--sex {ctab_sexes} --suffix {params.strat}")
+		
+rule compile_stringtie_results_per_transcript:
+	input:
+		ctabs = lambda wildcards: expand(
+			"stringtie_gtfs_{strat}/{sample}_{genome}/t_data.ctab",
+			genome=wildcards.assembly,
+			strat=wildcards.strategy,
+			sample=rna)
+	output:
+		"results/{assembly}.{strategy}.stringtie_compiled_per_transcript.txt"
+	params:
+		strat = "{strategy}"
+	run:
+		ctab_sexes = []
+		for i in input.ctabs:
+			i_split = i.split("/")[1]
+			sample_id = "{}_{}_{}".format(
+				i_split.split("_")[0], i_split.split("_")[1], i_split.split("_")[2])
+			ctab_sexes.append(config["sexes"][sample_id])
+		shell(
+			"python scripts/Compile_stringtie_results.py "
 			"--output_file {output} --input_files {input.ctabs} "
 			"--sex {ctab_sexes} --suffix {params.strat}")
 
