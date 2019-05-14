@@ -50,7 +50,7 @@ def main():
 	input_1 = args.input_files[0]  # Chromstats file
 	input_2 = args.input_files[1]  # FPKM data Want to keep the nargs here because it needs multiple files and only the first 2.
 	input_3 = args.input_files[2]  # from calc_het_rate.py for DNA
-	input_4 = args.input_files[2]  # from calc_het_rate.py for RNA
+	input_4 = args.input_files[3]  # from calc_het_rate.py for RNA
 
 	df_1 = pd.read_csv(input_1, sep='\t')
 	df_2 = pd.read_csv(input_2, sep='\t')
