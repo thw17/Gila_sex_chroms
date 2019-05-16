@@ -821,7 +821,7 @@ rule compile_stringtie_results:
 			"python scripts/Compile_stringtie_results.py --fai {input.fai} "
 			"--output_file {output} --input_files {input.ctabs} "
 			"--sex {ctab_sexes} --suffix {params.strat}")
-		
+
 rule compile_stringtie_results_per_transcript:
 	input:
 		ctabs = lambda wildcards: expand(
@@ -841,7 +841,7 @@ rule compile_stringtie_results_per_transcript:
 				i_split.split("_")[0], i_split.split("_")[1], i_split.split("_")[2])
 			ctab_sexes.append(config["sexes"][sample_id])
 		shell(
-			"python scripts/Compile_stringtie_results.py "
+			"python scripts/Compile_stringtie_per_transcript.py "
 			"--output_file {output} --input_files {input.ctabs} "
 			"--sex {ctab_sexes} --suffix {params.strat}")
 
