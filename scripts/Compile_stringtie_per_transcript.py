@@ -102,7 +102,7 @@ def main():
 			'male_mean_expn': 'male_mean_{}'.format(args.suffix),
 			'female_mean_expn': 'female_mean_{}'.format(args.suffix)})
 
-	out_df.to_csv(args.output_file, sep='\t', index=False)
+	table_df.to_csv(args.output_file, sep='\t', index=False)
 
 
 if __name__ == "__main__":
