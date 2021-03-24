@@ -2,8 +2,8 @@
 
 ## Setting up Conda environments
 ```
-conda env create -f gila_environment.yml
+conda create -n gila_main_environment python bbmap bcftools bwa fastqc gatk4 htslib multiqc samblaster samtools hisat2 stringtie matplotlib pandas numpy
 
-conda env create -f gila_xyalign_environment.yml
+conda create -n gila_xyalign_environment xyalign python=2.7
 
 ```
