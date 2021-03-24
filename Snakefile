@@ -19,7 +19,7 @@ xyalign_path = "xyalign"
 hisat2_path = "hisat2"
 hisat2_build_path = "hisat2-build"
 stringtie_path = "stringtie"
-xyalign_anaconda_env = "xyalign_env"
+xyalign_anaconda_env = "gila_xyalign_env"
 
 # assembly_list = ["gila1", "gila2"]
 assembly_list = ["gila2"]
