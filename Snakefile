@@ -72,8 +72,8 @@ rule all:
 		# 	"combined_gvcfs/{genome}.{chunk}.gatk.combinegvcf.g.vcf.gz",
 		# 	genome=["gila1"], chunk=chunk_range),
 		# expand(
-		# 	"xyalign_analyses/{genome}/logfiles/{sample}.{genome}_xyalign.log",
-		# 	sample=dna, genome=["gila1"]),
+		 	"xyalign_analyses/{genome}/logfiles/{sample}.{genome}_xyalign.log",
+		 	sample=dna, genome=assembly_list),
 		expand(
 			"genotyped_vcfs/{genome}.{chunk}.gatk.called.raw.vcf.gz",
 			genome=assembly_list, chunk=chunk_range),
@@ -513,7 +513,7 @@ rule bam_analysis_dna:
 	shell:
 		"source activate {params.xyalign_env} && "
 		"{params.xyalign} --ANALYZE_BAM "
-		"--chromosomes 1759 3281 2585 3374 1225 3544 1960 260213 3468 2594 3068 259577 3245 259781 "
+		"--chromosomes 0 1 2 3 157 218 304 398 1759 3281 2585 3374 1225 3544 1960 260213 3468 2594 3068 259577 3245 259781 "
 		"--bam {input.bam} --ref {input.ref} "
 		"--sample_id {params.sample_id} "
 		"--output_dir xyalign_analyses/{params.sample_id} "
