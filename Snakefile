@@ -244,7 +244,8 @@ rule create_stringtie_merged_list_denovo:
 			genome=wildcards.genome,
 			sample=rna)
 	output:
-		"stringtie_gtfs_denovo/{genome}_gtflist.txt",
+		"stringtie_gtfs_denovo/{genome}_gtflist.txt"
+	params:
 		threads = 1,
 		mem = 4,
 		t = very_short
