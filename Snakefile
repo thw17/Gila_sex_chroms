@@ -885,7 +885,7 @@ rule calc_het_rate_rna:
 	output:
 		"results/{genome}.rna.het_rate.txt"
 	params:
-		t = "rna",
+		suf = "rna",
 		threads = 4,
 		mem = 16,
 		t = long
@@ -896,7 +896,7 @@ rule calc_het_rate_rna:
 		"--min_sites 5 "
 		"--min_ind 1 "
 		"--output_file {output} "
-		"--suffix {params.t}"
+		"--suffix {params.suf}"
 
 rule calc_het_rate_dna:
 	input:
@@ -904,7 +904,7 @@ rule calc_het_rate_dna:
 	output:
 		"results/{genome}.dna.het_rate.txt"
 	params:
-		t = "dna",
+		suf = "dna",
 		threads = 4,
 		mem = 16,
 		t = long
@@ -915,7 +915,7 @@ rule calc_het_rate_dna:
 		"--min_sites 5 "
 		"--min_ind 1 "
 		"--output_file {output} "
-		"--suffix {params.t}"
+		"--suffix {params.suf}"
 
 rule compile_stringtie_results:
 	input:
