@@ -6,6 +6,13 @@ configfile: "gilas_config.json"
 fastq_directory = "fastqs"
 temp_directory = "temp/"
 
+# Runtime values
+very_short = "6:00:00"
+medium = "12:00:00"
+day = "24:00:00"
+long = "48:00:00"
+very_long = "72:00:00"
+
 bbduksh_path = "bbduk.sh"
 bcftools_path = "bcftools"
 bwa_path = "bwa"
@@ -112,7 +119,10 @@ rule prepare_reference:
 		dict = "new_reference/{assembly}.dict"
 	params:
 		samtools = samtools_path,
-		bwa = bwa_path
+		bwa = bwa_path,
+		threads = 4,
+		mem = 16,
+		t = medium
 	run:
 		shell(
 			"ln -s ../{} {{output.new}} && touch -h {{output.new}}".format(input.ref))
@@ -133,7 +143,10 @@ rule chunk_reference:
 		expand("new_reference/{{assembly}}_split_chunk{num}.bed", num=chunk_range)
 	params:
 		chunks = num_chunks,
-		out_prefix = "new_reference/{assembly}_split"
+		out_prefix = "new_reference/{assembly}_split",
+		threads = 1,
+		mem = 4,
+		t = very_short
 	shell:
 		"python scripts/Chunk_fai.py --fai {input.fai} "
 		"--out_prefix {params.out_prefix} --chunks {params.chunks}"
@@ -147,7 +160,10 @@ rule hisat2_reference_index:
 			suffix=[
 				"1", "2", "3", "4", "5", "6", "7", "8"])
 	params:
-		hisat2_build = hisat2_build_path
+		hisat2_build = hisat2_build_path,
+		threads = 4,
+		mem = 16,
+		t = medium
 	shell:
 		"{params.hisat2_build} {input} new_reference/hisat2/{wildcards.genome}"
 
@@ -160,10 +176,10 @@ rule hisat2_map_reads:
 		fq2 = "trimmed_rna_fastqs/{sample}_trimmed_read2.fastq.gz"
 	output:
 		"processed_rna_bams/{sample}.{genome}.sorted.bam"
-	threads:
-		4
 	params:
 		threads = 4,
+		mem = 16,
+		t = long
 		hisat2 = hisat2_path,
 		samtools = samtools_path,
 		id = lambda wildcards: config[wildcards.sample]["ID"],
@@ -185,7 +201,10 @@ rule index_bam_rna:
 	output:
 		"processed_rna_bams/{sample}.{genome}.sorted.bam.bai"
 	params:
-		samtools = samtools_path
+		samtools = samtools_path,
+		threads = 4,
+		mem = 16,
+		t = very_short
 	shell:
 		"{params.samtools} index {input}"
 
@@ -196,7 +215,10 @@ rule bam_stats_rna:
 	output:
 		"stats/{sample}.{genome}.rna.sorted.bam.stats"
 	params:
-		samtools = samtools_path
+		samtools = samtools_path,
+		threads = 4,
+		mem = 16,
+		t = very_short
 	shell:
 		"{params.samtools} stats {input.bam} | grep ^SN | cut -f 2- > {output}"
 
@@ -209,7 +231,9 @@ rule stringtie_first_pass_denovo:
 		4
 	params:
 		stringtie = stringtie_path,
-		threads = 4
+		threads = 4,
+		mem = 16,
+		t = long
 	shell:
 		"{params.stringtie} {input.bam} -o {output} -p {params.threads}"
 
@@ -220,7 +244,10 @@ rule create_stringtie_merged_list_denovo:
 			genome=wildcards.genome,
 			sample=rna)
 	output:
-		"stringtie_gtfs_denovo/{genome}_gtflist.txt"
+		"stringtie_gtfs_denovo/{genome}_gtflist.txt",
+		threads = 1,
+		mem = 4,
+		t = very_short
 	run:
 		shell("echo -n > {output}")
 		for i in input:
@@ -235,7 +262,9 @@ rule stringtie_merge_denovo:
 		4
 	params:
 		stringtie = stringtie_path,
-		threads = 4
+		threads = 4,
+		mem = 16,
+		t = medium
 	shell:
 		"{params.stringtie} --merge {input.bam_list} -o {output} -p {params.threads}"
 
@@ -250,7 +279,9 @@ rule stringtie_second_pass_denovo:
 		4
 	params:
 		stringtie = stringtie_path,
-		threads = 4
+		threads = 4,
+		mem = 16,
+		t = long
 	shell:
 		"{params.stringtie} {input.bam} -o {output.gtf} -p {params.threads} "
 		"-G {input.gtf} -B -e"
@@ -266,7 +297,9 @@ rule stringtie_refbased:
 		4
 	params:
 		stringtie = stringtie_path,
-		threads = 4
+		threads = 4,
+		mem = 16,
+		t = long
 	shell:
 		"{params.stringtie} {input.bam} -o {output.gtf} -p {params.threads} "
 		"-G {input.gff} -B -e"
@@ -277,11 +310,11 @@ rule stringtie_first_pass_mixed:
 		gff = lambda wildcards: config["annotation"][wildcards.genome]
 	output:
 		"stringtie_gtfs_mixed/{sample}_{genome}/{sample}.{genome}.firstpass.gtf"
-	threads:
-		4
 	params:
 		stringtie = stringtie_path,
-		threads = 4
+		threads = 4,
+		mem = 16,
+		t = long
 	shell:
 		"{params.stringtie} {input.bam} -o {output} -p {params.threads} "
 		"-G {input.gff}"
@@ -293,7 +326,10 @@ rule create_stringtie_merged_list_mixed:
 			genome=wildcards.genome,
 			sample=rna)
 	output:
-		"stringtie_gtfs_mixed/{genome}_gtflist.txt"
+		"stringtie_gtfs_mixed/{genome}_gtflist.txt",
+		threads = 1,
+		mem = 4,
+		t = very_short
 	run:
 		shell("echo -n > {output}")
 		for i in input:
@@ -304,11 +340,11 @@ rule stringtie_merge_mixed:
 		bam_list = "stringtie_gtfs_mixed/{genome}_gtflist.txt"
 	output:
 		"stringtie_gtfs_mixed/{genome}.merged.gtf"
-	threads:
-		4
 	params:
 		stringtie = stringtie_path,
-		threads = 4
+		threads = 4,
+		mem = 16,
+		t = long
 	shell:
 		"{params.stringtie} --merge {input.bam_list} -o {output} -p {params.threads}"
 
@@ -319,11 +355,11 @@ rule stringtie_second_pass_mixed:
 	output:
 		gtf = "stringtie_gtfs_mixed/{sample}_{genome}/{sample}.{genome}.secondpass.gtf",
 		ctab = "stringtie_gtfs_mixed/{sample}_{genome}/t_data.ctab"
-	threads:
-		4
 	params:
 		stringtie = stringtie_path,
-		threads = 4
+		threads = 4,
+		mem = 16,
+		t = long
 	shell:
 		"{params.stringtie} {input.bam} -o {output.gtf} -p {params.threads} "
 		"-G {input.gtf} -B -e"
@@ -334,7 +370,10 @@ rule fastqc_analysis:
 	output:
 		"fastqc/{fq_prefix}_fastqc.html"
 	params:
-		fastqc = fastqc_path
+		fastqc = fastqc_path,
+		threads = 1,
+		mem = 4,
+		t = very_short
 	shell:
 		"{params.fastqc} -o fastqc {input}"
 
@@ -344,7 +383,10 @@ rule multiqc_analysis:
 	output:
 		"multiqc/multiqc_report.html"
 	params:
-		multiqc = multiqc_path
+		multiqc = multiqc_path,
+		threads = 1,
+		mem = 4,
+		t = very_short
 	shell:
 		"export LC_ALL=en_US.UTF-8 && export LANG=en_US.UTF-8 && "
 		"{params.multiqc} -o multiqc fastqc"
@@ -359,7 +401,10 @@ rule trim_adapters_paired_bbduk_dna:
 		out_fq1 = "trimmed_dna_fastqs/{sample}_trimmed_read1.fastq.gz",
 		out_fq2 = "trimmed_dna_fastqs/{sample}_trimmed_read2.fastq.gz"
 	params:
-		bbduksh = bbduksh_path
+		bbduksh = bbduksh_path,
+		threads = 2,
+		mem = 8,
+		t = very_short
 	shell:
 		"{params.bbduksh} -Xmx3g in1={input.fq1} in2={input.fq2} "
 		"out1={output.out_fq1} out2={output.out_fq2} "
@@ -372,7 +417,10 @@ rule fastqc_analysis_trimmed_dna:
 	output:
 		"fastqc_trimmed_dna/{sample}_trimmed_{read}_fastqc.html"
 	params:
-		fastqc = fastqc_path
+		fastqc = fastqc_path,
+		threads = 1,
+		mem = 4,
+		t = very_short
 	shell:
 		"{params.fastqc} -o fastqc_trimmed_dna {input}"
 
@@ -384,7 +432,10 @@ rule multiqc_analysis_trimmed_dna:
 	output:
 		"multiqc_trimmed_dna/multiqc_report.html"
 	params:
-		multiqc = multiqc_path
+		multiqc = multiqc_path,
+		threads = 1,
+		mem = 4,
+		t = very_short
 	shell:
 		"export LC_ALL=en_US.UTF-8 && export LANG=en_US.UTF-8 && "
 		"{params.multiqc} -o multiqc_trimmed_dna fastqc_trimmed_dna"
@@ -399,7 +450,10 @@ rule trim_adapters_paired_bbduk_rna:
 		out_fq1 = "trimmed_rna_fastqs/{sample}_trimmed_read1.fastq.gz",
 		out_fq2 = "trimmed_rna_fastqs/{sample}_trimmed_read2.fastq.gz"
 	params:
-		bbduksh = bbduksh_path
+		bbduksh = bbduksh_path,
+		threads = 2,
+		mem = 8,
+		t = very_short
 	shell:
 		"{params.bbduksh} -Xmx3g in1={input.fq1} in2={input.fq2} "
 		"out1={output.out_fq1} out2={output.out_fq2} "
@@ -412,7 +466,10 @@ rule fastqc_analysis_trimmed_rna:
 	output:
 		"fastqc_trimmed_rna/{sample}_trimmed_{read}_fastqc.html"
 	params:
-		fastqc = fastqc_path
+		fastqc = fastqc_path,
+		threads = 1,
+		mem = 4,
+		t = very_short
 	shell:
 		"{params.fastqc} -o fastqc_trimmed_rna {input}"
 
@@ -424,7 +481,10 @@ rule multiqc_analysis_trimmed_rna:
 	output:
 		"multiqc_trimmed_rna/multiqc_report.html"
 	params:
-		multiqc = multiqc_path
+		multiqc = multiqc_path,
+		threads = 1,
+		mem = 4,
+		t = very_short
 	shell:
 		"export LC_ALL=en_US.UTF-8 && export LANG=en_US.UTF-8 && "
 		"{params.multiqc} -o multiqc_trimmed_rna fastqc_trimmed_rna"
@@ -446,8 +506,9 @@ rule map_and_process_trimmed_reads:
 		bwa = bwa_path,
 		samblaster = samblaster_path,
 		samtools = samtools_path,
-		threads = 4
-	threads: 4
+		threads = 4,
+		mem = 16,
+		t = very_long
 	shell:
 		"{params.bwa} mem -t {params.threads} -R "
 		"'@RG\\tID:{params.id}\\tSM:{params.sm}\\tLB:{params.lb}\\tPU:{params.pu}\\tPL:{params.pl}' "
@@ -461,7 +522,10 @@ rule index_bam:
 	output:
 		"processed_bams/{sample}.{genome}.mkdup.sorted.bam.bai"
 	params:
-		samtools = samtools_path
+		samtools = samtools_path,
+		threads = 4,
+		mem = 16,
+		t = very_short
 	shell:
 		"{params.samtools} index {input}"
 
@@ -472,7 +536,10 @@ rule bam_stats_dna:
 	output:
 		"stats/{sample}.{genome}.dna.mkdup.sorted.bam.stats"
 	params:
-		samtools = samtools_path
+		samtools = samtools_path,
+		threads = 4,
+		mem = 16,
+		t = very_short
 	shell:
 		"{params.samtools} stats {input.bam} | grep ^SN | cut -f 2- > {output}"
 
@@ -489,7 +556,10 @@ rule chrom_stats_dna:
 	params:
 		xyalign = xyalign_path,
 		sample_id = "{genome}",
-		xyalign_env = xyalign_anaconda_env
+		xyalign_env = xyalign_anaconda_env,
+		threads = 4,
+		mem = 16,
+		t = long
 	conda:
 		"envs/gila_xyalign_environment.yaml"
 	shell:
@@ -510,8 +580,9 @@ rule bam_analysis_dna:
 		xyalign = xyalign_path,
 		sample_id = "{sample}.{genome}",
 		xyalign_env = xyalign_anaconda_env,
-		threads = 4
-	threads: 4
+		threads = 4,
+		mem = 16,
+		t = long
 	conda:
 		"envs/gila_xyalign_environment.yaml"
 	shell:
@@ -532,9 +603,10 @@ rule gatk_gvcf_per_chunk:
 		"gvcfs/{sample}.{genome}.{chunk}.g.vcf.gz"
 	params:
 		temp_dir = temp_directory,
-		gatk = gatk_path
-	threads:
-		4
+		gatk = gatk_path,
+		threads = 4,
+		mem = 16,
+		t = very_long
 	shell:
 		"""{params.gatk} --java-options "-Xmx15g -Djava.io.tmpdir={params.temp_dir}" """
 		"""HaplotypeCaller -R {input.ref} -I {input.bam} -L {input.chunkfile} """
@@ -549,9 +621,10 @@ rule gatk_combinegvcfs_per_chunk:
 		"combined_gvcfs/{genome}.{chunk}.gatk.combinegvcf.g.vcf.gz"
 	params:
 		temp_dir = temp_directory,
-		gatk = gatk_path
-	threads:
-		4
+		gatk = gatk_path,
+		threads = 4,
+		mem = 16,
+		t = very_long
 	run:
 		variant_files = []
 		for i in input.gvcfs:
@@ -569,9 +642,10 @@ rule gatk_genotypegvcf_per_chunk:
 		"genotyped_vcfs/{genome}.{chunk}.gatk.called.raw.vcf.gz"
 	params:
 		temp_dir = temp_directory,
-		gatk = gatk_path
-	threads:
-		4
+		gatk = gatk_path,
+		threads = 4,
+		mem = 16,
+		t = very_long
 	shell:
 		"""{params.gatk} --java-options "-Xmx15g -Djava.io.tmpdir={params.temp_dir}" """
 		"""GenotypeGVCFs -R {input.ref} -V {input.gvcf} -O {output}"""
@@ -585,7 +659,10 @@ rule concatenate_split_vcfs:
 	output:
 		"combined_vcfs/combined.{genome}.raw.vcf.gz"
 	params:
-		bcftools = bcftools_path
+		bcftools = bcftools_path,
+		threads = 2,
+		mem = 8,
+		t = medium
 	shell:
 		"{params.bcftools} concat -O z -o {output} {input.vcf}"
 
@@ -595,7 +672,10 @@ rule index_concatenated_vcf:
 	output:
 		"combined_vcfs/combined.{genome}.raw.vcf.gz.tbi"
 	params:
-		tabix = tabix_path
+		tabix = tabix_path,
+		threads = 4,
+		mem = 16,
+		t = very_short
 	shell:
 		"{params.tabix} -p vcf {input}"
 
@@ -607,7 +687,10 @@ rule filter_concatenated_vcf:
 		"combined_vcfs/combined.{genome}.filtered.vcf.gz"
 	params:
 		bgzip = bgzip_path,
-		bcftools = bcftools_path
+		bcftools = bcftools_path,
+		threads = 4,
+		mem = 16,
+		t = long
 	shell:
 		"{params.bcftools} filter -i "
 		"'QUAL >= 30 && MQ >= 30 && QD > 2' {input.vcf} | "
@@ -620,7 +703,10 @@ rule index_filtered_vcf:
 	output:
 		"combined_vcfs/combined.{genome}.filtered.vcf.gz.tbi"
 	params:
-		tabix = tabix_path
+		tabix = tabix_path,
+		threads = 4,
+		mem = 16,
+		t = medium
 	shell:
 		"{params.tabix} -p vcf {input}"
 
@@ -639,7 +725,10 @@ rule create_rna_bam_header:
 	output:
 		"processed_rna_bams/{sample}.{genome}.newheader.sam"
 	params:
-		samtools = samtools_path
+		samtools = samtools_path,
+		threads = 4,
+		mem = 16,
+		t = long
 	run:
 		shell("{params.samtools} view -H {input.rbam} | grep '@HD' > {output}")
 		shell("{params.samtools} view -H {input.gbam} | grep '@SQ' >> {output}")
@@ -653,7 +742,10 @@ rule rna_bam_reheader:
 	output:
 		"processed_rna_bams/{sample}.{genome}.sorted.reheadered.bam"
 	params:
-		samtools = samtools_path
+		samtools = samtools_path,
+		threads = 4,
+		mem = 16,
+		t = long
 	shell:
 		"{params.samtools} reheader -P {input.header} {input.rbam} > {output}"
 
@@ -663,7 +755,10 @@ rule index_reheadered_bam:
 	output:
 		"processed_rna_bams/{sample}.{genome}.sorted.reheadered.bam.bai"
 	params:
-		samtools = samtools_path
+		samtools = samtools_path,
+		threads = 4,
+		mem = 16,
+		t = very_short
 	shell:
 		"{params.samtools} index {input}"
 
@@ -677,9 +772,10 @@ rule gatk_gvcf_per_scaff_rna:
 	params:
 		temp_dir = temp_directory,
 		gatk = gatk_path,
-		scaff = "{scaffold}"
-	threads:
-		4
+		scaff = "{scaffold}",
+		threads = 4,
+		mem = 16,
+		t = very_long
 	shell:
 		"""{params.gatk} --java-options "-Xmx15g -Djava.io.tmpdir={params.temp_dir}" """
 		"""HaplotypeCaller -R {input.ref} -I {input.bam} -L {params.scaff} """
@@ -694,9 +790,10 @@ rule gatk_combinegvcfs_per_scaffold_rna:
 		"combined_gvcfs_rna/{genome}.{scaffold}.gatk.combinegvcf.g.vcf.gz"
 	params:
 		temp_dir = temp_directory,
-		gatk = gatk_path
-	threads:
-		4
+		gatk = gatk_path,
+		threads = 4,
+		mem = 16,
+		t = very_long
 	run:
 		variant_files = []
 		for i in input.gvcfs:
@@ -714,9 +811,10 @@ rule gatk_genotypegvcf_per_scaffold_rna:
 		"genotyped_vcfs_rna/{genome}.{scaffold}.gatk.called.raw.vcf.gz"
 	params:
 		temp_dir = temp_directory,
-		gatk = gatk_path
-	threads:
-		4
+		gatk = gatk_path,
+		threads = 4,
+		mem = 16,
+		t = very_long
 	shell:
 		"""{params.gatk} --java-options "-Xmx15g -Djava.io.tmpdir={params.temp_dir}" """
 		"""GenotypeGVCFs -R {input.ref} -V {input.gvcf} -O {output}"""
@@ -730,7 +828,10 @@ rule concatenate_split_vcfs_rna:
 	output:
 		"combined_vcfs_rna/combined.{genome}.raw.vcf.gz"
 	params:
-		bcftools = bcftools_path
+		bcftools = bcftools_path,
+		threads = 4,
+		mem = 16,
+		t = medium
 	shell:
 		"{params.bcftools} concat -O z -o {output} {input.vcf}"
 
@@ -740,7 +841,10 @@ rule index_concatenated_vcf_rna:
 	output:
 		"combined_vcfs_rna/combined.{genome}.raw.vcf.gz.tbi"
 	params:
-		tabix = tabix_path
+		tabix = tabix_path,
+		threads = 4,
+		mem = 16,
+		t = medium
 	shell:
 		"{params.tabix} -p vcf {input}"
 
@@ -752,7 +856,10 @@ rule filter_concatenated_vcf_rna:
 		"combined_vcfs_rna/combined.{genome}.filtered.vcf.gz"
 	params:
 		bgzip = bgzip_path,
-		bcftools = bcftools_path
+		bcftools = bcftools_path,
+		threads = 4,
+		mem = 16,
+		t = medium
 	shell:
 		"{params.bcftools} filter -i "
 		"'QUAL >= 30 && MQ >= 30 && QD > 2' {input.vcf} | "
@@ -765,7 +872,10 @@ rule index_filtered_vcf_rna:
 	output:
 		"combined_vcfs_rna/combined.{genome}.filtered.vcf.gz.tbi"
 	params:
-		tabix = tabix_path
+		tabix = tabix_path,
+		threads = 4,
+		mem = 16,
+		t = medium
 	shell:
 		"{params.tabix} -p vcf {input}"
 
@@ -775,7 +885,10 @@ rule calc_het_rate_rna:
 	output:
 		"results/{genome}.rna.het_rate.txt"
 	params:
-		t = "rna"
+		t = "rna",
+		threads = 4,
+		mem = 16,
+		t = long
 	shell:
 		"python scripts/Calc_het_vcf.py "
 		"--vcf {input} "
@@ -791,7 +904,10 @@ rule calc_het_rate_dna:
 	output:
 		"results/{genome}.dna.het_rate.txt"
 	params:
-		t = "dna"
+		t = "dna",
+		threads = 4,
+		mem = 16,
+		t = long
 	shell:
 		"python scripts/Calc_het_vcf.py "
 		"--vcf {input} "
@@ -812,7 +928,10 @@ rule compile_stringtie_results:
 	output:
 		"results/{assembly}.{strategy}.stringtie_compiled.txt"
 	params:
-		strat = "{strategy}"
+		strat = "{strategy}",
+		threads = 4,
+		mem = 16,
+		t = long
 	run:
 		ctab_sexes = []
 		for i in input.ctabs:
@@ -835,7 +954,10 @@ rule compile_stringtie_results_per_transcript:
 	output:
 		"results/{assembly}.{strategy}.stringtie_compiled_per_transcript.txt"
 	params:
-		strat = "{strategy}"
+		strat = "{strategy}",
+		threads = 4,
+		mem = 16,
+		t = long
 	run:
 		ctab_sexes = []
 		for i in input.ctabs:
@@ -866,7 +988,10 @@ rule compile_chrom_stats:
 		females = lambda wildcards: expand(
 			"{sample}.{genome}.mkdup.sorted.bam",
 			sample=[x for x in dna if config["sexes"][x] == "female"],
-			genome=[wildcards.assembly])
+			genome=[wildcards.assembly]),
+		threads = 4,
+		mem = 16,
+		t = long
 	shell:
 		"python scripts/Compile_chromstats_results.py "
 		"--input_file {input.stats} "
@@ -888,7 +1013,10 @@ rule combine_into_big_dataframe:
 	output:
 		txt = "results/all_compiled.{assembly}.{strategy}.txt"
 	params:
-		html = "results/all_compiled.{assembly}.{strategy}.html"
+		html = "results/all_compiled.{assembly}.{strategy}.html",
+		threads = 4,
+		mem = 16,
+		t = medium
 	shell:
 		"python scripts/Compile_big_dataframe.py "
 		"--input_files {input.cov} {input.expr} {input.het_dna} {input.het_rna} "
