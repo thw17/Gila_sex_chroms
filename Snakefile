@@ -80,7 +80,7 @@ rule all:
 		# 	"combined_gvcfs/{genome}.{chunk}.gatk.combinegvcf.g.vcf.gz",
 		# 	genome=["gila1"], chunk=chunk_range),
 		expand(
-		 	"xyalign_analyses/{genome}/logfiles/{sample}.{genome}_xyalign.log",
+		 	"xyalign_analyses/{sample}.{genome}/logfiles/{sample}.{genome}_xyalign.log",
 		 	sample=dna, genome=assembly_list),
 		expand(
 			"genotyped_vcfs/{genome}.{chunk}.gatk.called.raw.vcf.gz",
