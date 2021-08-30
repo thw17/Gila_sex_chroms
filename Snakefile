@@ -577,7 +577,7 @@ rule bam_analysis_dna:
 		ref = "new_reference/{genome}.fasta",
 		fai = "new_reference/{genome}.fasta.fai",
 	output:
-		"xyalign_analyses/{genome}/logfiles/{sample}.{genome}_xyalign.log"
+		"xyalign_analyses/{sample}.{genome}/logfiles/{sample}.{genome}_xyalign.log"
 	params:
 		xyalign = xyalign_path,
 		sample_id = "{sample}.{genome}",
@@ -589,7 +589,7 @@ rule bam_analysis_dna:
 		"envs/gila_xyalign_environment.yaml"
 	shell:
 		"{params.xyalign} --ANALYZE_BAM "
-		"--chromosomes 0 1 2 3 157 218 304 398 1759 3281 2585 3374 1225 3544 1960 260213 3468 2594 3068 259577 3245 259781 "
+		"--chromosomes 0 1 2 3 157 218 304 398"
 		"--bam {input.bam} --ref {input.ref} "
 		"--sample_id {params.sample_id} "
 		"--output_dir xyalign_analyses/{params.sample_id} "
