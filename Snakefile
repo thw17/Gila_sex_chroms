@@ -2,7 +2,8 @@ import os
 
 configfile: "gilas_config.json"
 
-fastq_directory = "/mnt/storage/SAYRES/GilaMonster/all_fastqs/"
+# fastq_directory = "/mnt/storage/SAYRES/GilaMonster/all_fastqs/"
+fastq_directory = "fastqs"
 temp_directory = "temp/"
 
 bbduksh_path = "bbduk.sh"
@@ -71,7 +72,7 @@ rule all:
 		# expand(
 		# 	"combined_gvcfs/{genome}.{chunk}.gatk.combinegvcf.g.vcf.gz",
 		# 	genome=["gila1"], chunk=chunk_range),
-		# expand(
+		expand(
 		 	"xyalign_analyses/{genome}/logfiles/{sample}.{genome}_xyalign.log",
 		 	sample=dna, genome=assembly_list),
 		expand(
@@ -489,8 +490,9 @@ rule chrom_stats_dna:
 		xyalign = xyalign_path,
 		sample_id = "{genome}",
 		xyalign_env = xyalign_anaconda_env
+	conda:
+		"envs/gila_xyalign_environment.yaml"
 	shell:
-		"source activate {params.xyalign_env} && "
 		"{params.xyalign} --CHROM_STATS --use_counts "
 		"--chromosomes ALL --bam {input.bams} --ref null "
 		"--sample_id {params.sample_id} "
@@ -510,8 +512,9 @@ rule bam_analysis_dna:
 		xyalign_env = xyalign_anaconda_env,
 		threads = 4
 	threads: 4
+	conda:
+		"envs/gila_xyalign_environment.yaml"
 	shell:
-		"source activate {params.xyalign_env} && "
 		"{params.xyalign} --ANALYZE_BAM "
 		"--chromosomes 0 1 2 3 157 218 304 398 1759 3281 2585 3374 1225 3544 1960 260213 3468 2594 3068 259577 3245 259781 "
 		"--bam {input.bam} --ref {input.ref} "
