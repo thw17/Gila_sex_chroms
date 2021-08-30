@@ -179,7 +179,7 @@ rule hisat2_map_reads:
 	params:
 		threads = 4,
 		mem = 16,
-		t = long
+		t = long,
 		hisat2 = hisat2_path,
 		samtools = samtools_path,
 		id = lambda wildcards: config[wildcards.sample]["ID"],
