@@ -589,7 +589,7 @@ rule bam_analysis_dna:
 		"envs/gila_xyalign_environment.yaml"
 	shell:
 		"{params.xyalign} --ANALYZE_BAM "
-		"--chromosomes 0 1 2 3 157 218 304 398"
+		"--chromosomes 0 1 2 3 157 218 304 398 "
 		"--bam {input.bam} --ref {input.ref} "
 		"--sample_id {params.sample_id} "
 		"--output_dir xyalign_analyses/{params.sample_id} "
