@@ -29,6 +29,9 @@ hisat2_build_path = "hisat2-build"
 stringtie_path = "stringtie"
 xyalign_anaconda_env = "gila_xyalign_env"
 
+lastal_path = "lastal"
+lastdb_path = "lastdb"
+
 # assembly_list = ["gila1", "gila2"]
 assembly_list = ["gila2"]
 
@@ -107,7 +110,10 @@ rule all:
 		expand(
 			"results/all_compiled.{genome}.{strategy}.txt",
 			strategy=["mixed", "denovo", "refbased"],
-			genome=assembly_list)
+			genome=assembly_list),
+		expand(
+			"komodo/komodo_scaff218_{assembly}_align.maf",
+			assembly=assembly_list)
 
 rule prepare_reference:
 	input:
@@ -1024,3 +1030,60 @@ rule combine_into_big_dataframe:
 		"--input_files {input.cov} {input.expr} {input.het_dna} {input.het_rna} "
 		"--output_html_df {params.html} "
 		"--output_csv_df {output.txt}"
+
+rule get_komodo:
+	output:
+		"komodo/komodov1.fa"
+	params:
+		web_address = lambda wildcards: config["komodo_paths"]["komodov1"],
+		initial_output = "komodo/komodov1.fa.gz",
+		threads = 1,
+		mem = 4,
+		t = very_short
+	run:
+		shell("wget {params.web_address} -O {params.initial_output}")
+		shell("gunzip {params.initial_output}")
+
+rule extract_218:
+	input:
+		ref = "new_reference/{assembly}.fasta",
+		fai = "new_reference/{assembly}.fasta.fai"
+	output:
+		"komodo/{assembly}.scaff218.fasta"
+	params:
+		scaffold = "218",
+		samtools = samtools_path,
+		threads = 2,
+		mem = 8,
+		t = medium
+	shell:
+		"{params.samtools} faidx {input.ref} {params.scaffold} > {output}"
+
+rule create_lastdb:
+	input:
+		target = "komodo/komodov1.fa"
+	output:
+		"komodo/komodoDb.tis"
+	params:
+		lastdb = lastdb_path,
+		database_prefix = "komodoDb",
+		threads = 4,
+		mem = 16,
+		t = long
+	shell:
+		"{params.lastdb} {params.database_prefix} {input.target}"
+
+rule run_lastal:
+	input:
+		t = "komodo/komodoDb.tis",
+		q = "komodo/{assembly}.scaff218.fasta"
+	output:
+		"komodo/komodo_scaff218_{assembly}_align.maf"
+	params:
+		lastal = lastal_path,
+		database_prefix = "komodoDb",
+		threads = 4,
+		mem = 16,
+		t = very_long
+	shell:
+		"{params.lastal} -a 400 -b 30 -e 4500 {params.database_prefix} {input.q} > {output}"

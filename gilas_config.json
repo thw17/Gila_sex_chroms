@@ -1,4 +1,8 @@
 {
+	"komodo_paths": {
+		"komodov1": "https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/004/798/865/GCA_004798865.1_ASM479886v1/GCA_004798865.1_ASM479886v1_genomic.fna.gz"
+	},
+
 	"genome_paths": {
 		"gila1": "reference/GilaMonster_fastas__assembly_pseudohap.fasta",
 		"gila2": "reference/assembly_pseudohap.fasta"
