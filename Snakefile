@@ -34,6 +34,7 @@ lastdb_path = "lastdb"
 
 # assembly_list = ["gila1", "gila2"]
 assembly_list = ["gila2"]
+scaffolds_to_analyze = ["157", "218", "304", "398", "674", "0", "1", "2", "3"]
 
 samples = [
 	"G_10_dna", "G_10_rna", "G_16_dna", "G_16_rna", "G_30_dna", "G_30_rna",
@@ -113,7 +114,11 @@ rule all:
 			genome=assembly_list),
 		expand(
 			"komodo/komodo_scaff218_{assembly}_align.maf",
-			assembly=assembly_list)
+			assembly=assembly_list),
+		expand(
+			"par_results/scaffold{scaff}_{genome}.txt",
+			genome=assembly_list,
+			scaff=scaffolds_to_analyze)
 
 rule prepare_reference:
 	input:
@@ -583,7 +588,8 @@ rule bam_analysis_dna:
 		ref = "new_reference/{genome}.fasta",
 		fai = "new_reference/{genome}.fasta.fai",
 	output:
-		"xyalign_analyses/{sample}.{genome}/logfiles/{sample}.{genome}_xyalign.log"
+		bed = "xyalign_analyses/{sample}.{genome}/{sample}.{genome}_full_dataframe_depth_mapq_preprocessing.csv",
+		log = "xyalign_analyses/{sample}.{genome}/logfiles/{sample}.{genome}_xyalign.log"
 	params:
 		xyalign = xyalign_path,
 		sample_id = "{sample}.{genome}",
@@ -1087,3 +1093,24 @@ rule run_lastal:
 		t = very_long
 	shell:
 		"{params.lastal} -a 400 -b 30 -e 4500 {params.database_prefix} {input.q} > {output}"
+
+rule find_par:
+	input:
+		males = lambda wildcards: expand(
+			"xyalign_analyses/{sample}.{genome}/{sample}.{genome}_full_dataframe_depth_mapq_preprocessing.csv",
+			genome=wildcards.genome,
+			sample=[x for x in dna if config["sexes"][x] == "male"]),
+		females = lambda wildcards: expand(
+			"xyalign_analyses/{sample}.{genome}/{sample}.{genome}_full_dataframe_depth_mapq_preprocessing.csv",
+			genome=wildcards.genome,
+			sample=[x for x in dna if config["sexes"][x] == "male"])
+	output:
+		"par_results/scaffold{scaff}_{genome}.txt"
+	params:
+		scaffold = "{scaff}",
+		threads = 4,
+		mem = 16,
+		t = short
+	shell:
+		"python scripts/Find_par.py --male_list {input.males} "
+		"--female_list {input.females} --scaffold {params.scaffold} --output {output}"
