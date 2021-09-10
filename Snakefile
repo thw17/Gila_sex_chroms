@@ -1110,7 +1110,7 @@ rule find_par:
 		scaffold = "{scaff}",
 		threads = 4,
 		mem = 16,
-		t = short
+		t = medium
 	shell:
 		"python scripts/Find_par.py --male_list {input.males} "
 		"--female_list {input.females} --scaffold {params.scaffold} --output {output}"
