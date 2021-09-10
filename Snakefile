@@ -1072,7 +1072,7 @@ rule create_lastdb:
 		"komodo/komodoDb.tis"
 	params:
 		lastdb = lastdb_path,
-		database_prefix = "komodoDb",
+		database_prefix = "komodo/komodoDb",
 		threads = 4,
 		mem = 16,
 		t = long
