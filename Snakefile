@@ -588,7 +588,7 @@ rule bam_analysis_dna:
 		ref = "new_reference/{genome}.fasta",
 		fai = "new_reference/{genome}.fasta.fai",
 	output:
-		bed = "xyalign_analyses/{sample}.{genome}/{sample}.{genome}_full_dataframe_depth_mapq_preprocessing.csv",
+		bed = "xyalign_analyses/{sample}.{genome}/bed/{sample}.{genome}_full_dataframe_depth_mapq_preprocessing.csv",
 		log = "xyalign_analyses/{sample}.{genome}/logfiles/{sample}.{genome}_xyalign.log"
 	params:
 		xyalign = xyalign_path,
@@ -1097,11 +1097,11 @@ rule run_lastal:
 rule find_par:
 	input:
 		males = lambda wildcards: expand(
-			"xyalign_analyses/{sample}.{genome}/{sample}.{genome}_full_dataframe_depth_mapq_preprocessing.csv",
+			"xyalign_analyses/{sample}.{genome}/bed/{sample}.{genome}_full_dataframe_depth_mapq_preprocessing.csv",
 			genome=wildcards.genome,
 			sample=[x for x in dna if config["sexes"][x] == "male"]),
 		females = lambda wildcards: expand(
-			"xyalign_analyses/{sample}.{genome}/{sample}.{genome}_full_dataframe_depth_mapq_preprocessing.csv",
+			"xyalign_analyses/{sample}.{genome}/bed/{sample}.{genome}_full_dataframe_depth_mapq_preprocessing.csv",
 			genome=wildcards.genome,
 			sample=[x for x in dna if config["sexes"][x] == "male"])
 	output:
