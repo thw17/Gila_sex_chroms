@@ -1087,7 +1087,7 @@ rule run_lastal:
 		"komodo/komodo_scaff218_{assembly}_align.maf"
 	params:
 		lastal = lastal_path,
-		database_prefix = "komodoDb",
+		database_prefix = "komodo/komodoDb",
 		threads = 8,
 		mem = 32,
 		t = very_long
