@@ -1088,8 +1088,8 @@ rule run_lastal:
 	params:
 		lastal = lastal_path,
 		database_prefix = "komodoDb",
-		threads = 4,
-		mem = 16,
+		threads = 8,
+		mem = 32,
 		t = very_long
 	shell:
 		"{params.lastal} -a 400 -b 30 -e 4500 {params.database_prefix} {input.q} > {output}"
