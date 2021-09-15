@@ -1103,7 +1103,7 @@ rule find_par:
 		females = lambda wildcards: expand(
 			"xyalign_analyses/{sample}.{genome}/bed/{sample}.{genome}_full_dataframe_depth_mapq_preprocessing.csv",
 			genome=wildcards.genome,
-			sample=[x for x in dna if config["sexes"][x] == "male"])
+			sample=[x for x in dna if config["sexes"][x] == "female"])
 	output:
 		"par_results/scaffold{scaff}_{genome}.txt"
 	params:
