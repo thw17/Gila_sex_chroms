@@ -96,9 +96,10 @@ rule all:
 			"stats/{sample}.{genome}.rna.sorted.bam.stats",
 			genome=assembly_list, sample=rna),
 		expand(
-			"results/{genome}.{strategy}.stringtie_compiled_per_transcript.txt",
+			"results/{genome}.{strategy}.stringtie_compiled_per_[region_type].txt",
 		 	strategy=["mixed", "denovo", "refbased"],
-		 	genome=assembly_list),
+		 	genome=assembly_list,
+			region_type=["exon", "transcript"]),
 		# expand(
 		# 	"results/{genome}.chromstats_compiled.txt",
 		# 	genome=assembly_list),
@@ -112,9 +113,9 @@ rule all:
 			"results/all_compiled.{genome}.{strategy}.txt",
 			strategy=["mixed", "denovo", "refbased"],
 			genome=assembly_list),
-		expand(
-			"komodo/komodo_scaff218_{assembly}_align.maf",
-			assembly=assembly_list),
+		# expand(
+		# 	"komodo/komodo_scaff218_{assembly}_align.maf",
+		# 	assembly=assembly_list),
 		expand(
 			"par_results/scaffold{scaff}_{genome}.txt",
 			genome=assembly_list,
@@ -1114,3 +1115,31 @@ rule find_par:
 	shell:
 		"python scripts/Find_par.py --male_list {input.males} "
 		"--female_list {input.females} --scaffold {params.scaffold} --output {output}"
+
+rule compile_stringtie_results_per_exon:
+	input:
+		ctabs = lambda wildcards: expand(
+			"stringtie_gtfs_{strat}/{sample}_{genome}/e_data.ctab",
+			genome=wildcards.assembly,
+			strat=wildcards.strategy,
+			sample=rna)
+	output:
+		"results/{assembly}.{strategy}.stringtie_compiled_per_exon.txt"
+	params:
+		strat = "{strategy}",
+		threads = 4,
+		mem = 16,
+		t = long
+	run:
+		ctab_sexes = []
+		for i in input.ctabs:
+			i_split = i.split("/")[1]
+			sample_id = "{}_{}_{}".format(
+				i_split.split("_")[0], i_split.split("_")[1], i_split.split("_")[2])
+			ctab_sexes.append(config["sexes"][sample_id])
+		shell(
+			"python scripts/Compile_stringtie_per_transcript.py "
+			"--output_file {output} --input_files {input.ctabs} "
+			"--sex {ctab_sexes} --suffix {params.strat}")
+		shell(
+			"sed -i -e 's/transcript/exon/g' {output}")
