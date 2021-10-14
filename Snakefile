@@ -1080,7 +1080,7 @@ rule lastz_alignment:
 		t = long
 	shell:
 		"{params.lastz} {input.komodo}[multiple] {input.scaff} --ambiguous=iupac "
-		"--gfextend --chain --gapped --format=maf > {output}"
+		"--queryhspbest=5 --gfextend --chain --gapped --format=maf > {output}"
 
 rule create_lastdb:
 	input:
