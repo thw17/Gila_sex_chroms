@@ -113,9 +113,9 @@ rule all:
 			"results/all_compiled.{genome}.{strategy}.txt",
 			strategy=["mixed", "denovo", "refbased"],
 			genome=assembly_list),
-		# expand(
-		# 	"komodo/komodo_scaff218_{assembly}_align.maf",
-		# 	assembly=assembly_list),
+		expand(
+			"komodo/komodo_scaff218_{assembly}_align.maf",
+			assembly=assembly_list),
 		expand(
 			"par_results/scaffold{scaff}_{genome}.txt",
 			genome=assembly_list,
@@ -1066,6 +1066,21 @@ rule extract_218:
 	shell:
 		"{params.samtools} faidx {input.ref} {params.scaffold} > {output}"
 
+rule lastz_alignment:
+	input:
+		scaff = "komodo/{assembly}.scaff218.fasta",
+		komodo = "komodo/komodov1.fa"
+	output:
+		"komodo/komodo_scaff218_{assembly}_align.maf"
+	params:
+		lastz = "lastz_path",
+		threads = 4,
+		mem = 16,
+		t = long
+	shell:
+		"{params.lastz} {input.komodo} {input.scaff} ambiguous=iupac "
+		"--gfextend --chain --gapped --format=maf > {output}"
+
 rule create_lastdb:
 	input:
 		target = "komodo/komodov1.fa"
@@ -1080,20 +1095,20 @@ rule create_lastdb:
 	shell:
 		"{params.lastdb} {params.database_prefix} {input.target}"
 
-rule run_lastal:
-	input:
-		t = "komodo/komodoDb.tis",
-		q = "komodo/{assembly}.scaff218.fasta"
-	output:
-		"komodo/komodo_scaff218_{assembly}_align.maf"
-	params:
-		lastal = lastal_path,
-		database_prefix = "komodo/komodoDb",
-		threads = 8,
-		mem = 32,
-		t = very_long
-	shell:
-		"{params.lastal} -a 400 -b 30 -e 4500 {params.database_prefix} {input.q} > {output}"
+# rule run_lastal:
+# 	input:
+# 		t = "komodo/komodoDb.tis",
+# 		q = "komodo/{assembly}.scaff218.fasta"
+# 	output:
+# 		"komodo/komodo_scaff218_{assembly}_align.maf"
+# 	params:
+# 		lastal = lastal_path,
+# 		database_prefix = "komodo/komodoDb",
+# 		threads = 8,
+# 		mem = 32,
+# 		t = very_long
+# 	shell:
+# 		"{params.lastal} -a 400 -b 30 -e 4500 {params.database_prefix} {input.q} > {output}"
 
 rule find_par:
 	input:
