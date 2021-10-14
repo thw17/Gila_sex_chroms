@@ -31,7 +31,7 @@ xyalign_anaconda_env = "gila_xyalign_env"
 
 lastal_path = "lastal"
 lastdb_path = "lastdb"
-lastz_path = "lastz"
+lastz_path = "lastz_32"
 
 # assembly_list = ["gila1", "gila2"]
 assembly_list = ["gila2"]
