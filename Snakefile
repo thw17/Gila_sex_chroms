@@ -102,7 +102,7 @@ rule all:
 		 	genome=assembly_list,
 			region_type=["exon", "transcript"]),
 		expand(
-			"results/{genome}.{strategy}.stringtie_compiled_per_{region_type}_separate_individuals.txt",
+			"results/corrected.{genome}.{strategy}.stringtie_compiled_per_{region_type}_separate_individuals.txt",
 		 	strategy=["mixed", "denovo", "refbased"],
 		 	genome=assembly_list,
 			region_type=["exon", "transcript"]),
@@ -1219,3 +1219,29 @@ rule compile_stringtie_results_per_exon_separate_individuals:
 			"--sex {ctab_sexes} --suffix {params.strat}")
 		shell(
 			"sed -i -e 's/transcript/exon/g' {output}")
+
+rule correct_stringtie_transcripts:
+	input:
+		"results/{assembly}.{strategy}.stringtie_compiled_per_transcript_separate_individuals.txt"
+	output:
+		"results/corrected.{assembly}.{strategy}.stringtie_compiled_per_transcript_separate_individuals.txt"
+	params:
+		threads = 4,
+		mem = 16,
+		t = medium
+	shell:
+		"python scripts/Correct_per_transcript_per_individual_expression.py "
+		"--output_file {output} --input_file {input}
+
+rule correct_stringtie_exons:
+	input:
+		"results/{assembly}.{strategy}.stringtie_compiled_per_exon_separate_individuals.txt"
+	output:
+		"results/corrected.{assembly}.{strategy}.stringtie_compiled_per_exon_separate_individuals.txt"
+	params:
+		threads = 4,
+		mem = 16,
+		t = medium
+	shell:
+		"python scripts/Correct_per_transcript_per_individual_expression.py "
+		"--output_file {output} --input_file {input}

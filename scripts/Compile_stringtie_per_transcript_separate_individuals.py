@@ -55,11 +55,13 @@ def main():
 		# This if/else block is hard coded to the expected path from the Snakefile
 		if args.sex[idx] == 'male':
 			a = file.split("/")[1]
-			b = a.split("_")[0]
+			print(a)
+			b = a.split("_rna_")[0]
+			print(b)
 			sample_order[0].append(b)
 		else:
 			a = file.split("/")[1]
-			b = a.split("_")[0]
+			b = a.split("_rna_")[0]
 			sample_order[1].append(b)
 
 		with open(file, 'r') as readfile:
@@ -103,8 +105,6 @@ def main():
 			sample_order[1][0]: t_data[ts]['f'][0],
 			sample_order[1][1]: t_data[ts]['f'][1],
 			sample_order[1][2]: t_data[ts]['f'][2]}
-
-	print(mean_table)
 
 	table_df = pd.DataFrame.from_dict(mean_table, orient='index').reset_index()
 	table_df = table_df.rename(
