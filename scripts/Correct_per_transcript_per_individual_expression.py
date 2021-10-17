@@ -37,7 +37,11 @@ def main():
 	df_1["corrected_female_mean"] = df_1[["G_30", "G_35", "G_L"]].mean(axis=1)
 	df_1["corrected_f_m_ratio"] = df_1["corrected_female_mean"] / df_1["corrected_male_mean"]
 
-	df_sorted = df_1.sort_values(["scaffold", "transcript_id"], ascending = (True, True))
+	if "transcript_id" in list(df_1.columns):
+		df_sorted = df_1.sort_values(["scaffold", "transcript_id"], ascending = (True, True))
+	elif "exon_id" in list(df_1.columns):
+		df_sorted = df_1.sort_values(["scaffold", "exon_id"], ascending = (True, True))
+
 	df_sorted.to_csv(args.output_file, sep='\t', index=False)
 
 if __name__ == "__main__":
