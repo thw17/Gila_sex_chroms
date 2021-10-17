@@ -104,6 +104,8 @@ def main():
 			sample_order[1][1]: t_data[ts]['f'][1],
 			sample_order[1][2]: t_data[ts]['f'][2]}
 
+	print(mean_table)
+
 	table_df = pd.DataFrame.from_dict(mean_table, orient='index').reset_index()
 	table_df = table_df.rename(
 		index=str,
