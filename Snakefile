@@ -1231,7 +1231,7 @@ rule correct_stringtie_transcripts:
 		t = medium
 	shell:
 		"python scripts/Correct_per_transcript_per_individual_expression.py "
-		"--output_file {output} --input_file {input}
+		"--output_file {output} --input_file {input}"
 
 rule correct_stringtie_exons:
 	input:
@@ -1244,4 +1244,4 @@ rule correct_stringtie_exons:
 		t = medium
 	shell:
 		"python scripts/Correct_per_transcript_per_individual_expression.py "
-		"--output_file {output} --input_file {input}
+		"--output_file {output} --input_file {input}"
