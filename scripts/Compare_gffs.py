@@ -54,6 +54,9 @@ def main():
 				d[gene].append(scaff)
 				d[gene].append(start)
 
+	len(d)
+	print(d)
+
 	df = pd.DataFrame.from_dict(d, orient='index', columns=["GFF1_scaff", "GFF1_start", "GFF2_scaff", "GFF2_start"])
 	df_sorted = df.sort_values(["GFF1_scaff", "GFF1_start"])
 
