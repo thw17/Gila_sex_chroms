@@ -6,11 +6,11 @@ def parse_args():
 		description="")
 
 	parser.add_argument(
-		"--input_gff1", required=True,
+		"--gff1", required=True,
 		help="")
 
 	parser.add_argument(
-		"--input_gff2", required=True,
+		"--gff2", required=True,
 		help="")
 
 	parser.add_argument(
