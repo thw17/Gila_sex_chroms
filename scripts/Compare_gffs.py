@@ -2,7 +2,8 @@ import argparse
 import pandas as pd
 
 def parse_args():
-	args = parse_args()
+	parser = argparse.ArgumentParser(
+		description="")
 
 	parser.add_argument(
 		"--input_gff1", required=True,
