@@ -36,7 +36,7 @@ def main():
 				continue
 			parsed = line.strip().split()
 			if str(parsed[0]) in args.chroms:
-				if parsed[2] == gene:
+				if parsed[2] == "gene":
 					scaff = parsed[0]
 					start = parsed[3]
 					gene = parsed[8].split(';')[1].split('=')[1]
