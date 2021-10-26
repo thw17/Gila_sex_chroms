@@ -51,9 +51,10 @@ def main():
 			start = parsed[3]
 			gene = parsed[8].split(';')[1].split('=')[1]
 			if parsed[2] == "gene":
-				if gene in d:
-					d[gene].append(scaff)
-					d[gene].append(start)
+				if gene != "None":
+					if gene in d:
+						d[gene].append(scaff)
+						d[gene].append(start)
 
 	len(d)
 	print(d)
