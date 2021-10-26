@@ -40,7 +40,8 @@ def main():
 					scaff = parsed[0]
 					start = parsed[3]
 					gene = parsed[8].split(';')[1].split('=')[1]
-					d[gene] = [scaff, start]
+					if gene != "None":
+						d[gene] = [scaff, start]
 
 	with open(args.gff2, "r") as f:
 		for line in f:
