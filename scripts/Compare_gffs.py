@@ -46,12 +46,12 @@ def main():
 			if line[0] == "#":
 				continue
 			parsed = line.strip().split()
-				scaff = parsed[0]
-				start = parsed[3]
-				gene = parsed[8].split(';')[1].split('=')[1]
-				if gene in d:
-					d[gene].append(scaff)
-					d[gene].append(start)
+			scaff = parsed[0]
+			start = parsed[3]
+			gene = parsed[8].split(';')[1].split('=')[1]
+			if gene in d:
+				d[gene].append(scaff)
+				d[gene].append(start)
 
 	df = pd.DataFrame.from_dict(d, orient='index', columns=["GFF1_scaff", "GFF1_start", "GFF2_scaff", "GFF2_start"])
 	df_sorted = df.sort_values(["GFF1_scaff", "GFF1_start")
