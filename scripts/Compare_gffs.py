@@ -59,14 +59,11 @@ def main():
 
 	print(len(d))
 
-	for i in d:
-		if len(d[i]) != 4:
-			print(d[i])
-			del[d[i]]
+	d2 = {k:d[k] for k in d if len(d[k]) == 4}
 
-	print(len(d))
+	print(len(d2))
 
-	df = pd.DataFrame.from_dict(d, orient='index', columns=["GFF1_scaff", "GFF1_start", "GFF2_scaff", "GFF2_start"])
+	df = pd.DataFrame.from_dict(d2, orient='index', columns=["GFF1_scaff", "GFF1_start", "GFF2_scaff", "GFF2_start"])
 	df_sorted = df.sort_values(["GFF1_scaff", "GFF1_start"])
 
 	df_sorted.to_csv(args.output_file, sep='\t', index=False)
