@@ -1,8 +1,31 @@
 import argparse
 import pandas as pd
 
+def parse_args():
+
+
 def main():
 	args = parse_args()
+
+	parser.add_argument(
+		"--input_gff1", required=True,
+		help="")
+
+	parser.add_argument(
+		"--input_gff2", required=True,
+		help="")
+
+	parser.add_argument(
+		"--chroms", required=True, nargs="+",
+		help="")
+
+	parser.add_argument(
+		"--output_file", required=True,
+		help="Name of and full path to output tab-delimited file. "
+		"Will overwrite if already exists.")
+
+	args = parser.parse_args()
+	return args
 
 	d = {}
 	with open(args.gff1, "r") as f:
