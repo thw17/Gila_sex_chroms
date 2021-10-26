@@ -2,9 +2,6 @@ import argparse
 import pandas as pd
 
 def parse_args():
-
-
-def main():
 	args = parse_args()
 
 	parser.add_argument(
@@ -26,6 +23,10 @@ def main():
 
 	args = parser.parse_args()
 	return args
+
+def main():
+
+	args = parse_args()
 
 	d = {}
 	with open(args.gff1, "r") as f:
