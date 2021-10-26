@@ -50,9 +50,10 @@ def main():
 			scaff = parsed[0]
 			start = parsed[3]
 			gene = parsed[8].split(';')[1].split('=')[1]
-			if gene in d:
-				d[gene].append(scaff)
-				d[gene].append(start)
+			if parsed[2] == "gene":
+				if gene in d:
+					d[gene].append(scaff)
+					d[gene].append(start)
 
 	len(d)
 	print(d)
