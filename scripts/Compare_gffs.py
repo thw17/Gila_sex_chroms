@@ -60,7 +60,7 @@ def main():
 	print(len(d))
 
 	for i in d:
-		if len(d[1]) != 4:
+		if len(d[i]) != 4:
 			print(d[i])
 			del[d[i]]
 
