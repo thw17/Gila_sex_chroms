@@ -54,7 +54,7 @@ def main():
 				d[gene].append(start)
 
 	df = pd.DataFrame.from_dict(d, orient='index', columns=["GFF1_scaff", "GFF1_start", "GFF2_scaff", "GFF2_start"])
-	df_sorted = df.sort_values(["GFF1_scaff", "GFF1_start")
+	df_sorted = df.sort_values(["GFF1_scaff", "GFF1_start"])
 
 	df_sorted.to_csv(args.output_file, sep='\t', index=False)
 
