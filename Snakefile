@@ -240,7 +240,7 @@ rule hisat2_reference_index_sra:
 		"new_reference/{genome}.fa"
 	output:
 		expand(
-			"new_reference/hisat2/{{genome}}.{suffix}.ht2",
+			"new_reference_sra/hisat2/{{genome}}.{suffix}.ht2",
 			suffix=[
 				"1", "2", "3", "4", "5", "6", "7", "8"])
 	params:
@@ -249,7 +249,7 @@ rule hisat2_reference_index_sra:
 		mem = 16,
 		t = medium
 	shell:
-		"{params.hisat2_build} {input} new_reference/hisat2/{wildcards.genome}"
+		"{params.hisat2_build} {input} new_reference_sra/hisat2/{wildcards.genome}"
 
 rule trim_adapters_paired_bbduk_rna_sra:
 	input:
@@ -301,7 +301,7 @@ rule multiqc_analysis_trimmed_sra:
 rule hisat2_map_reads_sra:
 	input:
 		idx = expand(
-			"new_reference/hisat2/{{genome}}.{suffix}.ht2",
+			"new_reference_sra/hisat2/{{genome}}.{suffix}.ht2",
 			suffix=["1", "2", "3", "4", "5", "6", "7", "8"]),
 		fq1 = "trimmed_rna_fastqs_sra/{sample}_trimmed_read1.fastq.gz",
 		fq2 = "trimmed_rna_fastqs_sra/{sample}_trimmed_read2.fastq.gz"
@@ -322,7 +322,7 @@ rule hisat2_map_reads_sra:
 		"{params.hisat2} -p {params.threads} --dta "
 		"--rg-id {params.id} --rg SM:{params.sm} --rg LB:{params.lb} "
 		"--rg PU:{params.pu} --rg PL:{params.pl} "
-		"-x new_reference/hisat2/{wildcards.genome} "
+		"-x new_reference_sra/hisat2/{wildcards.genome} "
 		"-1 {input.fq1} -2 {input.fq2} | "
 		"{params.samtools} sort -O bam -o {output}"
 
