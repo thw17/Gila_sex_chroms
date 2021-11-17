@@ -134,6 +134,8 @@ rule all:
 			"par_results/scaffold{scaff}_{genome}.txt",
 			genome=assembly_list,
 			scaff=scaffolds_to_analyze),
+		"multiqc_results_sra/multiqc_report.html"
+		"multiqc_trimmed_results_sra/multiqc_report.html",
 		expand(
 			"stats_sra/{sample}.{genome}.rna.sorted.bam.stats",
 			sample=sra_ids_liver,
@@ -188,6 +190,36 @@ rule fix_read_IDs_for_paired_fastqs_from_SRA_paired:
 	shell:
 		"{params.rename_sh} in={input.fq1} in2={input.fq2} out={output.out1} out2={output.out2} prefix={params.read_name}"
 
+rule fastqc_analysis_sra:
+	input:
+		"renamed_fastqs/{sample}_fixed_{read_num}.fastq.gz"
+	output:
+		"fastqc_results_sra/{sample}_fixed_{read_num}_fastqc.html"
+	params:
+		fastqc = fastqc_path,
+		threads = 1,
+		mem = 4,
+		t = very_short
+	shell:
+		"{params.fastqc} -o fastqc_results_sra {input}"
+
+rule multiqc_analysis_sra:
+	input:
+		expand(
+			"fastqc_results_sra/{sample}_fixed_{read_num}_fastqc.html",
+			sample=sra_samples, read_num=["1", "2"])
+	output:
+		"multiqc_results_sra/multiqc_report.html"
+	params:
+		multiqc = multiqc_path,
+		threads = 1,
+		mem = 4,
+		t = very_short
+	shell:
+		"export LC_ALL=en_US.UTF-8 && export LANG=en_US.UTF-8 && "
+		"{params.multiqc} --interactive -f "
+		"-o multiqc_results_sra fastqc_results_sra"
+
 rule get_reference_web:
 	output:
 		"new_reference/{genome}.fa"
@@ -217,7 +249,7 @@ rule hisat2_reference_index_sra:
 	shell:
 		"{params.hisat2_build} {input} new_reference/hisat2/{wildcards.genome}"
 
-rule trim_adapters_paired_bbduk_rna:
+rule trim_adapters_paired_bbduk_rna_sra:
 	input:
 		fq1 = "renamed_fastqs/{sample}_fixed_1.fastq.gz",
 		fq2 = "renamed_fastqs/{sample}_fixed_2.fastq.gz"
@@ -234,6 +266,35 @@ rule trim_adapters_paired_bbduk_rna:
 		"out1={output.out_fq1} out2={output.out_fq2} "
 		"ref=misc/adapter_sequence.fa ktrim=r k=21 mink=11 hdist=2 tbo tpe "
 		"qtrim=rl trimq=15 minlen=60 maq=20"
+
+rule fastqc_analysis_trimmed_sra:
+	input:
+		"trimmed_fastqs_sra/{sample}_trimmed_read{read_num}.fastq.gz"
+	output:
+		html1 = "fastqc_trimmed_results_sra/{sample}_trimmed_read{read_num}_fastqc.html"
+	params:
+		fastqc = fastqc_path,
+		threads = 1,
+		mem = 4,
+		t = very_short
+	shell:
+		"{params.fastqc} -o fastqc_trimmed_results_sra {input}"
+
+rule multiqc_analysis_trimmed_sra:
+	input:
+		expand(
+			"fastqc_trimmed_results_sra/{sample}_trimmed_read{read_num}_fastqc.html",
+			sample=sra_samples, read_num=["1", "2"])
+	output:
+		"multiqc_trimmed_results_sra/multiqc_report.html"
+	params:
+		multiqc = multiqc_path,
+		threads = 1,
+		mem = 4,
+		t = very_short
+	shell:
+		"export LC_ALL=en_US.UTF-8 && export LANG=en_US.UTF-8 && "
+		"{params.multiqc} --interactive -f -o multiqc_trimmed_results_sra fastqc_trimmed_results_sra"
 
 rule hisat2_map_reads_sra:
 	input:
