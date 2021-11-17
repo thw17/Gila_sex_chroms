@@ -62,6 +62,8 @@ sra_ids_liver = [
 	"SRR2889297", "SRR2889296", "SRR2889295",
 	"SRR2889293", "SRR2889292", "SRR2889291"]
 
+sra_samples = sra_ids_liver
+
 fastq_prefixes = [
 	config[x]["fq1"][:-9] for x in samples] + [
 		config[x]["fq2"][:-9] for x in samples]
