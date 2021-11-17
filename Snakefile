@@ -29,6 +29,10 @@ hisat2_build_path = "hisat2-build"
 stringtie_path = "stringtie"
 xyalign_anaconda_env = "gila_xyalign_env"
 
+prefetch_path = "prefetch"
+fastq_dump_path = "fastq-dump"
+rename_sh_path = "rename.sh"
+
 lastal_path = "lastal"
 lastdb_path = "lastdb"
 lastz_path = "lastz_32"
@@ -53,6 +57,10 @@ rna_to_dna = {
 	"G_KI01_rna": "G_KI01_dna",
 	"G_L_rna": "G_L_dna"
 }
+
+sra_ids_liver = [
+	"SRR2889297", "SRR2889296", "SRR2889295",
+	"SRR2889293", "SRR2889292", "SRR2889291"]
 
 fastq_prefixes = [
 	config[x]["fq1"][:-9] for x in samples] + [
@@ -125,7 +133,164 @@ rule all:
 		expand(
 			"par_results/scaffold{scaff}_{genome}.txt",
 			genome=assembly_list,
-			scaff=scaffolds_to_analyze)
+			scaff=scaffolds_to_analyze),
+		expand(
+			"stats_sra/{sample}.{genome}.rna.sorted.bam.stats",
+			sample=sra_ids_liver,
+			genome=["galgal5"])
+
+# Steps to analyze comparative data from SRA
+
+rule prefetch_sra:
+	output:
+		os.path.join(temp_directory, "{id}/{id}.sra")
+	params:
+		tool = prefetch_path,
+		tmp_dir = temp_directory,
+		use_id = "{id}",
+		threads = 1,
+		mem = 4,
+		t = day
+	shell:
+		"{params.tool} {params.use_id} -O {params.tmp_dir} --max-size 100GB"
+
+rule fastq_dump_paired:
+	input:
+		sra = os.path.join(temp_directory, "{sample}/{sample}.sra")
+	output:
+		fq1 = "paired_fastqs/{sample}_1.fastq.gz",
+		fq2 = "paired_fastqs/{sample}_2.fastq.gz"
+	params:
+		output_dir = "paired_fastqs",
+		fastq_dump = fastq_dump_path,
+		threads = 1,
+		mem = 4,
+		t = day
+	shell:
+		"{params.fastq_dump} --outdir {params.output_dir} --gzip --readids --split-files {input.sra}"
+
+rule fix_read_IDs_for_paired_fastqs_from_SRA_paired:
+	# The fastq-dump created issues with read ID names for paired files so that
+	# they give bwa issues.  This rule will go through and rename them so that
+	# they're compatible with bwa
+	input:
+		fq1 = "paired_fastqs/{sample}_1.fastq.gz",
+		fq2 = "paired_fastqs/{sample}_2.fastq.gz"
+	output:
+		out1 = "renamed_fastqs/{sample}_fixed_1.fastq.gz",
+		out2 = "renamed_fastqs/{sample}_fixed_2.fastq.gz"
+	params:
+		rename_sh = rename_sh_path,
+		read_name = "{sample}",
+		threads = 1,
+		mem = 4,
+		t = day
+	shell:
+		"{params.rename_sh} in={input.fq1} in2={input.fq2} out={output.out1} out2={output.out2} prefix={params.read_name}"
+
+rule get_reference_web:
+	output:
+		"new_reference/{genome}.fa"
+	params:
+		web_address = lambda wildcards: config["genome_web"][wildcards.genome],
+		initial_output = "new_reference/{genome}.fa.gz",
+		threads = 1,
+		mem = 4,
+		t = very_short
+	run:
+		shell("wget {params.web_address} -O {params.initial_output}")
+		shell("gunzip {params.initial_output}")
+
+rule hisat2_reference_index_sra:
+	input:
+		"new_reference/{genome}.fa"
+	output:
+		expand(
+			"new_reference/hisat2/{{genome}}.{suffix}.ht2",
+			suffix=[
+				"1", "2", "3", "4", "5", "6", "7", "8"])
+	params:
+		hisat2_build = hisat2_build_path,
+		threads = 4,
+		mem = 16,
+		t = medium
+	shell:
+		"{params.hisat2_build} {input} new_reference/hisat2/{wildcards.genome}"
+
+rule trim_adapters_paired_bbduk_rna:
+	input:
+		fq1 = "renamed_fastqs/{sample}_fixed_1.fastq.gz",
+		fq2 = "renamed_fastqs/{sample}_fixed_2.fastq.gz"
+	output:
+		out_fq1 = "trimmed_rna_fastqs_sra/{sample}_trimmed_read1.fastq.gz",
+		out_fq2 = "trimmed_rna_fastqs_sra/{sample}_trimmed_read2.fastq.gz"
+	params:
+		bbduksh = bbduksh_path,
+		threads = 2,
+		mem = 8,
+		t = very_short
+	shell:
+		"{params.bbduksh} -Xmx3g in1={input.fq1} in2={input.fq2} "
+		"out1={output.out_fq1} out2={output.out_fq2} "
+		"ref=misc/adapter_sequence.fa ktrim=r k=21 mink=11 hdist=2 tbo tpe "
+		"qtrim=rl trimq=15 minlen=60 maq=20"
+
+rule hisat2_map_reads_sra:
+	input:
+		idx = expand(
+			"new_reference/hisat2/{{genome}}.{suffix}.ht2",
+			suffix=["1", "2", "3", "4", "5", "6", "7", "8"]),
+		fq1 = "trimmed_rna_fastqs_sra/{sample}_trimmed_read1.fastq.gz",
+		fq2 = "trimmed_rna_fastqs_sra/{sample}_trimmed_read2.fastq.gz"
+	output:
+		"processed_rna_bams_sra/{sample}.{genome}.sorted.bam"
+	params:
+		threads = 4,
+		mem = 16,
+		t = long,
+		hisat2 = hisat2_path,
+		samtools = samtools_path,
+		id = lambda wildcards: config[wildcards.sample]["ID"],
+		sm = lambda wildcards: config[wildcards.sample]["SM"],
+		lb = lambda wildcards: config[wildcards.sample]["LB"],
+		pu = lambda wildcards: config[wildcards.sample]["PU"],
+		pl = lambda wildcards: config[wildcards.sample]["PL"]
+	shell:
+		"{params.hisat2} -p {params.threads} --dta "
+		"--rg-id {params.id} --rg SM:{params.sm} --rg LB:{params.lb} "
+		"--rg PU:{params.pu} --rg PL:{params.pl} "
+		"-x new_reference/hisat2/{wildcards.genome} "
+		"-1 {input.fq1} -2 {input.fq2} | "
+		"{params.samtools} sort -O bam -o {output}"
+
+rule index_bam_rna_sra:
+	input:
+		"processed_rna_bams_sra/{sample}.{genome}.sorted.bam"
+	output:
+		"processed_rna_bams_sra/{sample}.{genome}.sorted.bam.bai"
+	params:
+		samtools = samtools_path,
+		threads = 4,
+		mem = 16,
+		t = very_short
+	shell:
+		"{params.samtools} index {input}"
+
+rule bam_stats_rna_sra:
+	input:
+		bam = "processed_rna_bams_sra/{sample}.{genome}.sorted.bam",
+		bai = "processed_rna_bams_sra/{sample}.{genome}.sorted.bam.bai"
+	output:
+		"stats_sra/{sample}.{genome}.rna.sorted.bam.stats"
+	params:
+		samtools = samtools_path,
+		threads = 4,
+		mem = 16,
+		t = very_short
+	shell:
+		"{params.samtools} stats {input.bam} | grep ^SN | cut -f 2- > {output}"
+
+# Gila steps
 
 rule prepare_reference:
 	input:

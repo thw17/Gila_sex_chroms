@@ -8,6 +8,10 @@
 		"gila2": "reference/assembly_pseudohap.fasta"
 	},
 
+	"genome_web": {
+		"galgal5": "https://hgdownload.soe.ucsc.edu/goldenPath/galGal5/bigZips/galGal5.fa.gz"
+	},
+
 	"annotation": {
 		"gila2": "reference/Gila.gff3"
 	},
@@ -25,6 +29,63 @@
 		"G_KI01_rna": "male",
 		"G_L_dna": "female",
 		"G_L_rna": "female"
+	},
+
+	"sra_sexes": {
+		"WLM35": "male",
+		"WLM21": "male",
+		"WLM33": "male",
+		"WLF25": "female",
+		"WLF19": "female",
+		"WLF27": "female"
+	},
+
+	"SRR2889297": {
+		"ID": "SRR2889297",
+		"SM": "WLM35",
+		"LB": "SRR2889297",
+		"PU": "SRR2889297",
+		"PL": "Illumina"
+	},
+
+	"SRR2889296": {
+		"ID": "SRR2889296",
+		"SM": "WLM21",
+		"LB": "SRR2889296",
+		"PU": "SRR2889296",
+		"PL": "Illumina"
+	},
+
+	"SRR2889295": {
+		"ID": "SRR2889295",
+		"SM": "WLM33",
+		"LB": "SRR2889295",
+		"PU": "SRR2889295",
+		"PL": "Illumina"
+	},
+
+	"SRR2889293": {
+		"ID": "SRR2889293",
+		"SM": "WLF25",
+		"LB": "SRR2889293",
+		"PU": "SRR2889293",
+		"PL": "Illumina"
+	},
+
+	"SRR2889292": {
+		"ID": "SRR2889292",
+		"SM": "WLF19",
+		"LB": "SRR2889292",
+		"PU": "SRR2889292",
+		"PL": "Illumina"
+	},
+
+	"SRR2889291": {
+		"ID": "SRR2889291",
+		"SM": "WLF27",
+		"LB": "SRR2889291",
+		"PU": "SRR2889291",
+		"PL": "Illumina"
 	},
 
 	"G_10_dna":{
