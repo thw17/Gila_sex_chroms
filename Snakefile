@@ -365,8 +365,8 @@ rule create_stringtie_merged_list_denovo_sra:
 	input:
 		lambda wildcards: expand(
 			"stringtie_gtfs_denovo_sra/{sample}_{genome}/{sample}.{genome}.firstpass.gtf",
-			genome=wildcards.genome,
-			sample=rna)
+			genome=["galgal5"],
+			sample=sra_ids_liver)
 	output:
 		"stringtie_gtfs_denovo_sra/{genome}_gtflist.txt"
 	params:
@@ -450,8 +450,8 @@ rule create_stringtie_merged_list_mixed_sra:
 	input:
 		lambda wildcards: expand(
 			"stringtie_gtfs_mixed_sra/{sample}_{genome}/{sample}.{genome}.firstpass.gtf",
-			genome=wildcards.genome,
-			sample=rna)
+			genome=["galgal5"],
+			sample=sra_ids_liver)
 	output:
 		"stringtie_gtfs_mixed_sra/{genome}_gtflist.txt"
 	params:
