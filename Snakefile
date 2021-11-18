@@ -136,7 +136,7 @@ rule all:
 			"par_results/scaffold{scaff}_{genome}.txt",
 			genome=assembly_list,
 			scaff=scaffolds_to_analyze),
-		"multiqc_results_sra/multiqc_report.html"
+		"multiqc_results_sra/multiqc_report.html",
 		"multiqc_trimmed_results_sra/multiqc_report.html",
 		expand(
 			"stats_sra/{sample}.{genome}.rna.sorted.bam.stats",
