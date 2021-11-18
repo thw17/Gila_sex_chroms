@@ -115,18 +115,25 @@ rule all:
 		# 	strategy=["mixed", "denovo", "refbased"],
 		# 	genome=assembly_list),
 		# expand(
-		# 	"komodo/komodo_scaff218_{assembly}_align.maf",
-		# 	assembly=assembly_list),
-		# expand(
 		# 	"par_results/scaffold{scaff}_{genome}.txt",
 		# 	genome=assembly_list,
 		# 	scaff=scaffolds_to_analyze),
+		expand(
+			"komodo/komodo_scaff218_{assembly}_align.maf",
+			assembly=assembly_list),
+		expand(
+			"komodo/scaff218_komodo_{assembly}_align.maf",
+			assembly=assembly_list),
 		"multiqc_results_sra/multiqc_report.html",
 		"multiqc_trimmed_results_sra/multiqc_report.html",
 		expand(
 			"stats_sra/{sample}.{genome}.rna.sorted.bam.stats",
 			sample=sra_ids_liver,
-			genome=["galgal5"])
+			genome=["galgal5"]),
+		expand(
+			"stringtie_gtfs_{strategy}_sra/{sample}_{genome}/{sample}.{genome}.secondpass.gtf",
+			strategy=["mixed", "denovo", "refbased"],
+			genome=assembly_list, sample=rna)
 
 # Steps to analyze comparative data from SRA
 
@@ -337,6 +344,153 @@ rule bam_stats_rna_sra:
 		t = very_short
 	shell:
 		"{params.samtools} stats {input.bam} | grep ^SN | cut -f 2- > {output}"
+
+rule stringtie_first_pass_denovo:
+	input:
+		bam = "processed_rna_bam_sra/{sample}.{genome}.sorted.bam"
+	output:
+		"stringtie_gtfs_denovo_sra/{sample}_{genome}/{sample}.{genome}.firstpass.gtf"
+	threads:
+		4
+	params:
+		stringtie = stringtie_path,
+		threads = 4,
+		mem = 16,
+		t = long
+	shell:
+		"{params.stringtie} {input.bam} -o {output} -p {params.threads}"
+
+rule create_stringtie_merged_list_denovo:
+	input:
+		lambda wildcards: expand(
+			"stringtie_gtfs_denovo_sra/{sample}_{genome}/{sample}.{genome}.firstpass.gtf",
+			genome=wildcards.genome,
+			sample=rna)
+	output:
+		"stringtie_gtfs_denovo_sra/{genome}_gtflist.txt"
+	params:
+		threads = 1,
+		mem = 4,
+		t = very_short
+	run:
+		shell("echo -n > {output}")
+		for i in input:
+			shell("echo {} >> {{output}}".format(i))
+
+rule stringtie_merge_denovo:
+	input:
+		bam_list = "stringtie_gtfs_denovo_sra/{genome}_gtflist.txt"
+	output:
+		"stringtie_gtfs_denovo_sra/{genome}.merged.gtf"
+	threads:
+		4
+	params:
+		stringtie = stringtie_path,
+		threads = 4,
+		mem = 16,
+		t = medium
+	shell:
+		"{params.stringtie} --merge {input.bam_list} -o {output} -p {params.threads}"
+
+rule stringtie_second_pass_denovo:
+	input:
+		bam = "processed_rna_bams_sra/{sample}.{genome}.sorted.bam",
+		gtf = "stringtie_gtfs_denovo_sra/{genome}.merged.gtf"
+	output:
+		gtf = "stringtie_gtfs_denovo_sra/{sample}_{genome}/{sample}.{genome}.secondpass.gtf",
+		ctab = "stringtie_gtfs_denovo_sra/{sample}_{genome}/t_data.ctab",
+		edata = "stringtie_gtfs_denovo_sra/{sample}_{genome}/e_data.ctab"
+	threads:
+		4
+	params:
+		stringtie = stringtie_path,
+		threads = 4,
+		mem = 16,
+		t = long
+	shell:
+		"{params.stringtie} {input.bam} -o {output.gtf} -p {params.threads} "
+		"-G {input.gtf} -B -e"
+
+rule stringtie_refbased:
+	input:
+		bam = "processed_rna_bams_sra/{sample}.{genome}.sorted.bam",
+		gff = lambda wildcards: config["annotation"][wildcards.genome]
+	output:
+		gtf = "stringtie_gtfs_refbased_sra/{sample}_{genome}/{sample}.{genome}.secondpass.gtf",
+		ctab = "stringtie_gtfs_refbased_sra/{sample}_{genome}/t_data.ctab",
+		edata = "stringtie_gtfs_refbased_sra/{sample}_{genome}/e_data.ctab"
+	threads:
+		4
+	params:
+		stringtie = stringtie_path,
+		threads = 4,
+		mem = 16,
+		t = long
+	shell:
+		"{params.stringtie} {input.bam} -o {output.gtf} -p {params.threads} "
+		"-G {input.gff} -B -e"
+
+rule stringtie_first_pass_mixed:
+	input:
+		bam = "processed_rna_bams_sra/{sample}.{genome}.sorted.bam",
+		gff = lambda wildcards: config["annotation"][wildcards.genome]
+	output:
+		"stringtie_gtfs_mixed_sra/{sample}_{genome}/{sample}.{genome}.firstpass.gtf"
+	params:
+		stringtie = stringtie_path,
+		threads = 4,
+		mem = 16,
+		t = long
+	shell:
+		"{params.stringtie} {input.bam} -o {output} -p {params.threads} "
+		"-G {input.gff}"
+
+rule create_stringtie_merged_list_mixed:
+	input:
+		lambda wildcards: expand(
+			"stringtie_gtfs_mixed_sra/{sample}_{genome}/{sample}.{genome}.firstpass.gtf",
+			genome=wildcards.genome,
+			sample=rna)
+	output:
+		"stringtie_gtfs_mixed_sra/{genome}_gtflist.txt"
+	params:
+		threads = 1,
+		mem = 4,
+		t = very_short
+	run:
+		shell("echo -n > {output}")
+		for i in input:
+			shell("echo {} >> {{output}}".format(i))
+
+rule stringtie_merge_mixed:
+	input:
+		bam_list = "stringtie_gtfs_mixed_sra/{genome}_gtflist.txt"
+	output:
+		"stringtie_gtfs_mixed_sra/{genome}.merged.gtf"
+	params:
+		stringtie = stringtie_path,
+		threads = 4,
+		mem = 16,
+		t = long
+	shell:
+		"{params.stringtie} --merge {input.bam_list} -o {output} -p {params.threads}"
+
+rule stringtie_second_pass_mixed:
+	input:
+		bam = "processed_rna_bams_sra/{sample}.{genome}.sorted.bam",
+		gtf = "stringtie_gtfs_mixed_sra/{genome}.merged.gtf"
+	output:
+		gtf = "stringtie_gtfs_mixed_sra/{sample}_{genome}/{sample}.{genome}.secondpass.gtf",
+		ctab = "stringtie_gtfs_mixed_sra/{sample}_{genome}/t_data.ctab",
+		edata = "stringtie_gtfs_mixed_sra/{sample}_{genome}/e_data.ctab"
+	params:
+		stringtie = stringtie_path,
+		threads = 4,
+		mem = 16,
+		t = long
+	shell:
+		"{params.stringtie} {input.bam} -o {output.gtf} -p {params.threads} "
+		"-G {input.gtf} -B -e"
 
 # Gila steps
 
@@ -1301,6 +1455,21 @@ rule lastz_alignment:
 		t = long
 	shell:
 		"{params.lastz} {input.komodo}[multiple] {input.scaff} --ambiguous=iupac "
+		"--queryhspbest=20 --gfextend --chain --gapped --format=maf > {output}"
+
+rule lastz_alignment_reversed:
+	input:
+		scaff = "komodo/{assembly}.scaff218.fasta",
+		komodo = "komodo/komodov1.fa"
+	output:
+		"komodo/scaff218_komodo_{assembly}_align.maf"
+	params:
+		lastz = lastz_path,
+		threads = 4,
+		mem = 16,
+		t = long
+	shell:
+		"{params.lastz} {input.scaff} {input.komodo} --ambiguous=iupac "
 		"--queryhspbest=20 --gfextend --chain --gapped --format=maf > {output}"
 
 rule create_lastdb:

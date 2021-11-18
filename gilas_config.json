@@ -13,7 +13,8 @@
 	},
 
 	"annotation": {
-		"gila2": "reference/Gila.gff3"
+		"gila2": "reference/Gila.gff3",
+		"galgal5": "reference/Chicken.gff3"
 	},
 
 	"sexes": {
