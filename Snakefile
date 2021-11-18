@@ -133,7 +133,8 @@ rule all:
 		expand(
 			"stringtie_gtfs_{strategy}_sra/{sample}_{genome}/{sample}.{genome}.secondpass.gtf",
 			strategy=["mixed", "denovo", "refbased"],
-			genome=assembly_list, sample=rna)
+			genome=["galgal5"],
+			sample=sra_ids_liver)
 
 # Steps to analyze comparative data from SRA
 
