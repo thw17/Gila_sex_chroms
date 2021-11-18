@@ -521,7 +521,8 @@ rule stringtie_second_pass_denovo:
 		gtf = "stringtie_gtfs_denovo/{genome}.merged.gtf"
 	output:
 		gtf = "stringtie_gtfs_denovo/{sample}_{genome}/{sample}.{genome}.secondpass.gtf",
-		ctab = "stringtie_gtfs_denovo/{sample}_{genome}/t_data.ctab"
+		ctab = "stringtie_gtfs_denovo/{sample}_{genome}/t_data.ctab",
+		edata = "stringtie_gtfs_denovo/{sample}_{genome}/e_data.ctab"
 	threads:
 		4
 	params:
@@ -539,7 +540,8 @@ rule stringtie_refbased:
 		gff = lambda wildcards: config["annotation"][wildcards.genome]
 	output:
 		gtf = "stringtie_gtfs_refbased/{sample}_{genome}/{sample}.{genome}.secondpass.gtf",
-		ctab = "stringtie_gtfs_refbased/{sample}_{genome}/t_data.ctab"
+		ctab = "stringtie_gtfs_refbased/{sample}_{genome}/t_data.ctab",
+		edata = "stringtie_gtfs_refbased/{sample}_{genome}/e_data.ctab"
 	threads:
 		4
 	params:
@@ -602,7 +604,8 @@ rule stringtie_second_pass_mixed:
 		gtf = "stringtie_gtfs_mixed/{genome}.merged.gtf"
 	output:
 		gtf = "stringtie_gtfs_mixed/{sample}_{genome}/{sample}.{genome}.secondpass.gtf",
-		ctab = "stringtie_gtfs_mixed/{sample}_{genome}/t_data.ctab"
+		ctab = "stringtie_gtfs_mixed/{sample}_{genome}/t_data.ctab",
+		edata = "stringtie_gtfs_mixed/{sample}_{genome}/e_data.ctab"
 	params:
 		stringtie = stringtie_path,
 		threads = 4,
