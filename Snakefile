@@ -348,7 +348,7 @@ rule bam_stats_rna_sra:
 
 rule stringtie_first_pass_denovo_sra:
 	input:
-		bam = "processed_rna_bam_sra/{sample}.{genome}.sorted.bam"
+		bam = "processed_rna_bams_sra/{sample}.{genome}.sorted.bam"
 	output:
 		"stringtie_gtfs_denovo_sra/{sample}_{genome}/{sample}.{genome}.firstpass.gtf"
 	threads:
