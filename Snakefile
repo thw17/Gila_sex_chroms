@@ -74,68 +74,53 @@ chunk_range = [x for x in range(1, num_chunks + 1)]
 
 rule all:
 	input:
-		expand(
-			"new_reference/{assembly}.fasta.fai",
-			assembly=assembly_list),
-		"multiqc/multiqc_report.html",
-		"multiqc_trimmed_dna/multiqc_report.html",
-		expand(
-			"processed_bams/{sample}.{genome}.mkdup.sorted.bam.bai",
-			sample=dna, genome=assembly_list),
-		expand(
-			"stats/{sample}.{genome}.dna.mkdup.sorted.bam.stats",
-			sample=dna, genome=assembly_list),
-		expand(
-			"xyalign_analyses/{genome}/results/{genome}_chrom_stats_count.txt",
-			genome=assembly_list),
 		# expand(
-		# 	"vcf/{sample}.{genome}.{chunk}.g.vcf.gz",
-		# 	sample=dna, genome=["gila1"], chunk=chunk_range),
+		# 	"new_reference/{assembly}.fasta.fai",
+		# 	assembly=assembly_list),
+		# "multiqc/multiqc_report.html",
+		# "multiqc_trimmed_dna/multiqc_report.html",
 		# expand(
-		# 	"combined_gvcfs/{genome}.{chunk}.gatk.combinegvcf.g.vcf.gz",
-		# 	genome=["gila1"], chunk=chunk_range),
-		expand(
-		 	"xyalign_analyses/{sample}.{genome}/logfiles/{sample}.{genome}_xyalign.log",
-		 	sample=dna, genome=assembly_list),
-		expand(
-			"genotyped_vcfs/{genome}.{chunk}.gatk.called.raw.vcf.gz",
-			genome=assembly_list, chunk=chunk_range),
-		expand(
-			"stringtie_gtfs_{strategy}/{sample}_{genome}/{sample}.{genome}.secondpass.gtf",
-			strategy=["mixed", "denovo", "refbased"], genome=assembly_list, sample=rna),
-		expand(
-			"stats/{sample}.{genome}.rna.sorted.bam.stats",
-			genome=assembly_list, sample=rna),
-		expand(
-			"results/{genome}.{strategy}.stringtie_compiled_per_{region_type}.txt",
-		 	strategy=["mixed", "denovo", "refbased"],
-		 	genome=assembly_list,
-			region_type=["exon", "transcript"]),
-		expand(
-			"results/corrected.{genome}.{strategy}.stringtie_compiled_per_{region_type}_separate_individuals.txt",
-		 	strategy=["mixed", "denovo", "refbased"],
-		 	genome=assembly_list,
-			region_type=["exon", "transcript"]),
+		# 	"processed_bams/{sample}.{genome}.mkdup.sorted.bam.bai",
+		# 	sample=dna, genome=assembly_list),
 		# expand(
-		# 	"results/{genome}.chromstats_compiled.txt",
+		# 	"stats/{sample}.{genome}.dna.mkdup.sorted.bam.stats",
+		# 	sample=dna, genome=assembly_list),
+		# expand(
+		# 	"xyalign_analyses/{genome}/results/{genome}_chrom_stats_count.txt",
 		# 	genome=assembly_list),
 		# expand(
-		# 	"combined_vcfs/combined.{genome}.filtered.vcf.gz.tbi",
+		#  	"xyalign_analyses/{sample}.{genome}/logfiles/{sample}.{genome}_xyalign.log",
+		#  	sample=dna, genome=assembly_list),
+		# expand(
+		# 	"genotyped_vcfs/{genome}.{chunk}.gatk.called.raw.vcf.gz",
+		# 	genome=assembly_list, chunk=chunk_range),
+		# expand(
+		# 	"stringtie_gtfs_{strategy}/{sample}_{genome}/{sample}.{genome}.secondpass.gtf",
+		# 	strategy=["mixed", "denovo", "refbased"], genome=assembly_list, sample=rna),
+		# expand(
+		# 	"stats/{sample}.{genome}.rna.sorted.bam.stats",
+		# 	genome=assembly_list, sample=rna),
+		# expand(
+		# 	"results/{genome}.{strategy}.stringtie_compiled_per_{region_type}.txt",
+		#  	strategy=["mixed", "denovo", "refbased"],
+		#  	genome=assembly_list,
+		# 	region_type=["exon", "transcript"]),
+		# expand(
+		# 	"results/corrected.{genome}.{strategy}.stringtie_compiled_per_{region_type}_separate_individuals.txt",
+		#  	strategy=["mixed", "denovo", "refbased"],
+		#  	genome=assembly_list,
+		# 	region_type=["exon", "transcript"]),
+		# expand(
+		# 	"results/all_compiled.{genome}.{strategy}.txt",
+		# 	strategy=["mixed", "denovo", "refbased"],
 		# 	genome=assembly_list),
 		# expand(
-		# 	"results/{genome}.het_rate.txt",
-		# 	genome=assembly_list),
-		expand(
-			"results/all_compiled.{genome}.{strategy}.txt",
-			strategy=["mixed", "denovo", "refbased"],
-			genome=assembly_list),
-		expand(
-			"komodo/komodo_scaff218_{assembly}_align.maf",
-			assembly=assembly_list),
-		expand(
-			"par_results/scaffold{scaff}_{genome}.txt",
-			genome=assembly_list,
-			scaff=scaffolds_to_analyze),
+		# 	"komodo/komodo_scaff218_{assembly}_align.maf",
+		# 	assembly=assembly_list),
+		# expand(
+		# 	"par_results/scaffold{scaff}_{genome}.txt",
+		# 	genome=assembly_list,
+		# 	scaff=scaffolds_to_analyze),
 		"multiqc_results_sra/multiqc_report.html",
 		"multiqc_trimmed_results_sra/multiqc_report.html",
 		expand(
