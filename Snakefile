@@ -345,7 +345,7 @@ rule bam_stats_rna_sra:
 	shell:
 		"{params.samtools} stats {input.bam} | grep ^SN | cut -f 2- > {output}"
 
-rule stringtie_first_pass_denovo:
+rule stringtie_first_pass_denovo_sra:
 	input:
 		bam = "processed_rna_bam_sra/{sample}.{genome}.sorted.bam"
 	output:
@@ -360,7 +360,7 @@ rule stringtie_first_pass_denovo:
 	shell:
 		"{params.stringtie} {input.bam} -o {output} -p {params.threads}"
 
-rule create_stringtie_merged_list_denovo:
+rule create_stringtie_merged_list_denovo_sra:
 	input:
 		lambda wildcards: expand(
 			"stringtie_gtfs_denovo_sra/{sample}_{genome}/{sample}.{genome}.firstpass.gtf",
@@ -377,7 +377,7 @@ rule create_stringtie_merged_list_denovo:
 		for i in input:
 			shell("echo {} >> {{output}}".format(i))
 
-rule stringtie_merge_denovo:
+rule stringtie_merge_denovo_sra:
 	input:
 		bam_list = "stringtie_gtfs_denovo_sra/{genome}_gtflist.txt"
 	output:
@@ -392,7 +392,7 @@ rule stringtie_merge_denovo:
 	shell:
 		"{params.stringtie} --merge {input.bam_list} -o {output} -p {params.threads}"
 
-rule stringtie_second_pass_denovo:
+rule stringtie_second_pass_denovo_sra:
 	input:
 		bam = "processed_rna_bams_sra/{sample}.{genome}.sorted.bam",
 		gtf = "stringtie_gtfs_denovo_sra/{genome}.merged.gtf"
@@ -411,7 +411,7 @@ rule stringtie_second_pass_denovo:
 		"{params.stringtie} {input.bam} -o {output.gtf} -p {params.threads} "
 		"-G {input.gtf} -B -e"
 
-rule stringtie_refbased:
+rule stringtie_refbased_sra:
 	input:
 		bam = "processed_rna_bams_sra/{sample}.{genome}.sorted.bam",
 		gff = lambda wildcards: config["annotation"][wildcards.genome]
@@ -430,7 +430,7 @@ rule stringtie_refbased:
 		"{params.stringtie} {input.bam} -o {output.gtf} -p {params.threads} "
 		"-G {input.gff} -B -e"
 
-rule stringtie_first_pass_mixed:
+rule stringtie_first_pass_mixed_sra:
 	input:
 		bam = "processed_rna_bams_sra/{sample}.{genome}.sorted.bam",
 		gff = lambda wildcards: config["annotation"][wildcards.genome]
@@ -445,7 +445,7 @@ rule stringtie_first_pass_mixed:
 		"{params.stringtie} {input.bam} -o {output} -p {params.threads} "
 		"-G {input.gff}"
 
-rule create_stringtie_merged_list_mixed:
+rule create_stringtie_merged_list_mixed_sra:
 	input:
 		lambda wildcards: expand(
 			"stringtie_gtfs_mixed_sra/{sample}_{genome}/{sample}.{genome}.firstpass.gtf",
@@ -462,7 +462,7 @@ rule create_stringtie_merged_list_mixed:
 		for i in input:
 			shell("echo {} >> {{output}}".format(i))
 
-rule stringtie_merge_mixed:
+rule stringtie_merge_mixed_sra:
 	input:
 		bam_list = "stringtie_gtfs_mixed_sra/{genome}_gtflist.txt"
 	output:
@@ -475,7 +475,7 @@ rule stringtie_merge_mixed:
 	shell:
 		"{params.stringtie} --merge {input.bam_list} -o {output} -p {params.threads}"
 
-rule stringtie_second_pass_mixed:
+rule stringtie_second_pass_mixed_sra:
 	input:
 		bam = "processed_rna_bams_sra/{sample}.{genome}.sorted.bam",
 		gtf = "stringtie_gtfs_mixed_sra/{genome}.merged.gtf"
