@@ -271,7 +271,7 @@ rule trim_adapters_paired_bbduk_rna_sra:
 
 rule fastqc_analysis_trimmed_sra:
 	input:
-		"trimmed_fastqs_sra/{sample}_trimmed_read{read_num}.fastq.gz"
+		"trimmed_rna_fastqs_sra/{sample}_trimmed_read{read_num}.fastq.gz"
 	output:
 		html1 = "fastqc_trimmed_results_sra/{sample}_trimmed_read{read_num}_fastqc.html"
 	params:
