@@ -522,8 +522,7 @@ rule compile_stringtie_results_sra:
 		ctab_sexes = []
 		for i in input.ctabs:
 			i_split = i.split("/")[1]
-			sample_id = "{}_{}_{}".format(
-				i_split.split("_")[0], i_split.split("_")[1], i_split.split("_")[2])
+			sample_id = i_split.split("_")[0]
 			ctab_sexes.append(config["sra_sexes"][sample_id])
 		shell(
 			"python scripts/Compile_stringtie_results.py --fai {input.fai} "
@@ -548,8 +547,7 @@ rule compile_stringtie_results_per_transcript_sra:
 		ctab_sexes = []
 		for i in input.ctabs:
 			i_split = i.split("/")[1]
-			sample_id = "{}_{}_{}".format(
-				i_split.split("_")[0], i_split.split("_")[1], i_split.split("_")[2])
+			sample_id = i_split.split("_")[0]
 			ctab_sexes.append(config["sra_sexes"][sample_id])
 		shell(
 			"python scripts/Compile_stringtie_per_transcript.py "
@@ -574,8 +572,7 @@ rule compile_stringtie_results_per_exon_sra:
 		ctab_sexes = []
 		for i in input.ctabs:
 			i_split = i.split("/")[1]
-			sample_id = "{}_{}_{}".format(
-				i_split.split("_")[0], i_split.split("_")[1], i_split.split("_")[2])
+			sample_id = i_split.split("_")[0]
 			ctab_sexes.append(config["sra_sexes"][sample_id])
 		shell(
 			"python scripts/Compile_stringtie_per_transcript.py "
@@ -602,8 +599,7 @@ rule compile_stringtie_results_per_transcript_separate_individuals_sra:
 		ctab_sexes = []
 		for i in input.ctabs:
 			i_split = i.split("/")[1]
-			sample_id = "{}_{}_{}".format(
-				i_split.split("_")[0], i_split.split("_")[1], i_split.split("_")[2])
+			sample_id = i_split.split("_")[0]
 			ctab_sexes.append(config["sra_sexes"][sample_id])
 		shell(
 			"python scripts/Compile_stringtie_per_transcript_separate_individuals.py "
@@ -628,8 +624,7 @@ rule compile_stringtie_results_per_exon_separate_individuals_sra:
 		ctab_sexes = []
 		for i in input.ctabs:
 			i_split = i.split("/")[1]
-			sample_id = "{}_{}_{}".format(
-				i_split.split("_")[0], i_split.split("_")[1], i_split.split("_")[2])
+			sample_id = i_split.split("_")[0]
 			ctab_sexes.append(config["sra_sexes"][sample_id])
 		shell(
 			"python scripts/Compile_stringtie_per_transcript_separate_individuals.py "
