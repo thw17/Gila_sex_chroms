@@ -130,11 +130,21 @@ rule all:
 			"stats_sra/{sample}.{genome}.rna.sorted.bam.stats",
 			sample=sra_ids_liver,
 			genome=["galgal5"]),
+		# expand(
+		# 	"stringtie_gtfs_{strategy}_sra/{sample}_{genome}/{sample}.{genome}.secondpass.gtf",
+		# 	strategy=["mixed", "denovo", "refbased"],
+		# 	genome=["galgal5"],
+		# 	sample=sra_ids_liver),
 		expand(
-			"stringtie_gtfs_{strategy}_sra/{sample}_{genome}/{sample}.{genome}.secondpass.gtf",
-			strategy=["mixed", "denovo", "refbased"],
-			genome=["galgal5"],
-			sample=sra_ids_liver)
+			"results_sra/corrected.{genome}.{strategy}.stringtie_compiled_per_{region_type}_separate_individuals.txt",
+		 	strategy=["mixed", "denovo", "refbased"],
+		 	genome=["galgal5"],
+			region_type=["exon", "transcript"]),
+		expand(
+			"results_sra/{genome}.{strategy}.stringtie_compiled_per_{region_type}.txt",
+		 	strategy=["mixed", "denovo", "refbased"],
+		 	genome=["galgal5"],
+			region_type=["exon", "transcript"])
 
 # Steps to analyze comparative data from SRA
 
@@ -492,6 +502,167 @@ rule stringtie_second_pass_mixed_sra:
 	shell:
 		"{params.stringtie} {input.bam} -o {output.gtf} -p {params.threads} "
 		"-G {input.gtf} -B -e"
+
+rule compile_stringtie_results_sra:
+	input:
+		fai = "new_reference/{assembly}.fa.fai",
+		ctabs = lambda wildcards: expand(
+			"stringtie_gtfs_sra_{strat}/{sample}_{genome}/t_data.ctab",
+			genome=wildcards.assembly,
+			strat=wildcards.strategy,
+			sample=rna)
+	output:
+		"results_sra/{assembly}.{strategy}.stringtie_compiled.txt"
+	params:
+		strat = "{strategy}",
+		threads = 4,
+		mem = 16,
+		t = long
+	run:
+		ctab_sexes = []
+		for i in input.ctabs:
+			i_split = i.split("/")[1]
+			sample_id = "{}_{}_{}".format(
+				i_split.split("_")[0], i_split.split("_")[1], i_split.split("_")[2])
+			ctab_sexes.append(config["sra_sexes"][sample_id])
+		shell(
+			"python scripts/Compile_stringtie_results.py --fai {input.fai} "
+			"--output_file {output} --input_files {input.ctabs} "
+			"--sex {ctab_sexes} --suffix {params.strat}")
+
+rule compile_stringtie_results_per_transcript_sra:
+	input:
+		ctabs = lambda wildcards: expand(
+			"stringtie_gtfs_sra_{strat}/{sample}_{genome}/t_data.ctab",
+			genome=wildcards.assembly,
+			strat=wildcards.strategy,
+			sample=rna)
+	output:
+		"results_sra/{assembly}.{strategy}.stringtie_compiled_per_transcript.txt"
+	params:
+		strat = "{strategy}",
+		threads = 4,
+		mem = 16,
+		t = long
+	run:
+		ctab_sexes = []
+		for i in input.ctabs:
+			i_split = i.split("/")[1]
+			sample_id = "{}_{}_{}".format(
+				i_split.split("_")[0], i_split.split("_")[1], i_split.split("_")[2])
+			ctab_sexes.append(config["sra_sexes"][sample_id])
+		shell(
+			"python scripts/Compile_stringtie_per_transcript.py "
+			"--output_file {output} --input_files {input.ctabs} "
+			"--sex {ctab_sexes} --suffix {params.strat}")
+
+rule compile_stringtie_results_per_exon_sra:
+	input:
+		ctabs = lambda wildcards: expand(
+			"stringtie_gtfs_sra_{strat}/{sample}_{genome}/e_data.ctab",
+			genome=wildcards.assembly,
+			strat=wildcards.strategy,
+			sample=rna)
+	output:
+		"results_sra/{assembly}.{strategy}.stringtie_compiled_per_exon.txt"
+	params:
+		strat = "{strategy}",
+		threads = 4,
+		mem = 16,
+		t = long
+	run:
+		ctab_sexes = []
+		for i in input.ctabs:
+			i_split = i.split("/")[1]
+			sample_id = "{}_{}_{}".format(
+				i_split.split("_")[0], i_split.split("_")[1], i_split.split("_")[2])
+			ctab_sexes.append(config["sra_sexes"][sample_id])
+		shell(
+			"python scripts/Compile_stringtie_per_transcript.py "
+			"--output_file {output} --input_files {input.ctabs} "
+			"--sex {ctab_sexes} --suffix {params.strat}")
+		shell(
+			"sed -i -e 's/transcript/exon/g' {output}")
+
+rule compile_stringtie_results_per_transcript_separate_individuals_sra:
+	input:
+		ctabs = lambda wildcards: expand(
+			"stringtie_gtfs_sra_{strat}/{sample}_{genome}/t_data.ctab",
+			genome=wildcards.assembly,
+			strat=wildcards.strategy,
+			sample=rna)
+	output:
+		"results_sra/{assembly}.{strategy}.stringtie_compiled_per_transcript_separate_individuals.txt"
+	params:
+		strat = "{strategy}",
+		threads = 4,
+		mem = 16,
+		t = long
+	run:
+		ctab_sexes = []
+		for i in input.ctabs:
+			i_split = i.split("/")[1]
+			sample_id = "{}_{}_{}".format(
+				i_split.split("_")[0], i_split.split("_")[1], i_split.split("_")[2])
+			ctab_sexes.append(config["sra_sexes"][sample_id])
+		shell(
+			"python scripts/Compile_stringtie_per_transcript_separate_individuals.py "
+			"--output_file {output} --input_files {input.ctabs} "
+			"--sex {ctab_sexes} --suffix {params.strat}")
+
+rule compile_stringtie_results_per_exon_separate_individuals:
+	input:
+		ctabs = lambda wildcards: expand(
+			"stringtie_gtfs_sra_{strat}/{sample}_{genome}/e_data.ctab",
+			genome=wildcards.assembly,
+			strat=wildcards.strategy,
+			sample=rna)
+	output:
+		"results_sra/{assembly}.{strategy}.stringtie_compiled_per_exon_separate_individuals.txt"
+	params:
+		strat = "{strategy}",
+		threads = 4,
+		mem = 16,
+		t = long
+	run:
+		ctab_sexes = []
+		for i in input.ctabs:
+			i_split = i.split("/")[1]
+			sample_id = "{}_{}_{}".format(
+				i_split.split("_")[0], i_split.split("_")[1], i_split.split("_")[2])
+			ctab_sexes.append(config["sra_sexes"][sample_id])
+		shell(
+			"python scripts/Compile_stringtie_per_transcript_separate_individuals.py "
+			"--output_file {output} --input_files {input.ctabs} "
+			"--sex {ctab_sexes} --suffix {params.strat}")
+		shell(
+			"sed -i -e 's/transcript/exon/g' {output}")
+
+rule correct_stringtie_transcripts_sra:
+	input:
+		"results_sra/{assembly}.{strategy}.stringtie_compiled_per_transcript_separate_individuals.txt"
+	output:
+		"results_sra/corrected.{assembly}.{strategy}.stringtie_compiled_per_transcript_separate_individuals.txt"
+	params:
+		threads = 4,
+		mem = 16,
+		t = medium
+	shell:
+		"python scripts/Correct_per_transcript_per_individual_expression.py "
+		"--output_file {output} --input_file {input}"
+
+rule correct_stringtie_exons_sra:
+	input:
+		"results_sra/{assembly}.{strategy}.stringtie_compiled_per_exon_separate_individuals.txt"
+	output:
+		"results_sra/corrected.{assembly}.{strategy}.stringtie_compiled_per_exon_separate_individuals.txt"
+	params:
+		threads = 4,
+		mem = 16,
+		t = medium
+	shell:
+		"python scripts/Correct_per_transcript_per_individual_expression.py "
+		"--output_file {output} --input_file {input}"
 
 # Gila steps
 
