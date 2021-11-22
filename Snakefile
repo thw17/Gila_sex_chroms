@@ -643,7 +643,7 @@ rule correct_stringtie_transcripts_sra:
 		mem = 16,
 		t = medium
 	shell:
-		"python scripts/Correct_per_transcript_per_individual_expression.py "
+		"python scripts/Correct_per_transcript_per_individual_expression_chicken.py "
 		"--output_file {output} --input_file {input}"
 
 rule correct_stringtie_exons_sra:
@@ -656,7 +656,7 @@ rule correct_stringtie_exons_sra:
 		mem = 16,
 		t = medium
 	shell:
-		"python scripts/Correct_per_transcript_per_individual_expression.py "
+		"python scripts/Correct_per_transcript_per_individual_expression_chicken.py "
 		"--output_file {output} --input_file {input}"
 
 # Gila steps
