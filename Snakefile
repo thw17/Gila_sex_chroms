@@ -507,7 +507,7 @@ rule compile_stringtie_results_sra:
 	input:
 		fai = "new_reference/{assembly}.fa.fai",
 		ctabs = lambda wildcards: expand(
-			"stringtie_gtfs_sra_{strat}/{sample}_{genome}/t_data.ctab",
+			"stringtie_gtfs_{strat}_sra/{sample}_{genome}/t_data.ctab",
 			genome=wildcards.assembly,
 			strat=wildcards.strategy,
 			sample=sra_ids_liver)
@@ -533,7 +533,7 @@ rule compile_stringtie_results_sra:
 rule compile_stringtie_results_per_transcript_sra:
 	input:
 		ctabs = lambda wildcards: expand(
-			"stringtie_gtfs_sra_{strat}/{sample}_{genome}/t_data.ctab",
+			"stringtie_gtfs_sra_{strat}_sra/{sample}_{genome}/t_data.ctab",
 			genome=wildcards.assembly,
 			strat=wildcards.strategy,
 			sample=sra_ids_liver)
@@ -559,7 +559,7 @@ rule compile_stringtie_results_per_transcript_sra:
 rule compile_stringtie_results_per_exon_sra:
 	input:
 		ctabs = lambda wildcards: expand(
-			"stringtie_gtfs_sra_{strat}/{sample}_{genome}/e_data.ctab",
+			"stringtie_gtfs_sra_{strat}_sra/{sample}_{genome}/e_data.ctab",
 			genome=wildcards.assembly,
 			strat=wildcards.strategy,
 			sample=sra_ids_liver)
@@ -587,7 +587,7 @@ rule compile_stringtie_results_per_exon_sra:
 rule compile_stringtie_results_per_transcript_separate_individuals_sra:
 	input:
 		ctabs = lambda wildcards: expand(
-			"stringtie_gtfs_sra_{strat}/{sample}_{genome}/t_data.ctab",
+			"stringtie_gtfs_sra_{strat}_sra/{sample}_{genome}/t_data.ctab",
 			genome=wildcards.assembly,
 			strat=wildcards.strategy,
 			sample=sra_ids_liver)
@@ -613,7 +613,7 @@ rule compile_stringtie_results_per_transcript_separate_individuals_sra:
 rule compile_stringtie_results_per_exon_separate_individuals_sra:
 	input:
 		ctabs = lambda wildcards: expand(
-			"stringtie_gtfs_sra_{strat}/{sample}_{genome}/e_data.ctab",
+			"stringtie_gtfs_sra_{strat}_sra/{sample}_{genome}/e_data.ctab",
 			genome=wildcards.assembly,
 			strat=wildcards.strategy,
 			sample=sra_ids_liver)
