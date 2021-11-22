@@ -30,7 +30,7 @@ def main():
 
 	df_1 = pd.read_csv(args.input_file, sep='\t')
 	chroms_to_use = ["chr1", "chr2", "chr3", "chr4", "chr5"]
-	bools = df1.scaffold.isin(chroms_to_use)
+	bools = df_1.scaffold.isin(chroms_to_use)
 	df_2 = df_1[bools]
 	d = {}
 	for i in samples:
