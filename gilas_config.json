@@ -32,13 +32,22 @@
 		"G_L_rna": "female"
 	},
 
-	"sra_sexes": {
+	"sra_sexes_by_sample_name": {
 		"WLM35": "male",
 		"WLM21": "male",
 		"WLM33": "male",
 		"WLF25": "female",
 		"WLF19": "female",
 		"WLF27": "female"
+	},
+
+	"sra_sexes": {
+		"SRR2889297": "male",
+		"SRR2889296": "male",
+		"SRR2889295": "male",
+		"SRR2889293": "female",
+		"SRR2889292": "female",
+		"SRR2889291": "female"
 	},
 
 	"SRR2889297": {
