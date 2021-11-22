@@ -610,7 +610,7 @@ rule compile_stringtie_results_per_transcript_separate_individuals_sra:
 			"--output_file {output} --input_files {input.ctabs} "
 			"--sex {ctab_sexes} --suffix {params.strat}")
 
-rule compile_stringtie_results_per_exon_separate_individuals:
+rule compile_stringtie_results_per_exon_separate_individuals_sra:
 	input:
 		ctabs = lambda wildcards: expand(
 			"stringtie_gtfs_sra_{strat}/{sample}_{genome}/e_data.ctab",
