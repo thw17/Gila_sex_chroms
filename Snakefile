@@ -136,7 +136,7 @@ rule all:
 		# 	genome=["galgal5"],
 		# 	sample=sra_ids_liver),
 		expand(
-			"results_sra/corrected.{genome}.{strategy}.stringtie_compiled_per_{region_type}_separate_individuals.txt",
+			"results_sra/corrected.{genome}_{strategy}.stringtie_compiled_per_{region_type}_separate_individuals.txt",
 		 	strategy=["mixed", "denovo", "refbased"],
 		 	genome=["galgal5"],
 			region_type=["exon", "transcript"]),
@@ -642,7 +642,7 @@ rule correct_stringtie_transcripts_sra:
 	input:
 		"results_sra/{assembly}.{strategy}.stringtie_compiled_per_transcript_separate_individuals.txt"
 	output:
-		"results_sra/corrected.{assembly}.{strategy}.stringtie_compiled_per_transcript_separate_individuals.txt"
+		"results_sra/corrected.{assembly}_{strategy}.stringtie_compiled_per_transcript_separate_individuals.txt"
 	params:
 		threads = 4,
 		mem = 16,
@@ -655,7 +655,7 @@ rule correct_stringtie_exons_sra:
 	input:
 		"results_sra/{assembly}.{strategy}.stringtie_compiled_per_exon_separate_individuals.txt"
 	output:
-		"results_sra/corrected.{assembly}.{strategy}.stringtie_compiled_per_exon_separate_individuals.txt"
+		"results_sra/corrected.{assembly}_{strategy}.stringtie_compiled_per_exon_separate_individuals.txt"
 	params:
 		threads = 4,
 		mem = 16,
