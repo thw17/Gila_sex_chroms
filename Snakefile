@@ -510,7 +510,7 @@ rule compile_stringtie_results_sra:
 			"stringtie_gtfs_sra_{strat}/{sample}_{genome}/t_data.ctab",
 			genome=wildcards.assembly,
 			strat=wildcards.strategy,
-			sample=rna)
+			sample=sra_ids_liver)
 	output:
 		"results_sra/{assembly}.{strategy}.stringtie_compiled.txt"
 	params:
@@ -536,7 +536,7 @@ rule compile_stringtie_results_per_transcript_sra:
 			"stringtie_gtfs_sra_{strat}/{sample}_{genome}/t_data.ctab",
 			genome=wildcards.assembly,
 			strat=wildcards.strategy,
-			sample=rna)
+			sample=sra_ids_liver)
 	output:
 		"results_sra/{assembly}.{strategy}.stringtie_compiled_per_transcript.txt"
 	params:
@@ -562,7 +562,7 @@ rule compile_stringtie_results_per_exon_sra:
 			"stringtie_gtfs_sra_{strat}/{sample}_{genome}/e_data.ctab",
 			genome=wildcards.assembly,
 			strat=wildcards.strategy,
-			sample=rna)
+			sample=sra_ids_liver)
 	output:
 		"results_sra/{assembly}.{strategy}.stringtie_compiled_per_exon.txt"
 	params:
@@ -590,7 +590,7 @@ rule compile_stringtie_results_per_transcript_separate_individuals_sra:
 			"stringtie_gtfs_sra_{strat}/{sample}_{genome}/t_data.ctab",
 			genome=wildcards.assembly,
 			strat=wildcards.strategy,
-			sample=rna)
+			sample=sra_ids_liver)
 	output:
 		"results_sra/{assembly}.{strategy}.stringtie_compiled_per_transcript_separate_individuals.txt"
 	params:
@@ -616,7 +616,7 @@ rule compile_stringtie_results_per_exon_separate_individuals_sra:
 			"stringtie_gtfs_sra_{strat}/{sample}_{genome}/e_data.ctab",
 			genome=wildcards.assembly,
 			strat=wildcards.strategy,
-			sample=rna)
+			sample=sra_ids_liver)
 	output:
 		"results_sra/{assembly}.{strategy}.stringtie_compiled_per_exon_separate_individuals.txt"
 	params:
