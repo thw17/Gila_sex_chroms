@@ -665,8 +665,8 @@ rule correct_stringtie_exons_sra:
 
 rule find_orthologs:
 	input:
-		gff1 = lambda wildcards: config["annotation"][{wildcards.gff1}],
-		gff2 = lambda wildcards: config["annotation"][{wildcards.gff2}]
+		gff1 = lambda wildcards: config["annotation"][wildcards.gff1],
+		gff2 = lambda wildcards: config["annotation"][wildcards.gff2]
 	output:
 		"reference/{gff1}_{gff2}_gff_comparison.txt"
 	params:
