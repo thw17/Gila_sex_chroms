@@ -762,7 +762,7 @@ rule filter_ortho_compiled_stringtie_per_exon_separate_individuals_sra:
 rule filter_ortho_correct_stringtie_transcripts_sra:
 	input:
 		ortho = "reference/{gff1}_{gff2}_gff_comparison.txt",
-		res = "results_sra/corrected.{assembly}_{strategy}.stringtie_compiled_per_transcript_separate_individuals.txt"
+		res = "results_sra/corrected.{assembly}.{strategy}.stringtie_compiled_per_transcript_separate_individuals.txt"
 	output:
 		"results_sra/z_ortho_filtered-{gff1}_{gff2}-corrected.{assembly}_{strategy}.stringtie_compiled_per_transcript_separate_individuals.txt"
 	params:
@@ -775,7 +775,7 @@ rule filter_ortho_correct_stringtie_transcripts_sra:
 rule filter_ortho_correct_stringtie_exons_sra:
 	input:
 		ortho = "reference/{gff1}_{gff2}_gff_comparison.txt",
-		res = "results_sra/corrected.{assembly}_{strategy}.stringtie_compiled_per_exon_separate_individuals.txt"
+		res = "results_sra/corrected.{assembly}.{strategy}.stringtie_compiled_per_exon_separate_individuals.txt"
 	output:
 		"results_sra/z_ortho_filtered-{gff1}_{gff2}-corrected.{assembly}_{strategy}.stringtie_compiled_per_exon_separate_individuals.txt"
 	params:
