@@ -777,7 +777,7 @@ rule filter_ortho_correct_stringtie_exons_sra:
 		ortho = "reference/{gff1}_{gff2}_gff_comparison.txt",
 		res = "results_sra/corrected.{assembly}.{strategy}.stringtie_compiled_per_exon_separate_individuals.txt"
 	output:
-		"results_sra_filtered/z_ortho_filtered-{gff1}_{gff2}.{assembly}_{strategy}.stringtie_compiled_per_exon_separate_individuals.corrrected.txt"
+		"results_sra_filtered/z_ortho_filtered-{gff1}_{gff2}.{assembly}_{strategy}.stringtie_compiled_per_exon_separate_individuals.corrected.txt"
 	params:
 		threads = 4,
 		mem = 16,
