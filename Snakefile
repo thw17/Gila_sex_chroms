@@ -674,8 +674,8 @@ rule find_orthologs:
 		mem = 16,
 		t = medium
 	shell:
-		"python scripts/Compare_gffs.py --gff1 {input.gff1} -gff2 {input.gff2} "
-		"--chroms 157 218 304 398 -output_file {output}"
+		"python scripts/Compare_gffs.py --gff1 {input.gff1} --gff2 {input.gff2} "
+		"--chroms 157 218 304 398 --output_file {output}"
 
 
 # Gila steps
