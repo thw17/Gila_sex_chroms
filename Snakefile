@@ -144,7 +144,11 @@ rule all:
 			"results_sra/{genome}.{strategy}.stringtie_compiled_per_{region_type}.txt",
 		 	strategy=["mixed", "denovo", "refbased"],
 		 	genome=["galgal5"],
-			region_type=["exon", "transcript"])
+			region_type=["exon", "transcript"]),
+		expand(
+			"reference/{gff1}_{gff2}_gff_comparison.txt",
+			gff1 = ["gila2"],
+			gff2 = ["galgal5"])
 
 # Steps to analyze comparative data from SRA
 
@@ -658,6 +662,21 @@ rule correct_stringtie_exons_sra:
 	shell:
 		"python scripts/Correct_per_transcript_per_individual_expression_chicken.py "
 		"--output_file {output} --input_file {input}"
+
+rule find_orthologs:
+	input:
+		gff1 = lambda wildcards: config["annotation"][{wildcards.gff1}],
+		gff2 = lambda wildcards: config["annotation"][{wildcards.gff2}]
+	output:
+		"reference/{gff1}_{gff2}_gff_comparison.txt"
+	params:
+		threads = 4,
+		mem = 16,
+		t = medium
+	shell:
+		"python scripts/Compare_gffs.py --gff1 {input.gff1} -gff2 {input.gff2} "
+		"--chroms 157 218 304 398 -output_file {output}"
+
 
 # Gila steps
 
