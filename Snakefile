@@ -136,15 +136,24 @@ rule all:
 		# 	genome=["galgal5"],
 		# 	sample=sra_ids_liver),
 		expand(
-			"results_sra/corrected.{genome}_{strategy}.stringtie_compiled_per_{region_type}_separate_individuals.txt",
+			"results_sra/z_ortho_filtered.corrected.{genome}_{strategy}.stringtie_compiled_per_{region_type}_separate_individuals.txt",
 		 	strategy=["mixed", "denovo", "refbased"],
 		 	genome=["galgal5"],
 			region_type=["exon", "transcript"]),
 		expand(
-			"results_sra/{genome}.{strategy}.stringtie_compiled_per_{region_type}.txt",
+			"results_sra/z_ortho_filtered.{genome}_{strategy}.stringtie_compiled_per_{region_type}_separate_individuals.txt",
 		 	strategy=["mixed", "denovo", "refbased"],
 		 	genome=["galgal5"],
 			region_type=["exon", "transcript"]),
+		expand(
+			"results_sra/z_ortho_filtered.{genome}.{strategy}.stringtie_compiled_per_{region_type}.txt",
+		 	strategy=["mixed", "denovo", "refbased"],
+		 	genome=["galgal5"],
+			region_type=["exon", "transcript"]),
+		expand(
+			"results_sra/z_ortho_filtered.{genome}.{strategy}.stringtie_compiled.txt",
+		 	strategy=["mixed", "denovo", "refbased"],
+		 	genome=["galgal5"]),
 		expand(
 			"reference/{gff1}_{gff2}_gff_comparison.txt",
 			gff1 = ["gila2"],
@@ -677,6 +686,96 @@ rule find_orthologs:
 		"python scripts/Compare_gffs.py --gff1 {input.gff1} --gff2 {input.gff2} "
 		"--chroms 157 218 304 398 --output_file {output}"
 
+rule filter_ortho_compiled_stringtie:
+	input:
+		ortho = "reference/{gff1}_{gff2}_gff_comparison.txt",
+		res = "results_sra/{assembly}.{strategy}.stringtie_compiled.txt"
+	output:
+		"results_sra/z_ortho_filtered.{assembly}.{strategy}.stringtie_compiled.txt"
+	params:
+		threads = 4,
+		mem = 16,
+		t = medium
+	shell:
+		"python scripts/Filter_result_file_for_ortho.py {input.ortho} {input.res} {output}"
+
+rule filter_ortho_compiled_stringtie_per_transcript:
+	input:
+		ortho = "reference/{gff1}_{gff2}_gff_comparison.txt",
+		res = "results_sra/{assembly}.{strategy}.stringtie_compiled_per_transcript.txt"
+	output:
+		"results_sra/z_ortho_filtered.{assembly}.{strategy}.stringtie_compiled_per_transcript.txt"
+	params:
+		threads = 4,
+		mem = 16,
+		t = medium
+	shell:
+		"python scripts/Filter_result_file_for_ortho.py {input.ortho} {input.res} {output}"
+
+rule filter_ortho_compiled_stringtie_per_exon:
+	input:
+		ortho = "reference/{gff1}_{gff2}_gff_comparison.txt",
+		res = "results_sra/{assembly}.{strategy}.stringtie_compiled_per_exon.txt"
+	output:
+		"results_sra/z_ortho_filtered.{assembly}.{strategy}.stringtie_compiled_per_exon.txt"
+	params:
+		threads = 4,
+		mem = 16,
+		t = medium
+	shell:
+		"python scripts/Filter_result_file_for_ortho.py {input.ortho} {input.res} {output}"
+
+rule filter_ortho_compiled_stringtie_per_transcript_separate_individuals_sra:
+	input:
+		ortho = "reference/{gff1}_{gff2}_gff_comparison.txt",
+		res = "results_sra/{assembly}.{strategy}.stringtie_compiled_per_transcript_separate_individuals.txt"
+	output:
+		"results_sra/z_ortho_filtered.{assembly}.{strategy}.stringtie_compiled_per_transcript_separate_individuals.txt"
+	params:
+		threads = 4,
+		mem = 16,
+		t = medium
+	shell:
+		"python scripts/Filter_result_file_for_ortho.py {input.ortho} {input.res} {output}"
+
+rule filter_ortho_compiled_stringtie_per_exon_separate_individuals_sra:
+	input:
+		ortho = "reference/{gff1}_{gff2}_gff_comparison.txt",
+		res = "results_sra/{assembly}.{strategy}.stringtie_compiled_per_exon_separate_individuals.txt"
+	output:
+		"results_sra/z_ortho_filtered.{assembly}.{strategy}.stringtie_compiled_per_exon_separate_individuals.txt"
+	params:
+		threads = 4,
+		mem = 16,
+		t = medium
+	shell:
+		"python scripts/Filter_result_file_for_ortho.py {input.ortho} {input.res} {output}"
+
+rule filter_ortho_correct_stringtie_transcripts_sra:
+	input:
+		ortho = "reference/{gff1}_{gff2}_gff_comparison.txt",
+		res = "results_sra/corrected.{assembly}_{strategy}.stringtie_compiled_per_transcript_separate_individuals.txt"
+	output:
+		"results_sra/z_ortho_filtered.corrected.{assembly}_{strategy}.stringtie_compiled_per_transcript_separate_individuals.txt"
+	params:
+		threads = 4,
+		mem = 16,
+		t = medium
+	shell:
+		"python scripts/Filter_result_file_for_ortho.py {input.ortho} {input.res} {output}"
+
+rule filter_ortho_correct_stringtie_exons_sra:
+	input:
+		ortho = "reference/{gff1}_{gff2}_gff_comparison.txt",
+		res = "results_sra/corrected.{assembly}_{strategy}.stringtie_compiled_per_exon_separate_individuals.txt"
+	output:
+		"results_sra/z_ortho_filtered.corrected.{assembly}_{strategy}.stringtie_compiled_per_exon_separate_individuals.txt"
+	params:
+		threads = 4,
+		mem = 16,
+		t = medium
+	shell:
+		"python scripts/Filter_result_file_for_ortho.py {input.ortho} {input.res} {output}"
 
 # Gila steps
 
