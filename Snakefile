@@ -699,7 +699,7 @@ rule filter_ortho_compiled_stringtie:
 		ortho = "reference/{gff1}_{gff2}_gff_comparison.txt",
 		res = "results_sra/{assembly}.{strategy}.stringtie_compiled.txt"
 	output:
-		"results_sra/z_ortho_filtered-{gff1}_{gff2}-{assembly}.{strategy}.stringtie_compiled.txt"
+		"results_sra_filtered/z_ortho_filtered-{gff1}_{gff2}-{assembly}.{strategy}.stringtie_compiled.txt"
 	params:
 		threads = 4,
 		mem = 16,
@@ -712,7 +712,7 @@ rule filter_ortho_compiled_stringtie_per_transcript:
 		ortho = "reference/{gff1}_{gff2}_gff_comparison.txt",
 		res = "results_sra/{assembly}.{strategy}.stringtie_compiled_per_transcript.txt"
 	output:
-		"results_sra/z_ortho_filtered-{gff1}_{gff2}-{assembly}.{strategy}.stringtie_compiled_per_transcript.txt"
+		"results_sra_filtered/z_ortho_filtered-{gff1}_{gff2}-{assembly}.{strategy}.stringtie_compiled_per_transcript.txt"
 	params:
 		threads = 4,
 		mem = 16,
@@ -725,7 +725,7 @@ rule filter_ortho_compiled_stringtie_per_exon:
 		ortho = "reference/{gff1}_{gff2}_gff_comparison.txt",
 		res = "results_sra/{assembly}.{strategy}.stringtie_compiled_per_exon.txt"
 	output:
-		"results_sra/z_ortho_filtered-{gff1}_{gff2}-{assembly}.{strategy}.stringtie_compiled_per_exon.txt"
+		"results_sra_filtered/z_ortho_filtered-{gff1}_{gff2}-{assembly}.{strategy}.stringtie_compiled_per_exon.txt"
 	params:
 		threads = 4,
 		mem = 16,
@@ -738,7 +738,7 @@ rule filter_ortho_compiled_stringtie_per_transcript_separate_individuals_sra:
 		ortho = "reference/{gff1}_{gff2}_gff_comparison.txt",
 		res = "results_sra/{assembly}.{strategy}.stringtie_compiled_per_transcript_separate_individuals.txt"
 	output:
-		"results_sra/z_ortho_filtered-{gff1}_{gff2}-{assembly}.{strategy}.stringtie_compiled_per_transcript_separate_individuals.txt"
+		"results_sra_filtered/z_ortho_filtered-{gff1}_{gff2}-{assembly}.{strategy}.stringtie_compiled_per_transcript_separate_individuals.txt"
 	params:
 		threads = 4,
 		mem = 16,
@@ -751,7 +751,7 @@ rule filter_ortho_compiled_stringtie_per_exon_separate_individuals_sra:
 		ortho = "reference/{gff1}_{gff2}_gff_comparison.txt",
 		res = "results_sra/{assembly}.{strategy}.stringtie_compiled_per_exon_separate_individuals.txt"
 	output:
-		"results_sra/z_ortho_filtered-{gff1}_{gff2}-{assembly}.{strategy}.stringtie_compiled_per_exon_separate_individuals.txt"
+		"results_sra_filtered/z_ortho_filtered-{gff1}_{gff2}-{assembly}.{strategy}.stringtie_compiled_per_exon_separate_individuals.txt"
 	params:
 		threads = 4,
 		mem = 16,
@@ -764,7 +764,7 @@ rule filter_ortho_correct_stringtie_transcripts_sra:
 		ortho = "reference/{gff1}_{gff2}_gff_comparison.txt",
 		res = "results_sra/corrected.{assembly}.{strategy}.stringtie_compiled_per_transcript_separate_individuals.txt"
 	output:
-		"results_sra/z_ortho_filtered.corrected-{gff1}_{gff2}.{assembly}_{strategy}.stringtie_compiled_per_transcript_separate_individuals.txt"
+		"results_sra_filtered/z_ortho_filtered.corrected-{gff1}_{gff2}.{assembly}_{strategy}.stringtie_compiled_per_transcript_separate_individuals.txt"
 	params:
 		threads = 4,
 		mem = 16,
@@ -777,7 +777,7 @@ rule filter_ortho_correct_stringtie_exons_sra:
 		ortho = "reference/{gff1}_{gff2}_gff_comparison.txt",
 		res = "results_sra/corrected.{assembly}.{strategy}.stringtie_compiled_per_exon_separate_individuals.txt"
 	output:
-		"results_sra/z_ortho_filtered.corrected-{gff1}_{gff2}.{assembly}_{strategy}.stringtie_compiled_per_exon_separate_individuals.txt"
+		"results_sra_filtered/z_ortho_filtered.corrected-{gff1}_{gff2}.{assembly}_{strategy}.stringtie_compiled_per_exon_separate_individuals.txt"
 	params:
 		threads = 4,
 		mem = 16,
