@@ -21,7 +21,7 @@ with open(outfile, "w") as o:
 		for line in j:
 			stripped = line.rstrip()
 			split = stripped.split()
-			if stripped[1] == "chr28":
+			if split[1] == "chr28":
 				chrom = stripped[1]
 				start = stripped[3]
 				c = (chrom, start)
