@@ -12,7 +12,7 @@ with open(ortho, "r") as f:
 		if split[0] != "GFF1_scaff":
 			chrom = split[2]
 			start = split[3]
-		coords[(chrom, start)] = (chrom, start)
+			coords[(chrom, start)] = (chrom, start)
 
 
 with open(outfile, "w") as o:
