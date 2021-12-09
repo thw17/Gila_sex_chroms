@@ -26,9 +26,9 @@ with open(outfile, "w") as o:
 				start = stripped[3]
 				c = (chrom, start)
 				if c in coords:
-					print(c)
 					o.write(line)
 				else:
+					print(c)
 					continue
 			else:
 				o.write(line)
