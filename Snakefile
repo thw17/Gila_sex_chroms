@@ -259,6 +259,19 @@ rule get_reference_web:
 		shell("wget {params.web_address} -O {params.initial_output}")
 		shell("gunzip {params.initial_output}")
 
+rule fai_ref:
+	input:
+		"new_reference/{genome}.fa"
+	output:
+		"new_reference/{genome}.fa.fai"
+	params:
+		samtools = samtools_path,
+		threads = 4,
+		mem = 16,
+		t = medium
+	shell:
+		"{params.samtools} faidx {input}"
+
 rule hisat2_reference_index_sra:
 	input:
 		"new_reference/{genome}.fa"
