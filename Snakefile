@@ -143,7 +143,6 @@ rule all:
 			gff1 = ["gila2"],
 			gff2 = ["galgal5"]),
 		expand(
-			"results_sra_filtered/z_ortho_filtered-{gff1}_{gff2}-{assembly}.{strategy}.stringtie_compiled_per_transcript_separate_individuals.txt"
 			"results_sra_filtered/z_ortho_filtered-{gff1}_{gff2}-{genome}_{strategy}.stringtie_compiled_per_{region_type}_separate_individuals.txt",
 		 	strategy=["mixed", "denovo", "refbased"],
 		 	genome=["galgal5"],
