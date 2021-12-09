@@ -136,7 +136,7 @@ rule all:
 		# 	genome=["galgal5"],
 		# 	sample=sra_ids_liver),
 		expand(
-			"results_sra_filtered/z_ortho_filtered.{gff1}_{gff2}.{genome}_{strategy}.stringtie_compiled_per_{region_type}_separate_individuals.corrected.txt",
+			"results_sra_filtered/z_ortho_filtered.corrected.stringtie_compiled_per_{region_type}_separate_individuals.{gff1}_{gff2}.{genome}_{strategy}.txt",
 		 	strategy=["mixed", "denovo", "refbased"],
 		 	genome=["galgal5"],
 			region_type=["exon", "transcript"],
@@ -764,7 +764,7 @@ rule filter_ortho_correct_stringtie_transcripts_sra:
 		ortho = "reference/{gff1}_{gff2}_gff_comparison.txt",
 		res = "results_sra/corrected.{assembly}.{strategy}.stringtie_compiled_per_transcript_separate_individuals.txt"
 	output:
-		"results_sra_filtered/z_ortho_filtered.{gff1}_{gff2}.{assembly}_{strategy}.stringtie_compiled_per_transcript_separate_individuals.corrected.txt"
+		"results_sra_filtered/z_ortho_filtered.corrected.stringtie_compiled_per_transcript_separate_individuals.{gff1}_{gff2}.{assembly}_{strategy}.txt"
 	params:
 		threads = 4,
 		mem = 16,
@@ -777,7 +777,7 @@ rule filter_ortho_correct_stringtie_exons_sra:
 		ortho = "reference/{gff1}_{gff2}_gff_comparison.txt",
 		res = "results_sra/corrected.{assembly}.{strategy}.stringtie_compiled_per_exon_separate_individuals.txt"
 	output:
-		"results_sra_filtered/z_ortho_filtered-{gff1}_{gff2}.{assembly}_{strategy}.stringtie_compiled_per_exon_separate_individuals.corrected.txt"
+		"results_sra_filtered/z_ortho_filtered.corrected.stringtie_compiled_per_exon_separate_individuals.{gff1}_{gff2}.{assembly}_{strategy}txt"
 	params:
 		threads = 4,
 		mem = 16,
