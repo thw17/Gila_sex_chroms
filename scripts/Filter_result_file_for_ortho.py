@@ -10,8 +10,8 @@ with open(ortho, "r") as f:
 		stripped = line.rstrip()
 		split = stripped.split()
 		if split[0] != "GFF1_scaff":
-			chrom = split[1]
-			start = split[2]
+			chrom = split[2]
+			start = split[3]
 			coords[(chrom, start)] = (chrom, start)
 
 
@@ -22,8 +22,8 @@ with open(outfile, "w") as o:
 			stripped = line.rstrip()
 			split = stripped.split()
 			if split[1] == "chr28":
-				chrom = stripped[1]
-				start = stripped[2]
+				chrom = split[1]
+				start = split[2]
 				c = (chrom, start)
 				if c in coords:
 					o.write(line)
