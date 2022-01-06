@@ -65,6 +65,7 @@ def main():
 						d[gene].append("exon")
 
 	print(len(d))
+	print(d)
 
 	d2 = {k:d[k] for k in d if len(d[k]) == 5}
 
