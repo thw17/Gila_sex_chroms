@@ -778,7 +778,7 @@ rule filter_ortho_correct_stringtie_transcripts_sra:
 		mem = 16,
 		t = medium
 	shell:
-		"python scripts/Filter_result_file_for_ortho.py {input.ortho} {input.res} {output} transcripts"
+		"python scripts/Filter_result_file_for_ortho.py {input.ortho} {input.res} {output} transcript"
 
 rule filter_ortho_correct_stringtie_exons_sra:
 	input:
@@ -791,7 +791,7 @@ rule filter_ortho_correct_stringtie_exons_sra:
 		mem = 16,
 		t = medium
 	shell:
-		"python scripts/Filter_result_file_for_ortho.py {input.ortho} {input.res} {output} exons"
+		"python scripts/Filter_result_file_for_ortho.py {input.ortho} {input.res} {output} exon"
 
 # Gila steps
 
