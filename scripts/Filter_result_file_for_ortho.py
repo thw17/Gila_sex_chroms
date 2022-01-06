@@ -5,6 +5,8 @@ in_result = sys.argv[2]
 outfile = sys.argv[3]
 region_type = sys.argv[4]
 
+print(region_type)
+
 coords = {}
 with open(ortho, "r") as f:
 	for line in f:
