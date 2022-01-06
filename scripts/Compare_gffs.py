@@ -51,19 +51,26 @@ def main():
 			scaff = parsed[0]
 			start = parsed[3]
 			gene = parsed[8].split(';')[1].split('=')[1]
-			if parsed[2] == "gene":
+			if parsed[2] == "transcript":
 				if gene != "None":
 					if gene in d:
 						d[gene].append(scaff)
 						d[gene].append(start)
+						d[gene].append("transcript")
+			elif parsed[2] == "exon":
+				if gene != "None":
+					if gene in d:
+						d[gene].append(scaff)
+						d[gene].append(start)
+						d[gene].append("exon")
 
 	print(len(d))
 
-	d2 = {k:d[k] for k in d if len(d[k]) == 4}
+	d2 = {k:d[k] for k in d if len(d[k]) == 5}
 
 	print(len(d2))
 
-	df = pd.DataFrame.from_dict(d2, orient='index', columns=["GFF1_scaff", "GFF1_start", "GFF2_scaff", "GFF2_start"])
+	df = pd.DataFrame.from_dict(d2, orient='index', columns=["GFF1_scaff", "GFF1_start", "GFF2_scaff", "GFF2_start", "type"])
 	df_sorted = df.sort_values(["GFF1_scaff", "GFF1_start"])
 
 	df_sorted.to_csv(args.output_file, sep='\t', index=False)
