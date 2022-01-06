@@ -60,7 +60,7 @@ def main():
 						if identifier in d2:
 							print(identifier)
 						else:
-							d2[identifier] = [gene, scaff, start, "transcript"]
+							d2[identifier] = [gene, scaff, start, "transcript", d[gene][0], d[gene][1]]
 			elif parsed[2] == "exon":
 				if gene != "None":
 					if gene in d:
