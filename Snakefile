@@ -118,39 +118,39 @@ rule all:
 		# 	"par_results/scaffold{scaff}_{genome}.txt",
 		# 	genome=assembly_list,
 		# 	scaff=scaffolds_to_analyze),
-		# expand(
-		# 	"komodo/komodo_scaff218_{assembly}_align.maf",
-		# 	assembly=assembly_list),
-		# expand(
-		# 	"komodo/scaff218_komodo_{assembly}_align.maf",
-		# 	assembly=assembly_list),
-		# "multiqc_results_sra/multiqc_report.html",
-		# "multiqc_trimmed_results_sra/multiqc_report.html",
-		# expand(
-		# 	"stats_sra/{sample}.{genome}.rna.sorted.bam.stats",
-		# 	sample=sra_ids_liver,
-		# 	genome=["galgal5"]),
-		# expand(
-		# 	"results_sra_filtered/z_ortho_filtered.corrected.stringtie_compiled_per_{region_type}_separate_individuals.{gff1}_{gff2}.{genome}_{strategy}.txt",
-		#  	strategy=["mixed", "denovo", "refbased"],
-		#  	genome=["galgal5"],
-		# 	region_type=["exon", "transcript"],
-		# 	gff1 = ["gila2"],
-		# 	gff2 = ["galgal5"]),
-		# expand(
-		# 	"results_sra_filtered/z_ortho_filtered-{gff1}_{gff2}-{genome}_{strategy}.stringtie_compiled_per_{region_type}_separate_individuals.txt",
-		#  	strategy=["mixed", "denovo", "refbased"],
-		#  	genome=["galgal5"],
-		# 	region_type=["exon", "transcript"],
-		# 	gff1 = ["gila2"],
-		# 	gff2 = ["galgal5"]),
-		# expand(
-		# 	"results_sra_filtered/z_ortho_filtered-{gff1}_{gff2}-{genome}.{strategy}.stringtie_compiled_per_{region_type}.txt",
-		#  	strategy=["mixed", "denovo", "refbased"],
-		#  	genome=["galgal5"],
-		# 	region_type=["exon", "transcript"],
-		# 	gff1 = ["gila2"],
-		# 	gff2 = ["galgal5"]),
+		expand(
+			"komodo/komodo_scaff218_{assembly}_align.maf",
+			assembly=assembly_list),
+		expand(
+			"komodo/scaff218_komodo_{assembly}_align.maf",
+			assembly=assembly_list),
+		"multiqc_results_sra/multiqc_report.html",
+		"multiqc_trimmed_results_sra/multiqc_report.html",
+		expand(
+			"stats_sra/{sample}.{genome}.rna.sorted.bam.stats",
+			sample=sra_ids_liver,
+			genome=["galgal5"]),
+		expand(
+			"results_sra_filtered/z_ortho_filtered.corrected.stringtie_compiled_per_{region_type}_separate_individuals.{gff1}_{gff2}.{genome}_{strategy}.txt",
+		 	strategy=["mixed", "denovo", "refbased"],
+		 	genome=["galgal5"],
+			region_type=["exon", "transcript"],
+			gff1 = ["gila2"],
+			gff2 = ["galgal5"]),
+		expand(
+			"results_sra_filtered/z_ortho_filtered-{gff1}_{gff2}-{genome}_{strategy}.stringtie_compiled_per_{region_type}_separate_individuals.txt",
+		 	strategy=["mixed", "denovo", "refbased"],
+		 	genome=["galgal5"],
+			region_type=["exon", "transcript"],
+			gff1 = ["gila2"],
+			gff2 = ["galgal5"]),
+		expand(
+			"results_sra_filtered/z_ortho_filtered-{gff1}_{gff2}-{genome}.{strategy}.stringtie_compiled_per_{region_type}.txt",
+		 	strategy=["mixed", "denovo", "refbased"],
+		 	genome=["galgal5"],
+			region_type=["exon", "transcript"],
+			gff1 = ["gila2"],
+			gff2 = ["galgal5"]),
 		# expand(
 		# 	"results_sra_filtered/z_ortho_filtered-{gff1}_{gff2}-{genome}.{strategy}.stringtie_compiled.txt",
 		#  	strategy=["mixed", "denovo", "refbased"],
@@ -702,18 +702,18 @@ rule find_orthologs:
 		"python scripts/Compare_gffs.py --gff1 {input.gff1} --gff2 {input.gff2} "
 		"--chroms 157 218 304 398 --output_file {output}"
 
-rule filter_ortho_compiled_stringtie:
-	input:
-		ortho = "reference/{gff1}_{gff2}_gff_comparison.txt",
-		res = "results_sra/{assembly}.{strategy}.stringtie_compiled.txt"
-	output:
-		"results_sra_filtered/z_ortho_filtered-{gff1}_{gff2}-{assembly}.{strategy}.stringtie_compiled.txt"
-	params:
-		threads = 4,
-		mem = 16,
-		t = medium
-	shell:
-		"python scripts/Filter_result_file_for_ortho.py {input.ortho} {input.res} {output}"
+# rule filter_ortho_compiled_stringtie:
+# 	input:
+# 		ortho = "reference/{gff1}_{gff2}_gff_comparison.txt",
+# 		res = "results_sra/{assembly}.{strategy}.stringtie_compiled.txt"
+# 	output:
+# 		"results_sra_filtered/z_ortho_filtered-{gff1}_{gff2}-{assembly}.{strategy}.stringtie_compiled.txt"
+# 	params:
+# 		threads = 4,
+# 		mem = 16,
+# 		t = medium
+# 	shell:
+# 		"python scripts/Filter_result_file_for_ortho.py {input.ortho} {input.res} {output}"
 
 rule filter_ortho_compiled_stringtie_per_transcript:
 	input:
@@ -726,7 +726,7 @@ rule filter_ortho_compiled_stringtie_per_transcript:
 		mem = 16,
 		t = medium
 	shell:
-		"python scripts/Filter_result_file_for_ortho.py {input.ortho} {input.res} {output}"
+		"python scripts/Filter_result_file_for_ortho.py {input.ortho} {input.res} {output} transcript"
 
 rule filter_ortho_compiled_stringtie_per_exon:
 	input:
@@ -739,7 +739,7 @@ rule filter_ortho_compiled_stringtie_per_exon:
 		mem = 16,
 		t = medium
 	shell:
-		"python scripts/Filter_result_file_for_ortho.py {input.ortho} {input.res} {output}"
+		"python scripts/Filter_result_file_for_ortho.py {input.ortho} {input.res} {output} exon"
 
 rule filter_ortho_compiled_stringtie_per_transcript_separate_individuals_sra:
 	input:
@@ -752,7 +752,7 @@ rule filter_ortho_compiled_stringtie_per_transcript_separate_individuals_sra:
 		mem = 16,
 		t = medium
 	shell:
-		"python scripts/Filter_result_file_for_ortho.py {input.ortho} {input.res} {output}"
+		"python scripts/Filter_result_file_for_ortho.py {input.ortho} {input.res} {output} transcript"
 
 rule filter_ortho_compiled_stringtie_per_exon_separate_individuals_sra:
 	input:
@@ -765,7 +765,7 @@ rule filter_ortho_compiled_stringtie_per_exon_separate_individuals_sra:
 		mem = 16,
 		t = medium
 	shell:
-		"python scripts/Filter_result_file_for_ortho.py {input.ortho} {input.res} {output}"
+		"python scripts/Filter_result_file_for_ortho.py {input.ortho} {input.res} {output} exon"
 
 rule filter_ortho_correct_stringtie_transcripts_sra:
 	input:
@@ -778,7 +778,7 @@ rule filter_ortho_correct_stringtie_transcripts_sra:
 		mem = 16,
 		t = medium
 	shell:
-		"python scripts/Filter_result_file_for_ortho.py {input.ortho} {input.res} {output}"
+		"python scripts/Filter_result_file_for_ortho.py {input.ortho} {input.res} {output} transcripts"
 
 rule filter_ortho_correct_stringtie_exons_sra:
 	input:
@@ -791,7 +791,7 @@ rule filter_ortho_correct_stringtie_exons_sra:
 		mem = 16,
 		t = medium
 	shell:
-		"python scripts/Filter_result_file_for_ortho.py {input.ortho} {input.res} {output}"
+		"python scripts/Filter_result_file_for_ortho.py {input.ortho} {input.res} {output} exons"
 
 # Gila steps
 

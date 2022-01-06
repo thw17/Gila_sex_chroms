@@ -3,17 +3,20 @@ import sys
 ortho = sys.argv[1]
 in_result = sys.argv[2]
 outfile = sys.argv[3]
+region_type = sys.argv[4]
 
 coords = {}
 with open(ortho, "r") as f:
 	for line in f:
 		stripped = line.rstrip()
 		split = stripped.split()
-		if split[0] != "GFF1_scaff":
-			chrom = split[2]
-			start = split[3]
-			coords[(chrom, start)] = (chrom, start)
-
+		if split[0] != "gene":
+			if split[3] == region_type:
+				chrom = split[1]
+				start = split[2]
+				coords[(chrom, start)] = (chrom, start)
+			else:
+				continue
 
 with open(outfile, "w") as o:
 
