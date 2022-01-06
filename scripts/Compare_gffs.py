@@ -1,4 +1,5 @@
 import argparse
+import collections
 import pandas as pd
 
 def parse_args():
@@ -43,6 +44,7 @@ def main():
 					if gene != "None":
 						d[gene] = [scaff, start]
 
+	d2 = collections.OrderedDict()
 	with open(args.gff2, "r") as f:
 		for line in f:
 			if line[0] == "#":
@@ -54,24 +56,27 @@ def main():
 			if parsed[2] == "transcript":
 				if gene != "None":
 					if gene in d:
-						d[gene].append(scaff)
-						d[gene].append(start)
-						d[gene].append("transcript")
+						identifier = (gene, scaff, start)
+						if identifier in d2:
+							print(identifier)
+						else:
+							d2[identifier] = [gene, scaff, start, "transcript"]
 			elif parsed[2] == "exon":
 				if gene != "None":
 					if gene in d:
-						d[gene].append(scaff)
-						d[gene].append(start)
-						d[gene].append("exon")
+						identifier = (gene, scaff, start)
+						if identifier in d2:
+							print(identifier)
+						else:
+							d2[identifier] = [gene, scaff, start, "exon", d[gene][0], d[gene][1]]
 
 	print(len(d))
 	print(d)
 
-	d2 = {k:d[k] for k in d if len(d[k]) == 5}
-
 	print(len(d2))
+	print(d2)
 
-	df = pd.DataFrame.from_dict(d2, orient='index', columns=["GFF1_scaff", "GFF1_start", "GFF2_scaff", "GFF2_start", "type"])
+	df = pd.DataFrame.from_dict(d2, orient='index', columns=["gene", "GFF2_scaff", "GFF2_start", "type", "GFF1_scaff", "GFF1_start"])
 	df_sorted = df.sort_values(["GFF1_scaff", "GFF1_start"])
 
 	df_sorted.to_csv(args.output_file, sep='\t', index=False)
