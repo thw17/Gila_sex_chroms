@@ -1,0 +1,378 @@
+---
+title: "Gila Monster Sex Chromosomes"
+author: "Annika Vannan"
+date: "01/14/2022"
+output:
+  rmdformats::downcute:
+  code_folding: show
+self-contained: TRUE
+thumbnails: FALSE
+lightbox: TRUE
+pkgdown:
+  as_is: TRUE
+params:
+  work_dir: "G:/Noctsol/R Projects/GilaMonster/Exons and stuff/"
+  filename: "corrected.gila2.refbased.stringtie_compiled_per_exon_separate_individuals.txt"
+  putative_z: !r c("157", "218", "304", "398")
+  auto: !r c("0", "1", "2", "3")
+---
+  
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = params$show_code, error = TRUE)
+```
+
+# Set-up
+## Environment
+Before running this script, you may need to change the parameters of this R 
+Markdown file.
+
+The parameters include:
+  
+  * **work_dir:** *Your working directory*
+  * **filename:** *Tab-delimited counts file, with counts per transcript/exon*
+  * **putative_z:** *Vector of putative Z scaffolds; can take any # of scaffolds*
+  * **auto:** *Vector of autosomal scaffolds for comparison*
+
+Once the parameters have been set, load the necessary libraries and file. View
+the file and check that the correct columns are present. It is recommended that
+you load one of the following 2 files:
+
+  1. "corrected.gila2.refbased.stringtie_compiled_per_transcript_separate_individuals.txt"
+  2. "corrected.gila2.refbased.stringtie_compiled_per_exon_separate_individuals.txt"
+  
+Note that throughout the code, "transcripts" and "exons" might be used 
+interchangeably - check the file you loaded in to verify whether you are 
+actually looking at exons or transcripts.
+
+```{r load, message = FALSE, warning = FALSE}
+# Libraries
+library(tidyverse)
+library(rstatix)
+library(knitr)
+library(ggplot2)
+library(ggpubr)
+library(ggrepel)
+library(ggbeeswarm)
+library(clipr)
+
+# File
+compiled_counts <- read_tsv(paste0(params$work_dir, params$filename))
+glimpse(compiled_counts)
+
+# Scientific notation is a pain
+options(scipen = 99999)
+```
+
+## Tidy the Data
+In tidying the data, we will keep only the scaffolds we are interested in 
+comparing. The data will then converted from wide to long format. The PAR will
+also be removed - it is located on scaffold 304 and spans from the start until 
+position 1,740,000.
+
+```{r, tidy}
+par_transcripts <- compiled_counts %>%
+  filter(scaffold == "304" & start < 1740000) %>%
+  select(contains("id")) %>%
+  pull(1) %>%
+  unique()
+
+length(par_transcripts)
+# Number of PAR transcripts or exons depends on data input
+# Corrected and uncorrected are the same:
+# Mixed transcripts = 34
+# Reference transcripts = 2
+# Mixed exons = 132
+# Reference exons = 9
+
+counts <- compiled_counts %>%
+  select(c(1, 2, 3), ncol(.) - c(1, 2)) %>%
+  mutate(chrom_type = 
+           ifelse((scaffold %in% params$putative_z), "Sex", 
+                  ifelse((scaffold %in% params$auto), "Auto", "None"))) %>%
+  filter(!chrom_type == "None") %>%
+  pivot_longer(cols = contains("_mean"),
+               names_to = "sex", values_to = "Mean") %>%
+  mutate(sex = case_when(str_detect(sex, "female") ~ "Female", 
+                         str_detect(sex, "male") ~ "Male")) %>%
+  # Remove the PAR on scaffold 304
+  filter(!(scaffold == "304" & start < 1740000))
+
+glimpse(counts)
+```
+
+# Statistics
+## Filter Transcripts/Exons
+Expression values for transcripts/exons are in FPKM. Here, we will remove
+transcripts/exons that are unexpressed (0 FPKM) in **BOTH** sexes. If they are
+unexpressed in one sex but expressed in the other, they will be retained.
+
+```{r, filter, message = FALSE}
+# Transcripts BEFORE filtering, stratified by sex and chromosome
+before_filter <- counts %>%
+  select(chrom_type, contains("id")) %>%
+  group_by(chrom_type) %>%
+  summarize(transcripts_before = n()/2) %>%
+  unique()
+
+# Filter based on expression
+counts_filtered <- counts %>%
+  rename(id = contains("id")) %>%
+  group_by(id) %>%
+  mutate(sum = sum(Mean)) %>%
+  filter(sum > 0) %>%
+  select(-sum) %>%
+  ungroup()
+
+# Transcripts AFTER filtering, stratified by sex and chromosome type
+after_filter <- counts_filtered %>%
+  select(chrom_type, sex, contains("id")) %>%
+  group_by(chrom_type, sex) %>%
+  summarize(transcripts_after = n()) %>%
+  select(chrom_type, transcripts_after) %>%
+  unique()
+
+# Merge before & after counts into a summary table
+transcript_counts <- inner_join(before_filter, after_filter)
+
+transcript_counts
+```
+
+```{r, filter_hidden, include = FALSE}
+# General summary data (not stratified by sex or chromosome)
+num_bf <- nrow(counts)
+num_af <- nrow(counts_filtered)
+percent_left <- round((num_af/num_bf) * 100, 1)
+```
+
+Out of `r num_bf` transcripts, `r num_af` (`r percent_left`%) are left after
+filtering. 
+
+## Expression Ratios
+To assess possible dosage compensation, overall transcript expression on the
+putative Z chromosome can be compared to expression on the autosomes for each
+sex. We will get the following ratios:
+  
+  * **Female_ZA:** *(Female Z / Female Auto)*
+  * **Male_ZA:** *(Male Z / Male Auto)*
+  * **Auto_FM:** *(Female Auto / Male Auto)*
+  * **Sex_FM** *(Female Z / Male Z)*
+  
+The original counts file contains mean transcript expression per sex (n=3/sex).
+Here, we will calculate the expression ratios based on either the the means or
+the medians of these means. Those values will be contained in the `mean_mean_all` 
+and `median_mean_all` columns in a new dataframe, `full_mean_median`.
+
+```{r, ratios, message = FALSE}
+# Means and medians of filtered counts - by sex and chromosome
+full_mean_median <- counts_filtered %>%
+  group_by(sex, chrom_type) %>%
+  summarize(mean_mean_all = mean(Mean), 
+            median_mean_all = median(Mean)) %>%
+  arrange(chrom_type)
+
+# Means and medians of filtered counts - by sex and scaffold (Z only)
+z_scaffold_summary <- counts_filtered %>%
+  filter(chrom_type == "Sex") %>%
+  group_by(sex, chrom_type, scaffold) %>%
+  summarize(mean_mean_all = mean(Mean), 
+            median_mean_all = median(Mean))
+
+# Means and medians of filtered counts - by sex and scaffold (Auto only)
+auto_scaffold_summary <- counts_filtered %>%
+  filter(chrom_type == "Auto") %>%
+  group_by(sex, chrom_type, scaffold) %>%
+  summarize(mean_mean_all = mean(Mean), 
+            median_mean_all = median(Mean))
+
+# Expression ratios: Means
+mean_ratios <- full_mean_median %>%
+  select(-contains("median")) %>%
+  pivot_wider(names_from = c("sex", "chrom_type"), 
+              values_from = c("mean_mean_all")) %>%
+  transmute(Auto_FM = Female_Auto/Male_Auto, 
+            Sex_FM = Female_Sex/Male_Sex, 
+            Female_ZA = Female_Sex/Female_Auto, 
+            Male_ZA = Male_Sex/Male_Auto)
+
+# Expression ratios: Medians
+median_ratios <- full_mean_median %>%
+  select(-contains("mean_mean")) %>%
+  pivot_wider(names_from = c("sex", "chrom_type"), 
+              values_from = c("median_mean_all")) %>%
+  transmute(Auto_FM = Female_Auto/Male_Auto, 
+            Sex_FM = Female_Sex/Male_Sex, 
+            Female_ZA = Female_Sex/Female_Auto, 
+            Male_ZA = Male_Sex/Male_Auto)
+```
+
+Create a plot that shows the expression compared between Sex and Chromosome Type.
+This plot is somewhat inaccurate because it groups by scaffold.
+
+```{r, ratio_plot, message = FALSE, fig.width = 4, fig.height = 4}
+ratio_plot <- rbind(auto_scaffold_summary, z_scaffold_summary) %>%
+  ggplot(aes(x = sex, y = mean_mean_all, fill = chrom_type, color = chrom_type)) +
+  geom_boxplot(width = 0.5, color = "black") +
+  geom_point(position = position_dodge(width = 0.5), size = 2.5) +
+  scale_color_manual(name = "Chromosome", labels = c("Autosome", "Z"),,
+                     values = c("grey10", "276fd5")) +
+  scale_fill_manual(name = "Chromosome", labels = c("Autosome", "Z"),
+                    values = c("grey70", "#023785")) +
+  labs(x = "Sex", y = "Mean Expression (FPKM)") +
+  theme_classic(base_size = 14) +
+  theme(legend.position = "bottom", legend.key.size = unit(0.75, "cm"),
+        axis.text = element_text(color = "black"), axis.ticks.x = element_blank(),
+        legend.title.align = 0.5, plot.margin = unit(c(0.5, 0.5, 0.5, 0.5), "cm"))
+
+ratio_plot
+```
+
+We can also visualize the distributions more precisely. Adjust the y axis limits
+as-needed using coord_cartesian()
+
+```{r, swarm, fig.width = 4.5, fig.height = 4.5}
+swarm_plot <- counts %>%
+  ggplot(aes(x = sex, y = Mean, fill = chrom_type)) +
+#  coord_cartesian(ylim = c(0, 20)) +
+  geom_quasirandom(aes(group = interaction(sex, chrom_type)), dodge.width = 0.8, 
+                   shape = 21, alpha = 0.8, cex = 2.5, nbins = 15) +
+  geom_boxplot(aes(group = interaction(sex, chrom_type)), 
+               position = position_dodge(width = 0.8),
+               fill = "white", width = 0.2, color = "black", 
+               outlier.color = NA) +
+  scale_fill_manual(name = "Chromosome", labels = c("Autosome", "Z"),
+                    values = c("grey60", "red")) +
+  theme_classic(base_size = 13) +
+  theme(legend.position = "bottom", legend.key.size = unit(0.75, "cm"),
+        axis.text = element_text(color = "black"), 
+        axis.ticks.x = element_blank(), legend.title = element_blank()) +
+  labs(x = "", y = "Distribution of Exon Means")
+
+swarm_plot
+```
+
+## Comparing Expression
+The `rstatix` package comes with handy functions that allow you to perform
+statistical tests in tandem with `tidyverse` commands. We will use it to compare
+the same groups as above with the expression ratios using the nonparametric
+Wilcoxon rank-sum tests to compare means between groups.
+
+```{r, wilcox}
+wilcox_results <- counts_filtered %>%
+  unite(col = "sex_chromtype", c("sex", "chrom_type"), sep = "") %>%
+  wilcox_test(Mean ~ sex_chromtype, p.adjust = "none") %>%
+  filter(!(group1 == "FemaleAuto" & group2 == "MaleSex"),
+         !(group1 == "FemaleSex" & group2 == "MaleAuto")) %>%
+  unite(col = "comparison", c(group1, group2), sep = "", remove = TRUE) %>%
+  mutate(comparison = recode_factor(comparison, 
+                                    `FemaleAutoMaleAuto` = "Auto_FM",
+                                    `FemaleSexMaleSex` = "Sex_FM",
+                                    `FemaleAutoFemaleSex` = "Female_ZA",
+                                    `MaleAutoMaleSex` = "Male_ZA",
+                                    .ordered = TRUE)) %>%
+  arrange(comparison) %>%
+  select(-c(n1, n2, p.adj, .y.)) %>%
+  rename(sig = p.adj.signif)
+
+wilcox_results
+```
+
+It can be difficult to interpret the results of Wilcoxon rank-sum tests when the
+means and medians are very different. Instead, we can calculate the actual
+mean ranks for each comparison, and use that to determine which is "higher" or
+"lower" in expression within a comparison.
+
+```{r, mean_ranks}
+# Female Z:A
+counts_filtered %>%
+  unite(col = "sex_chromtype", c("sex", "chrom_type"), sep = "") %>%
+  arrange(Mean) %>%
+  filter(sex_chromtype == "FemaleAuto" | sex_chromtype == "FemaleSex") %>%
+  mutate(Rank = rank(Mean)) %>%
+  group_by(sex_chromtype) %>%
+  summarize(Mean_Rank = mean(Rank))
+
+# Male Z:A
+counts_filtered %>%
+  unite(col = "sex_chromtype", c("sex", "chrom_type"), sep = "") %>%
+  arrange(Mean) %>%
+  filter(sex_chromtype == "MaleAuto" | sex_chromtype == "MaleSex") %>%
+  mutate(Rank = rank(Mean)) %>%
+  group_by(sex_chromtype) %>%
+  summarize(Mean_Rank = mean(Rank))
+
+# M:F Autosome
+counts_filtered %>%
+  unite(col = "sex_chromtype", c("sex", "chrom_type"), sep = "") %>%
+  arrange(Mean) %>%
+  filter(sex_chromtype == "MaleAuto" | sex_chromtype == "FemaleAuto") %>%
+  mutate(Rank = rank(Mean)) %>%
+  group_by(sex_chromtype) %>%
+  summarize(Mean_Rank = mean(Rank))
+
+# M:F Z chromosome
+counts_filtered %>%
+  unite(col = "sex_chromtype", c("sex", "chrom_type"), sep = "") %>%
+  arrange(Mean) %>%
+  filter(sex_chromtype == "MaleSex" | sex_chromtype == "FemaleSex") %>%
+  mutate(Rank = rank(Mean)) %>%
+  group_by(sex_chromtype) %>%
+  summarize(Mean_Rank = mean(Rank))
+```
+
+
+# Complete Statistical Results!
+All of the results are combined into one list called `full results`, but in an R
+Markdown document, it's cleaner to view them individually.
+
+```{r, echo = FALSE}
+full_results <- list(transcript_counts = transcript_counts, 
+                     summary_data = full_mean_median,
+                     z_scaffold_summary = z_scaffold_summary,
+                     auto_scaffold_summary = auto_scaffold_summary,
+                     wilcox_results = wilcox_results,
+                     mean_ratios = mean_ratios,
+                     median_ratios = median_ratios)
+```
+
+```{r, individual_results, results = "asis"}
+kable(transcript_counts)
+kable(full_mean_median)
+kable(z_scaffold_summary)
+kable(auto_scaffold_summary)
+kable(wilcox_results)
+kable(mean_ratios)
+kable(median_ratios)
+```
+
+
+We can also create a plot visualizing the means of the mean expression values
+for each sex and chromosome type. Adjust the y axis limits as necessary using
+scale_y_continuous().
+
+```{r, echo = FALSE, message = FALSE, fig.width = 4.5, fig.height = 4.5}
+full_mean_median %>%
+  mutate(chrom_type = ifelse(chrom_type == "Sex", "Z", "Auto")) %>%
+  ggplot(aes(x = sex, y = median_mean_all, fill = chrom_type)) +
+  geom_point(position = position_dodge(width = 0.8), size = 15, shape = 22, 
+             stroke = 1) +
+  scale_y_continuous(limits = c(0, 0.7)) +
+  scale_fill_manual(values = c("grey60", "red")) +
+  labs(x = "", y = "Corrected FPKM, Median of Means") +
+  theme_classic(base_size = 13) +
+  theme(legend.position = "bottom", legend.key.size = unit(0.75, "cm"),
+        axis.text = element_text(color = "black"), 
+        axis.ticks.x = element_blank(), legend.title = element_blank())
+
+full_mean_median %>%
+  mutate(chrom_type = ifelse(chrom_type == "Sex", "Z", "Auto")) %>%
+  ggplot(aes(x = sex, y = mean_mean_all, fill = chrom_type)) +
+  geom_point(position = position_dodge(width = 0.8), size = 15, shape = 22, 
+             stroke = 1) +
+  scale_y_continuous(limits = c(0, 1.3)) +
+  scale_fill_manual(values = c("grey60", "red")) +
+  labs(x = "", y = "Corrected FPKM, Mean of Means") +
+  theme_classic(base_size = 13) +
+  theme(legend.position = "bottom", legend.key.size = unit(0.75, "cm"),
+        axis.text = element_text(color = "black"), 
+        axis.ticks.x = element_blank(), legend.title = element_blank())
+```
