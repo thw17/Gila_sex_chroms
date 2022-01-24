@@ -662,7 +662,7 @@ rule compile_stringtie_results_per_exon_separate_individuals_sra:
 		shell(
 			"sed -i -e 's/transcript/exon/g' {output}")
 
-rule correct_stringtie_transcripts_sra_chr3:
+rule correct_stringtie_transcripts_sra_chr2:
 	input:
 		"results_sra/{assembly}.{strategy}.stringtie_compiled_per_transcript_separate_individuals.txt"
 	output:
@@ -675,7 +675,7 @@ rule correct_stringtie_transcripts_sra_chr3:
 		"python scripts/Correct_per_transcript_per_individual_expression_chicken.py "
 		"--output_file {output} --input_file {input}"
 
-rule correct_stringtie_exons_sra_chr3:
+rule correct_stringtie_exons_sra_chr2:
 	input:
 		"results_sra/{assembly}.{strategy}.stringtie_compiled_per_exon_separate_individuals.txt"
 	output:

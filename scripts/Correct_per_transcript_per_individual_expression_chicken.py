@@ -29,7 +29,7 @@ def main():
 	args = parse_args()
 
 	df_1 = pd.read_csv(args.input_file, sep='\t')
-	chroms_to_use = ["chr3"]
+	chroms_to_use = ["chr2"]
 	bools = df_1.scaffold.isin(chroms_to_use)
 	df_2 = df_1[bools]
 	d = {}
