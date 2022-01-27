@@ -1,7 +1,7 @@
 ---
 title: "Gila Monster Sex Chromosomes"
 author: "Annika Vannan"
-date: "01/14/2022"
+date: "01/25/2022"
 output:
   rmdformats::downcute:
   code_folding: show
@@ -11,7 +11,7 @@ lightbox: TRUE
 pkgdown:
   as_is: TRUE
 params:
-  work_dir: "G:/Noctsol/R Projects/GilaMonster/Ancestral_2022/"
+  work_dir: "G:/Noctsol/R Projects/GilaMonster/Ancestral_1_24_2022/"
   filename: "z_ortho_filtered.corrected.stringtie_compiled_per_transcript_separate_individuals.gila2_galgal5.galgal5_refbased.txt"
   chicken_file: "gila2_galgal5_gff_comparison.txt"
   feature_type: "transcript"
@@ -77,20 +77,20 @@ comparison file, but some do, so we will need to remove them.
 ```{r, tidy}
 # Get PAR position and all other sex scaffold positions
 remove_par <- gal_comp %>% 
-  filter(type == params$feature_type, GFF1_scaff == "304" & GFF1_start < 1740000) %>%
+  filter(type == params$feature_type, GFF1_scaff == "304" & GFF1_start > 1740000) %>%
   pull(scaff_start)
 sex_scaff_start <- gal_comp %>% 
-  filter(type == params$feature_type, !(GFF1_scaff == "304" & GFF1_start < 1740000)) %>%
+  filter(type == params$feature_type, !(GFF1_scaff == "304" & GFF1_start > 1740000)) %>%
   pull(scaff_start)
 
-length(remove_par)
-# Number of PAR should be 2 transcripts or 1 exon
+length(remove_par) # 14 transcripts, 149 exons
 
 counts <- compiled_counts %>%
+  # This select function should be run for "corrected"
   select(c(1, 2, 3), ncol(.) - c(1, 2)) %>%
+  # This select function should be run for uncorrected
+#  select(1:5) %>%
   unite("scaff_start", c(scaffold, start), sep = "_", remove = FALSE) %>%
-  # Remove PAR
-  filter(!scaff_start %in% remove_par) %>%
   mutate(chrom_type = 
            case_when(scaff_start %in% sex_scaff_start ~ "Sex", 
                      (scaffold %in% c("chr1", "chr2", "chr3", "chr4")) ~ "Auto",
@@ -119,13 +119,21 @@ before_filter <- counts %>%
   unique()
 
 # Filter based on expression
-counts_filtered <- counts %>%
-  rename(id = contains("id")) %>%
+counts_filtered_par <- counts %>%
+  setNames(c("id", "scaff_start", "scaffold", "start", 
+             "chrom_type", "sex", "Mean")) %>%
   group_by(id) %>%
   mutate(sum = sum(Mean)) %>%
   filter(sum > 0) %>%
   select(-sum) %>%
   ungroup()
+
+counts_filtered_nopar <- counts_filtered_par %>%
+  # Remove PAR
+  filter(!scaff_start %in% remove_par)
+
+counts_filtered <- counts_filtered_nopar %>%
+  filter(chrom_type == "Sex" | scaffold == "chr2")
 
 # Transcripts AFTER filtering, stratified by sex and chromosome type
 after_filter <- counts_filtered %>%
@@ -261,7 +269,31 @@ the same groups as above with the expression ratios using the nonparametric
 Wilcoxon rank-sum tests to compare means between groups.
 
 ```{r, wilcox}
-wilcox_results <- counts_filtered %>%
+# Auto F vs. M, paired
+wilcox_results1 <- counts_filtered %>%
+  filter(chrom_type == "Auto") %>%
+  wilcox_test(Mean ~ sex, p.adjust = "none", paired = TRUE) %>%
+  mutate(comparison = "Auto_FM", .before = everything()) %>%
+  mutate(sig = case_when(p < 0.05 ~ "*", TRUE ~ "ns")) %>%
+  select(comparison, statistic, p, sig)
+
+test <- counts_filtered %>%
+  filter(chrom_type == "Auto") %>%
+  pivot_wider(names_from = sex, values_from = Mean)
+  
+wilcox.test(test$Female, test$Male, paired = TRUE)
+
+
+# Z F vs. M, paired
+wilcox_results2 <- counts_filtered %>%
+  filter(chrom_type == "Sex") %>%
+  wilcox_test(Mean ~ sex, p.adjust = "none", paired = TRUE) %>%
+  mutate(comparison = "Sex_FM", .before = everything()) %>%
+  mutate(sig = case_when(p < 0.05 ~ "*", TRUE ~ "ns")) %>%
+  select(comparison, statistic, p, sig)
+
+# Not paired
+wilcox_results3 <- counts_filtered %>%
   unite(col = "sex_chromtype", c("sex", "chrom_type"), sep = "") %>%
   wilcox_test(Mean ~ sex_chromtype, p.adjust = "none") %>%
   filter(!(group1 == "FemaleAuto" & group2 == "MaleSex"),
@@ -273,11 +305,14 @@ wilcox_results <- counts_filtered %>%
                                     `FemaleAutoFemaleSex` = "Female_ZA",
                                     `MaleAutoMaleSex` = "Male_ZA",
                                     .ordered = TRUE)) %>%
+#  filter(comparison == "Female_ZA" | comparison == "Male_ZA") %>%
   arrange(comparison) %>%
   select(-c(n1, n2, p.adj, .y.)) %>%
   rename(sig = p.adj.signif)
 
-wilcox_results
+#wilcox_results <- rbind(wilcox_results1, wilcox_results2, wilcox_results3)
+
+wilcox_results <- wilcox_results3
 ```
 
 It can be difficult to interpret the results of Wilcoxon rank-sum tests when the
@@ -324,6 +359,25 @@ counts_filtered %>%
 ```
 
 
+
+### ADDED 01/27/2022
+```{r, log_z, echo = FALSE, fig.height = 8, fig.width = 5}
+counts_filtered %>%
+  pivot_wider(names_from = sex, values_from = Mean) %>%
+  mutate(f_m_ratio = Female/Male, log2_f_m = log2(f_m_ratio)) %>%
+  filter(chrom_type == "Sex", log2_f_m != Inf, log2_f_m != -Inf) %>%
+  ggplot(aes(x = start, y = log2_f_m)) +
+  geom_point() +
+  geom_smooth() +
+  # geom_hline(yintercept = c(0, -1, 1), color = "black", 
+  #            linetype = rep(c("solid", "dashed", "dashed"), length(6))) +
+  labs(x = "Transcript Start", y = expression("log"[2]*" F:M Ratio (Means)"), title = "Z Chromosome") +
+  theme_bw() +
+  theme(axis.text.x = element_text(vjust = 0.5), axis.text = element_text(color = "black"),
+        plot.title = element_text(hjust = 0.5)) +
+  facet_wrap(~ scaffold, scales = "free")
+```
+
 # Complete Statistical Results!
 All of the results are combined into one list called `full results`, but in an R
 Markdown document, it's cleaner to view them individually.
@@ -359,7 +413,6 @@ full_mean_median %>%
   ggplot(aes(x = sex, y = median_mean_all, fill = chrom_type)) +
   geom_point(position = position_dodge(width = 0.8), size = 15, shape = 22, 
              stroke = 1) +
-  scale_y_continuous(limits = c(0, 0.3)) +
   scale_fill_manual(values = c("grey60", "red")) +
   labs(x = "", y = "Corrected FPKM, Median of Means") +
   theme_classic(base_size = 13) +
@@ -372,7 +425,7 @@ full_mean_median %>%
   ggplot(aes(x = sex, y = mean_mean_all, fill = chrom_type)) +
   geom_point(position = position_dodge(width = 0.8), size = 15, shape = 22, 
              stroke = 1) +
-  scale_y_continuous(limits = c(0, 2)) +
+  scale_y_continuous(limits = c(0, 3)) +
   scale_fill_manual(values = c("grey60", "red")) +
   labs(x = "", y = "Corrected FPKM, Mean of Means") +
   theme_classic(base_size = 13) +
