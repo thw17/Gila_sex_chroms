@@ -1,10 +1,12 @@
 #!bin/bash
-#3 files needed in the current directory for this code to run:
+#5 files needed in the current directory for this code to run:
 #"z_ortho_filtered-gila2_galgal5-galgal5.refbased.stringtie_compiled_per_transcript.txt.gz"
 #"gila2_galgal5_gff_comparison.txt.gz"
 #"gila2.refbased.stringtie_compiled_per_transcript.txt.gz"
 #"chr.txt.gz"
 #"gila_chicken_gff_comparison_FULL.txt.gz"
+
+#plotting the resulting files can be done using "Rscript Heloderma_dosage_violins.R"
 
 gunzip *.gz
 
