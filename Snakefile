@@ -161,7 +161,7 @@ rule all:
 		expand(
 			"results_anolis_filtered/z_ortho_filtered.corrected.stringtie_compiled_per_{region_type}_separate_individuals.{gff1}_{gff2}.{genome}_{strategy}.txt",
 		 	strategy=["mixed", "refbased"],
-		 	genome=["canocar2"],
+		 	genome=["anocar2"],
 			region_type=["exon", "transcript"],
 			gff1 = ["gila2"],
 			gff2 = ["anocar2"]),
@@ -914,7 +914,7 @@ rule compile_stringtie_results_per_exon_sra_anolis:
 			strat=wildcards.strategy,
 			sample=anole_sra_ids)
 	output:
-		"results_sra/{assembly}.{strategy}.stringtie_compiled_per_exon.txt"
+		"results_anolis/{assembly}.{strategy}.stringtie_compiled_per_exon.txt"
 	params:
 		strat = "{strategy}",
 		threads = 4,
