@@ -178,17 +178,18 @@ rule all:
 		 	genome=["anocar2"],
 			region_type=["exon", "transcript"],
 			gff1 = ["gila2"],
-			gff2 = ["anocar2"]),
+			gff2 = ["anocar2"])
 		# expand(
 		# 	"results_sra_filtered/z_ortho_filtered-{gff1}_{gff2}-{genome}.{strategy}.stringtie_compiled.txt",
 		#  	strategy=["mixed", "denovo", "refbased"],
 		#  	genome=["galgal5"],
 		# 	gff1 = ["gila2"],
 		# 	gff2 = ["galgal5"]),
-		expand(
-			"reference/{gff1}_{gff2}_gff_comparison.txt",
-			gff1 = ["gila2"],
-			gff2 = ["galgal5", "anocar2"])
+		# expand(
+		# 	"reference/{gff1}_{gff2}_gff_comparison.txt",
+		# 	gff1 = ["gila2"],
+		# 	gff2 = ["galgal5"]),
+
 
 # Steps to analyze comparative data from SRA
 
@@ -1016,7 +1017,7 @@ rule find_orthologs_annotation_web:
 		gff1 = lambda wildcards: config["annotation"][wildcards.gff1],
 		gff2 = "web_annotation/{gff2}.gff"
 	output:
-		"reference/{gff1}_{gff2}_gff_comparison.txt"
+		"reference_anolis/{gff1}_{gff2}_gff_comparison.txt"
 	params:
 		threads = 4,
 		mem = 16,
@@ -1040,7 +1041,7 @@ rule find_orthologs_annotation_web:
 
 rule filter_ortho_compiled_stringtie_per_transcript_anolis:
 	input:
-		ortho = "reference/{gff1}_{gff2}_gff_comparison.txt",
+		ortho = "reference_anolis/{gff1}_{gff2}_gff_comparison.txt",
 		res = "results_anolis/{assembly}.{strategy}.stringtie_compiled_per_transcript.txt"
 	output:
 		"results_anolis_filtered/z_ortho_filtered-{gff1}_{gff2}-{assembly}.{strategy}.stringtie_compiled_per_transcript.txt"
@@ -1053,7 +1054,7 @@ rule filter_ortho_compiled_stringtie_per_transcript_anolis:
 
 rule filter_ortho_compiled_stringtie_per_exon_anolis:
 	input:
-		ortho = "reference/{gff1}_{gff2}_gff_comparison.txt",
+		ortho = "reference_anolis/{gff1}_{gff2}_gff_comparison.txt",
 		res = "results_anolis/{assembly}.{strategy}.stringtie_compiled_per_exon.txt"
 	output:
 		"results_anolis_filtered/z_ortho_filtered-{gff1}_{gff2}-{assembly}.{strategy}.stringtie_compiled_per_exon.txt"
@@ -1066,7 +1067,7 @@ rule filter_ortho_compiled_stringtie_per_exon_anolis:
 
 rule filter_ortho_compiled_stringtie_per_transcript_separate_individuals_anolis:
 	input:
-		ortho = "reference/{gff1}_{gff2}_gff_comparison.txt",
+		ortho = "reference_anolis/{gff1}_{gff2}_gff_comparison.txt",
 		res = "results_anolis/{assembly}.{strategy}.stringtie_compiled_per_transcript_separate_individuals.txt"
 	output:
 		"results_anolis_filtered/z_ortho_filtered-{gff1}_{gff2}-{assembly}_{strategy}.stringtie_compiled_per_transcript_separate_individuals.txt"
@@ -1079,7 +1080,7 @@ rule filter_ortho_compiled_stringtie_per_transcript_separate_individuals_anolis:
 
 rule filter_ortho_compiled_stringtie_per_exon_separate_individuals_anolis:
 	input:
-		ortho = "reference/{gff1}_{gff2}_gff_comparison.txt",
+		ortho = "reference_anolis/{gff1}_{gff2}_gff_comparison.txt",
 		res = "results_anolis/{assembly}.{strategy}.stringtie_compiled_per_exon_separate_individuals.txt"
 	output:
 		"results_anolis_filtered/z_ortho_filtered-{gff1}_{gff2}-{assembly}_{strategy}.stringtie_compiled_per_exon_separate_individuals.txt"
@@ -1092,7 +1093,7 @@ rule filter_ortho_compiled_stringtie_per_exon_separate_individuals_anolis:
 
 rule filter_ortho_correct_stringtie_transcripts_anolis:
 	input:
-		ortho = "reference/{gff1}_{gff2}_gff_comparison.txt",
+		ortho = "reference_anolis/{gff1}_{gff2}_gff_comparison.txt",
 		res = "results_anolis/corrected.{assembly}_{strategy}.stringtie_compiled_per_transcript_separate_individuals.corrected.txt"
 	output:
 		"results_anolis_filtered/z_ortho_filtered.corrected.stringtie_compiled_per_transcript_separate_individuals.{gff1}_{gff2}.{assembly}_{strategy}.txt"
@@ -1105,7 +1106,7 @@ rule filter_ortho_correct_stringtie_transcripts_anolis:
 
 rule filter_ortho_correct_stringtie_exons_anolis:
 	input:
-		ortho = "reference/{gff1}_{gff2}_gff_comparison.txt",
+		ortho = "reference_anolis/{gff1}_{gff2}_gff_comparison.txt",
 		res = "results_anolis/corrected.{assembly}_{strategy}.stringtie_compiled_per_exon_separate_individuals.corrected.txt"
 	output:
 		"results_anolis_filtered/z_ortho_filtered.corrected.stringtie_compiled_per_exon_separate_individuals.{gff1}_{gff2}.{assembly}_{strategy}.txt"
