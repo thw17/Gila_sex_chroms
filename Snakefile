@@ -64,6 +64,9 @@ sra_ids_liver = [
 
 sra_samples = sra_ids_liver
 
+anole_sra_ids = [
+	"SRR1502164","SRR1502169","SRR1502174","SRR1502179"]
+
 fastq_prefixes = [
 	config[x]["fq1"][:-9] for x in samples] + [
 		config[x]["fq2"][:-9] for x in samples]
@@ -131,26 +134,51 @@ rule all:
 			sample=sra_ids_liver,
 			genome=["galgal5"]),
 		expand(
+			"stats_sra/{sample}.{genome}.rna.sorted.bam.stats",
+			sample=anole_sra_ids,
+			genome=["anocar2"]),
+		expand(
 			"results_sra_filtered/z_ortho_filtered.corrected.stringtie_compiled_per_{region_type}_separate_individuals.{gff1}_{gff2}.{genome}_{strategy}.txt",
-		 	strategy=["mixed", "denovo", "refbased"],
+		 	strategy=["mixed", "refbased"],
 		 	genome=["galgal5"],
 			region_type=["exon", "transcript"],
 			gff1 = ["gila2"],
 			gff2 = ["galgal5"]),
 		expand(
 			"results_sra_filtered/z_ortho_filtered-{gff1}_{gff2}-{genome}_{strategy}.stringtie_compiled_per_{region_type}_separate_individuals.txt",
-		 	strategy=["mixed", "denovo", "refbased"],
+		 	strategy=["mixed", "refbased"],
 		 	genome=["galgal5"],
 			region_type=["exon", "transcript"],
 			gff1 = ["gila2"],
 			gff2 = ["galgal5"]),
 		expand(
 			"results_sra_filtered/z_ortho_filtered-{gff1}_{gff2}-{genome}.{strategy}.stringtie_compiled_per_{region_type}.txt",
-		 	strategy=["mixed", "denovo", "refbased"],
+		 	strategy=["mixed", "refbased"],
 		 	genome=["galgal5"],
 			region_type=["exon", "transcript"],
 			gff1 = ["gila2"],
 			gff2 = ["galgal5"]),
+		expand(
+			"results_anolis_filtered/z_ortho_filtered.corrected.stringtie_compiled_per_{region_type}_separate_individuals.{gff1}_{gff2}.{genome}_{strategy}.txt",
+		 	strategy=["mixed", "refbased"],
+		 	genome=["canocar2"],
+			region_type=["exon", "transcript"],
+			gff1 = ["gila2"],
+			gff2 = ["anocar2"]),
+		expand(
+			"results_anolis_filtered/z_ortho_filtered-{gff1}_{gff2}-{genome}_{strategy}.stringtie_compiled_per_{region_type}_separate_individuals.txt",
+		 	strategy=["mixed", "refbased"],
+		 	genome=["anocar2"],
+			region_type=["exon", "transcript"],
+			gff1 = ["gila2"],
+			gff2 = ["anocar2"]),
+		expand(
+			"results_anolis_filtered/z_ortho_filtered-{gff1}_{gff2}-{genome}.{strategy}.stringtie_compiled_per_{region_type}.txt",
+		 	strategy=["mixed", "refbased"],
+		 	genome=["anocar2"],
+			region_type=["exon", "transcript"],
+			gff1 = ["gila2"],
+			gff2 = ["anocar2"]),
 		# expand(
 		# 	"results_sra_filtered/z_ortho_filtered-{gff1}_{gff2}-{genome}.{strategy}.stringtie_compiled.txt",
 		#  	strategy=["mixed", "denovo", "refbased"],
@@ -160,7 +188,7 @@ rule all:
 		expand(
 			"reference/{gff1}_{gff2}_gff_comparison.txt",
 			gff1 = ["gila2"],
-			gff2 = ["galgal5"])
+			gff2 = ["galgal5". "anocar2"])
 
 # Steps to analyze comparative data from SRA
 
@@ -385,71 +413,7 @@ rule bam_stats_rna_sra:
 	shell:
 		"{params.samtools} stats {input.bam} | grep ^SN | cut -f 2- > {output}"
 
-rule stringtie_first_pass_denovo_sra:
-	input:
-		bam = "processed_rna_bams_sra/{sample}.{genome}.sorted.bam"
-	output:
-		"stringtie_gtfs_denovo_sra/{sample}_{genome}/{sample}.{genome}.firstpass.gtf"
-	threads:
-		4
-	params:
-		stringtie = stringtie_path,
-		threads = 4,
-		mem = 16,
-		t = long
-	shell:
-		"{params.stringtie} {input.bam} -o {output} -p {params.threads}"
-
-rule create_stringtie_merged_list_denovo_sra:
-	input:
-		lambda wildcards: expand(
-			"stringtie_gtfs_denovo_sra/{sample}_{genome}/{sample}.{genome}.firstpass.gtf",
-			genome=["galgal5"],
-			sample=sra_ids_liver)
-	output:
-		"stringtie_gtfs_denovo_sra/{genome}_gtflist.txt"
-	params:
-		threads = 1,
-		mem = 4,
-		t = very_short
-	run:
-		shell("echo -n > {output}")
-		for i in input:
-			shell("echo {} >> {{output}}".format(i))
-
-rule stringtie_merge_denovo_sra:
-	input:
-		bam_list = "stringtie_gtfs_denovo_sra/{genome}_gtflist.txt"
-	output:
-		"stringtie_gtfs_denovo_sra/{genome}.merged.gtf"
-	threads:
-		4
-	params:
-		stringtie = stringtie_path,
-		threads = 4,
-		mem = 16,
-		t = medium
-	shell:
-		"{params.stringtie} --merge {input.bam_list} -o {output} -p {params.threads}"
-
-rule stringtie_second_pass_denovo_sra:
-	input:
-		bam = "processed_rna_bams_sra/{sample}.{genome}.sorted.bam",
-		gtf = "stringtie_gtfs_denovo_sra/{genome}.merged.gtf"
-	output:
-		gtf = "stringtie_gtfs_denovo_sra/{sample}_{genome}/{sample}.{genome}.secondpass.gtf",
-		ctab = "stringtie_gtfs_denovo_sra/{sample}_{genome}/t_data.ctab",
-		edata = "stringtie_gtfs_denovo_sra/{sample}_{genome}/e_data.ctab"
-	threads:
-		4
-	params:
-		stringtie = stringtie_path,
-		threads = 4,
-		mem = 16,
-		t = long
-	shell:
-		"{params.stringtie} {input.bam} -o {output.gtf} -p {params.threads} "
-		"-G {input.gtf} -B -e"
+# Steps specific to chicken liver SRA samples
 
 rule stringtie_refbased_sra:
 	input:
@@ -792,6 +756,366 @@ rule filter_ortho_correct_stringtie_exons_sra:
 		t = medium
 	shell:
 		"python scripts/Filter_result_file_for_ortho.py {input.ortho} {input.res} {output} exon"
+
+# Steps specific to anole SRA
+
+rule get_annotation_anolis:
+	output:
+		"web_annotation/{genome}.gff"
+	benchmark:
+		"benchmarks/{genome}.get_annotation.benchmark.txt"
+	params:
+		web_address = lambda wildcards: config["annotation_web"][wildcards.genome],
+		initial_output = "web_annotation/{genome}.gff.gz",
+		threads = 1,
+		mem = 4,
+		t = very_short
+	run:
+		shell("wget {params.web_address} -O {params.initial_output}")
+		shell("gunzip {params.initial_output}")
+
+rule stringtie_refbased_sra_anolis:
+	input:
+		bam = "processed_rna_bams_sra/{sample}.{genome}.sorted.bam",
+		gff = "web_annotation/{genome}.gff"
+	output:
+		gtf = "stringtie_gtfs_refbased_anolis/{sample}_{genome}/{sample}.{genome}.secondpass.gtf",
+		ctab = "stringtie_gtfs_refbased_anolis/{sample}_{genome}/t_data.ctab",
+		edata = "stringtie_gtfs_refbased_anolis/{sample}_{genome}/e_data.ctab"
+	threads:
+		4
+	params:
+		stringtie = stringtie_path,
+		threads = 4,
+		mem = 16,
+		t = long
+	shell:
+		"{params.stringtie} {input.bam} -o {output.gtf} -p {params.threads} "
+		"-G {input.gff} -B -e"
+
+rule stringtie_first_pass_mixed_sra_anolis:
+	input:
+		bam = "processed_rna_bams_sra/{sample}.{genome}.sorted.bam",
+		gff = "web_annotation/{genome}.gff"
+	output:
+		"stringtie_gtfs_mixed_anolis/{sample}_{genome}/{sample}.{genome}.firstpass.gtf"
+	params:
+		stringtie = stringtie_path,
+		threads = 4,
+		mem = 16,
+		t = long
+	shell:
+		"{params.stringtie} {input.bam} -o {output} -p {params.threads} "
+		"-G {input.gff}"
+
+rule create_stringtie_merged_list_mixed_sra_anolis:
+	input:
+		lambda wildcards: expand(
+			"stringtie_gtfs_mixed_anolis/{sample}_{genome}/{sample}.{genome}.firstpass.gtf",
+			genome=["anocar2"],
+			sample=anole_sra_ids)
+	output:
+		"stringtie_gtfs_mixed_anolis/{genome}_gtflist.txt"
+	params:
+		threads = 1,
+		mem = 4,
+		t = very_short
+	run:
+		shell("echo -n > {output}")
+		for i in input:
+			shell("echo {} >> {{output}}".format(i))
+
+rule stringtie_merge_mixed_sra_anolis:
+	input:
+		bam_list = "stringtie_gtfs_mixed_anolis/{genome}_gtflist.txt"
+	output:
+		"stringtie_gtfs_mixed_anolis/{genome}.merged.gtf"
+	params:
+		stringtie = stringtie_path,
+		threads = 4,
+		mem = 16,
+		t = long
+	shell:
+		"{params.stringtie} --merge {input.bam_list} -o {output} -p {params.threads}"
+
+rule stringtie_second_pass_mixed_sra_anolis:
+	input:
+		bam = "processed_rna_bams_sra/{sample}.{genome}.sorted.bam",
+		gtf = "stringtie_gtfs_mixed_anolis/{genome}.merged.gtf"
+	output:
+		gtf = "stringtie_gtfs_mixed_anolis/{sample}_{genome}/{sample}.{genome}.secondpass.gtf",
+		ctab = "stringtie_gtfs_mixed_anolis/{sample}_{genome}/t_data.ctab",
+		edata = "stringtie_gtfs_mixed_anolis/{sample}_{genome}/e_data.ctab"
+	params:
+		stringtie = stringtie_path,
+		threads = 4,
+		mem = 16,
+		t = long
+	shell:
+		"{params.stringtie} {input.bam} -o {output.gtf} -p {params.threads} "
+		"-G {input.gtf} -B -e"
+
+rule compile_stringtie_results_sra_anolis:
+	input:
+		fai = "new_reference/{assembly}.fa.fai",
+		ctabs = lambda wildcards: expand(
+			"stringtie_gtfs_{strat}_anolis/{sample}_{genome}/t_data.ctab",
+			genome=wildcards.assembly,
+			strat=wildcards.strategy,
+			sample=anole_sra_ids)
+	output:
+		"results_anolis/{assembly}.{strategy}.stringtie_compiled.txt"
+	params:
+		strat = "{strategy}",
+		threads = 4,
+		mem = 16,
+		t = long
+	run:
+		ctab_sexes = []
+		for i in input.ctabs:
+			i_split = i.split("/")[1]
+			sample_id = i_split.split("_")[0]
+			ctab_sexes.append(config["anole_sexes"][sample_id])
+		shell(
+			"python scripts/Compile_stringtie_results.py --fai {input.fai} "
+			"--output_file {output} --input_files {input.ctabs} "
+			"--sex {ctab_sexes} --suffix {params.strat}")
+
+rule compile_stringtie_results_per_transcript_sra_anolis:
+	input:
+		ctabs = lambda wildcards: expand(
+			"stringtie_gtfs_{strat}_anolis/{sample}_{genome}/t_data.ctab",
+			genome=wildcards.assembly,
+			strat=wildcards.strategy,
+			sample=anole_sra_ids)
+	output:
+		"results_anolis/{assembly}.{strategy}.stringtie_compiled_per_transcript.txt"
+	params:
+		strat = "{strategy}",
+		threads = 4,
+		mem = 16,
+		t = long
+	run:
+		ctab_sexes = []
+		for i in input.ctabs:
+			i_split = i.split("/")[1]
+			sample_id = i_split.split("_")[0]
+			ctab_sexes.append(config["anole_sexes"][sample_id])
+		shell(
+			"python scripts/Compile_stringtie_per_transcript.py "
+			"--output_file {output} --input_files {input.ctabs} "
+			"--sex {ctab_sexes} --suffix {params.strat}")
+
+rule compile_stringtie_results_per_exon_sra_anolis:
+	input:
+		ctabs = lambda wildcards: expand(
+			"stringtie_gtfs_{strat}_anolis/{sample}_{genome}/e_data.ctab",
+			genome=wildcards.assembly,
+			strat=wildcards.strategy,
+			sample=anole_sra_ids)
+	output:
+		"results_sra/{assembly}.{strategy}.stringtie_compiled_per_exon.txt"
+	params:
+		strat = "{strategy}",
+		threads = 4,
+		mem = 16,
+		t = long
+	run:
+		ctab_sexes = []
+		for i in input.ctabs:
+			i_split = i.split("/")[1]
+			sample_id = i_split.split("_")[0]
+			ctab_sexes.append(config["anole_sexes"][sample_id])
+		shell(
+			"python scripts/Compile_stringtie_per_transcript.py "
+			"--output_file {output} --input_files {input.ctabs} "
+			"--sex {ctab_sexes} --suffix {params.strat}")
+		shell(
+			"sed -i -e 's/transcript/exon/g' {output}")
+
+rule compile_stringtie_results_per_transcript_separate_individuals_sra_anolis:
+	input:
+		ctabs = lambda wildcards: expand(
+			"stringtie_gtfs_{strat}_anolis/{sample}_{genome}/t_data.ctab",
+			genome=wildcards.assembly,
+			strat=wildcards.strategy,
+			sample=anole_sra_ids)
+	output:
+		"results_anolis/{assembly}.{strategy}.stringtie_compiled_per_transcript_separate_individuals.txt"
+	params:
+		strat = "{strategy}",
+		threads = 4,
+		mem = 16,
+		t = long
+	run:
+		ctab_sexes = []
+		for i in input.ctabs:
+			i_split = i.split("/")[1]
+			sample_id = i_split.split("_")[0]
+			ctab_sexes.append(config["anole_sexes"][sample_id])
+		shell(
+			"python scripts/Compile_stringtie_per_transcript_separate_individuals.py "
+			"--output_file {output} --input_files {input.ctabs} "
+			"--sex {ctab_sexes} --suffix {params.strat}")
+
+rule compile_stringtie_results_per_exon_separate_individuals_sra_anolis:
+	input:
+		ctabs = lambda wildcards: expand(
+			"stringtie_gtfs_{strat}_anolis/{sample}_{genome}/e_data.ctab",
+			genome=wildcards.assembly,
+			strat=wildcards.strategy,
+			sample=anole_sra_ids)
+	output:
+		"results_anolis/{assembly}.{strategy}.stringtie_compiled_per_exon_separate_individuals.txt"
+	params:
+		strat = "{strategy}",
+		threads = 4,
+		mem = 16,
+		t = long
+	run:
+		ctab_sexes = []
+		for i in input.ctabs:
+			i_split = i.split("/")[1]
+			sample_id = i_split.split("_")[0]
+			ctab_sexes.append(config["anole_sexes"][sample_id])
+		shell(
+			"python scripts/Compile_stringtie_per_transcript_separate_individuals.py "
+			"--output_file {output} --input_files {input.ctabs} "
+			"--sex {ctab_sexes} --suffix {params.strat}")
+		shell(
+			"sed -i -e 's/transcript/exon/g' {output}")
+
+rule correct_stringtie_transcripts_anolis_chr2:
+	input:
+		"results_anolis/{assembly}.{strategy}.stringtie_compiled_per_transcript_separate_individuals.txt"
+	output:
+		"results_anolis/corrected.{assembly}_{strategy}.stringtie_compiled_per_transcript_separate_individuals.corrected.txt"
+	params:
+		threads = 4,
+		mem = 16,
+		t = medium
+	shell:
+		"python scripts/Correct_per_transcript_per_individual_expression_anolis.py "
+		"--output_file {output} --input_file {input}"
+
+rule correct_stringtie_exons_anolis_chr2:
+	input:
+		"results_anolis/{assembly}.{strategy}.stringtie_compiled_per_exon_separate_individuals.txt"
+	output:
+		"results_anolis/corrected.{assembly}_{strategy}.stringtie_compiled_per_exon_separate_individuals.corrected.txt"
+	params:
+		threads = 4,
+		mem = 16,
+		t = medium
+	shell:
+		"python scripts/Correct_per_transcript_per_individual_expression_anolis.py "
+		"--output_file {output} --input_file {input}"
+
+rule find_orthologs_annotation_web:
+	input:
+		gff1 = lambda wildcards: config["annotation"][wildcards.gff1],
+		gff2 = lambda wildcards: config["annotation_web"][wildcards.gff2]
+	output:
+		"reference/{gff1}_{gff2}_gff_comparison.txt"
+	params:
+		threads = 4,
+		mem = 16,
+		t = medium
+	shell:
+		"python scripts/Compare_gffs.py --gff1 {input.gff1} --gff2 {input.gff2} "
+		"--chroms 157 218 304 398 --output_file {output}"
+
+# rule filter_ortho_compiled_stringtie:
+# 	input:
+# 		ortho = "reference/{gff1}_{gff2}_gff_comparison.txt",
+# 		res = "results_sra/{assembly}.{strategy}.stringtie_compiled.txt"
+# 	output:
+# 		"results_sra_filtered/z_ortho_filtered-{gff1}_{gff2}-{assembly}.{strategy}.stringtie_compiled.txt"
+# 	params:
+# 		threads = 4,
+# 		mem = 16,
+# 		t = medium
+# 	shell:
+# 		"python scripts/Filter_result_file_for_ortho.py {input.ortho} {input.res} {output}"
+
+rule filter_ortho_compiled_stringtie_per_transcript_anolis:
+	input:
+		ortho = "reference/{gff1}_{gff2}_gff_comparison.txt",
+		res = "results_anolis/{assembly}.{strategy}.stringtie_compiled_per_transcript.txt"
+	output:
+		"results_anolis_filtered/z_ortho_filtered-{gff1}_{gff2}-{assembly}.{strategy}.stringtie_compiled_per_transcript.txt"
+	params:
+		threads = 4,
+		mem = 16,
+		t = medium
+	shell:
+		"python scripts/Filter_result_file_for_ortho.py {input.ortho} {input.res} {output} transcript"
+
+rule filter_ortho_compiled_stringtie_per_exon_anolis:
+	input:
+		ortho = "reference/{gff1}_{gff2}_gff_comparison.txt",
+		res = "results_anolis/{assembly}.{strategy}.stringtie_compiled_per_exon.txt"
+	output:
+		"results_anolis_filtered/z_ortho_filtered-{gff1}_{gff2}-{assembly}.{strategy}.stringtie_compiled_per_exon.txt"
+	params:
+		threads = 4,
+		mem = 16,
+		t = medium
+	shell:
+		"python scripts/Filter_result_file_for_ortho.py {input.ortho} {input.res} {output} exon"
+
+rule filter_ortho_compiled_stringtie_per_transcript_separate_individuals_anolis:
+	input:
+		ortho = "reference/{gff1}_{gff2}_gff_comparison.txt",
+		res = "results_anolis/{assembly}.{strategy}.stringtie_compiled_per_transcript_separate_individuals.txt"
+	output:
+		"results_anolis_filtered/z_ortho_filtered-{gff1}_{gff2}-{assembly}_{strategy}.stringtie_compiled_per_transcript_separate_individuals.txt"
+	params:
+		threads = 4,
+		mem = 16,
+		t = medium
+	shell:
+		"python scripts/Filter_result_file_for_ortho.py {input.ortho} {input.res} {output} transcript"
+
+rule filter_ortho_compiled_stringtie_per_exon_separate_individuals_anolis:
+	input:
+		ortho = "reference/{gff1}_{gff2}_gff_comparison.txt",
+		res = "results_anolis/{assembly}.{strategy}.stringtie_compiled_per_exon_separate_individuals.txt"
+	output:
+		"results_anolis_filtered/z_ortho_filtered-{gff1}_{gff2}-{assembly}_{strategy}.stringtie_compiled_per_exon_separate_individuals.txt"
+	params:
+		threads = 4,
+		mem = 16,
+		t = medium
+	shell:
+		"python scripts/Filter_result_file_for_ortho.py {input.ortho} {input.res} {output} exon"
+
+rule filter_ortho_correct_stringtie_transcripts_anolis:
+	input:
+		ortho = "reference/{gff1}_{gff2}_gff_comparison.txt",
+		res = "results_anolis/corrected.{assembly}_{strategy}.stringtie_compiled_per_transcript_separate_individuals.corrected.txt"
+	output:
+		"results_anolis_filtered/z_ortho_filtered.corrected.stringtie_compiled_per_transcript_separate_individuals.{gff1}_{gff2}.{assembly}_{strategy}.txt"
+	params:
+		threads = 4,
+		mem = 16,
+		t = medium
+	shell:
+		"python scripts/Filter_result_file_for_ortho.py {input.ortho} {input.res} {output} transcript"
+
+rule filter_ortho_correct_stringtie_exons_anolis:
+	input:
+		ortho = "reference/{gff1}_{gff2}_gff_comparison.txt",
+		res = "results_anolis/corrected.{assembly}_{strategy}.stringtie_compiled_per_exon_separate_individuals.corrected.txt"
+	output:
+		"results_anolis_filtered/z_ortho_filtered.corrected.stringtie_compiled_per_exon_separate_individuals.{gff1}_{gff2}.{assembly}_{strategy}.txt"
+	params:
+		threads = 4,
+		mem = 16,
+		t = medium
+	shell:
+		"python scripts/Filter_result_file_for_ortho.py {input.ortho} {input.res} {output} exon"
+
 
 # Gila steps
 

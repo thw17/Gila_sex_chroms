@@ -9,12 +9,17 @@
 	},
 
 	"genome_web": {
-		"galgal5": "https://hgdownload.soe.ucsc.edu/goldenPath/galGal5/bigZips/galGal5.fa.gz"
+		"galgal5": "https://hgdownload.soe.ucsc.edu/goldenPath/galGal5/bigZips/galGal5.fa.gz",
+		"anocar2": "https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/000/090/745/GCF_000090745.1_AnoCar2.0/GCF_000090745.1_AnoCar2.0_genomic.fna.gz"
 	},
 
 	"annotation": {
 		"gila2": "reference/Gila.gff3",
 		"galgal5": "reference/Chicken.gff3"
+	},
+
+	"annotation_web": {
+		"anocar2": "https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/000/090/745/GCF_000090745.1_AnoCar2.0/GCF_000090745.1_AnoCar2.0_genomic.gff.gz"
 	},
 
 	"sexes": {
@@ -48,6 +53,52 @@
 		"SRR2889293": "female",
 		"SRR2889292": "female",
 		"SRR2889291": "female"
+	},
+
+	"anole_sexes_by_sample_name": {
+		"d15": "male",
+		"d26": "male",
+		"d47": "female",
+		"d61": "female"
+	},
+
+	"anole_sexes": {
+		"SRR1502164": "male",
+		"SRR1502169": "male",
+		"SRR1502174": "female",
+		"SRR1502179": "female"
+	},
+
+	"SRR1502164": {
+		"ID": "SRR1502164",
+		"SM": "d15",
+		"LB": "SRR1502164",
+		"PU": "SRR1502164",
+		"PL": "Illumina"
+	},
+
+	"SRR1502169": {
+		"ID": "SRR1502169",
+		"SM": "d26",
+		"LB": "SRR1502169",
+		"PU": "SRR1502169",
+		"PL": "Illumina"
+	},
+
+	"SRR1502174": {
+		"ID": "SRR1502174",
+		"SM": "d47",
+		"LB": "SRR1502174",
+		"PU": "SRR1502174",
+		"PL": "Illumina"
+	},
+
+	"SRR1502179": {
+		"ID": "SRR1502179",
+		"SM": "d61",
+		"LB": "SRR1502179",
+		"PU": "SRR1502179",
+		"PL": "Illumina"
 	},
 
 	"SRR2889297": {
