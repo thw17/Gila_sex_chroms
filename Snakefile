@@ -1014,7 +1014,7 @@ rule correct_stringtie_exons_anolis_chr2:
 rule find_orthologs_annotation_web:
 	input:
 		gff1 = lambda wildcards: config["annotation"][wildcards.gff1],
-		gff2 = lambda wildcards: config["annotation_web"][wildcards.gff2]
+		gff2 = "web_annotation/{gff2}.gff"
 	output:
 		"reference/{gff1}_{gff2}_gff_comparison.txt"
 	params:
