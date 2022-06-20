@@ -188,7 +188,7 @@ rule all:
 		expand(
 			"reference/{gff1}_{gff2}_gff_comparison.txt",
 			gff1 = ["gila2"],
-			gff2 = ["galgal5". "anocar2"])
+			gff2 = ["galgal5", "anocar2"])
 
 # Steps to analyze comparative data from SRA
 
