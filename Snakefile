@@ -955,7 +955,7 @@ rule compile_stringtie_results_per_transcript_separate_individuals_sra_anolis:
 			sample_id = i_split.split("_")[0]
 			ctab_sexes.append(config["anole_sexes"][sample_id])
 		shell(
-			"python scripts/Compile_stringtie_per_transcript_separate_individuals.py "
+			"python scripts/Compile_stringtie_per_transcript_separate_individuals_anolis.py "
 			"--output_file {output} --input_files {input.ctabs} "
 			"--sex {ctab_sexes} --suffix {params.strat}")
 
@@ -980,7 +980,7 @@ rule compile_stringtie_results_per_exon_separate_individuals_sra_anolis:
 			sample_id = i_split.split("_")[0]
 			ctab_sexes.append(config["anole_sexes"][sample_id])
 		shell(
-			"python scripts/Compile_stringtie_per_transcript_separate_individuals.py "
+			"python scripts/Compile_stringtie_per_transcript_separate_individuals_anolis.py "
 			"--output_file {output} --input_files {input.ctabs} "
 			"--sex {ctab_sexes} --suffix {params.strat}")
 		shell(
