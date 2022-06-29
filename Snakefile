@@ -775,9 +775,111 @@ rule get_annotation_anolis:
 		shell("wget {params.web_address} -O {params.initial_output}")
 		shell("gunzip {params.initial_output}")
 
+rule trim_adapters_paired_bbduk_rna_anolis:
+	input:
+		fq1 = "renamed_fastqs/{sample}_fixed_1.fastq.gz",
+		fq2 = "renamed_fastqs/{sample}_fixed_2.fastq.gz"
+	output:
+		out_fq1 = "trimmed_rna_fastqs_anolis/{sample}_trimmed_read1.fastq.gz",
+		out_fq2 = "trimmed_rna_fastqs_anolis/{sample}_trimmed_read2.fastq.gz"
+	params:
+		bbduksh = bbduksh_path,
+		threads = 2,
+		mem = 8,
+		t = very_short
+	shell:
+		"{params.bbduksh} -Xmx3g in1={input.fq1} in2={input.fq2} "
+		"out1={output.out_fq1} out2={output.out_fq2} "
+		"ref=misc/adapter_sequence.fa ktrim=r k=21 mink=11 hdist=2 tbo tpe "
+		"qtrim=rl trimq=15 minlen=30 maq=20"
+
+rule fastqc_analysis_trimmed_anolis:
+	input:
+		"trimmed_rna_fastqs_anolis/{sample}_trimmed_read{read_num}.fastq.gz"
+	output:
+		html1 = "fastqc_trimmed_results_anolis/{sample}_trimmed_read{read_num}_fastqc.html"
+	params:
+		fastqc = fastqc_path,
+		threads = 1,
+		mem = 4,
+		t = very_short
+	shell:
+		"{params.fastqc} -o fastqc_trimmed_results_anolis {input}"
+
+rule multiqc_analysis_trimmed_anolis:
+	input:
+		expand(
+			"fastqc_trimmed_results_anolis/{sample}_trimmed_read{read_num}_fastqc.html",
+			sample=sra_samples, read_num=["1", "2"])
+	output:
+		"multiqc_trimmed_results_anolis/multiqc_report.html"
+	params:
+		multiqc = multiqc_path,
+		threads = 1,
+		mem = 4,
+		t = very_short
+	shell:
+		"export LC_ALL=en_US.UTF-8 && export LANG=en_US.UTF-8 && "
+		"{params.multiqc} --interactive -f -o multiqc_trimmed_results_anolis fastqc_trimmed_results_anolis"
+
+rule hisat2_map_reads_anolis:
+	input:
+		idx = expand(
+			"new_reference_sra/hisat2/{{genome}}.{suffix}.ht2",
+			suffix=["1", "2", "3", "4", "5", "6", "7", "8"]),
+		fq1 = "trimmed_rna_fastqs_anolis/{sample}_trimmed_read1.fastq.gz",
+		fq2 = "trimmed_rna_fastqs_anolis/{sample}_trimmed_read2.fastq.gz"
+	output:
+		"processed_rna_bams_anolis/{sample}.{genome}.sorted.bam"
+	params:
+		threads = 4,
+		mem = 16,
+		t = long,
+		hisat2 = hisat2_path,
+		samtools = samtools_path,
+		id = lambda wildcards: config[wildcards.sample]["ID"],
+		sm = lambda wildcards: config[wildcards.sample]["SM"],
+		lb = lambda wildcards: config[wildcards.sample]["LB"],
+		pu = lambda wildcards: config[wildcards.sample]["PU"],
+		pl = lambda wildcards: config[wildcards.sample]["PL"]
+	shell:
+		"{params.hisat2} -p {params.threads} --dta "
+		"--rg-id {params.id} --rg SM:{params.sm} --rg LB:{params.lb} "
+		"--rg PU:{params.pu} --rg PL:{params.pl} "
+		"-x new_reference_sra/hisat2/{wildcards.genome} "
+		"-1 {input.fq1} -2 {input.fq2} | "
+		"{params.samtools} sort -O bam -o {output}"
+
+rule index_bam_rna_anolis:
+	input:
+		"processed_rna_bams_anolis/{sample}.{genome}.sorted.bam"
+	output:
+		"processed_rna_bams_anolis/{sample}.{genome}.sorted.bam.bai"
+	params:
+		samtools = samtools_path,
+		threads = 4,
+		mem = 16,
+		t = very_short
+	shell:
+		"{params.samtools} index {input}"
+
+rule bam_stats_rna_anolis:
+	input:
+		bam = "processed_rna_bams_anolis/{sample}.{genome}.sorted.bam",
+		bai = "processed_rna_bams_anolis/{sample}.{genome}.sorted.bam.bai"
+	output:
+		"stats_sra/{sample}.{genome}.rna.sorted.bam.stats"
+	params:
+		samtools = samtools_path,
+		threads = 4,
+		mem = 16,
+		t = very_short
+	shell:
+		"{params.samtools} stats {input.bam} | grep ^SN | cut -f 2- > {output}"
+
 rule stringtie_refbased_sra_anolis:
 	input:
-		bam = "processed_rna_bams_sra/{sample}.{genome}.sorted.bam",
+		bam = "processed_rna_bams_anolis/{sample}.{genome}.sorted.bam",
 		gff = "web_annotation/{genome}.gff"
 	output:
 		gtf = "stringtie_gtfs_refbased_anolis/{sample}_{genome}/{sample}.{genome}.secondpass.gtf",
@@ -796,7 +898,7 @@ rule stringtie_refbased_sra_anolis:
 
 rule stringtie_first_pass_mixed_sra_anolis:
 	input:
-		bam = "processed_rna_bams_sra/{sample}.{genome}.sorted.bam",
+		bam = "processed_rna_bams_anolis/{sample}.{genome}.sorted.bam",
 		gff = "web_annotation/{genome}.gff"
 	output:
 		"stringtie_gtfs_mixed_anolis/{sample}_{genome}/{sample}.{genome}.firstpass.gtf"
@@ -841,7 +943,7 @@ rule stringtie_merge_mixed_sra_anolis:
 
 rule stringtie_second_pass_mixed_sra_anolis:
 	input:
-		bam = "processed_rna_bams_sra/{sample}.{genome}.sorted.bam",
+		bam = "processed_rna_bams_anolis/{sample}.{genome}.sorted.bam",
 		gtf = "stringtie_gtfs_mixed_anolis/{genome}.merged.gtf"
 	output:
 		gtf = "stringtie_gtfs_mixed_anolis/{sample}_{genome}/{sample}.{genome}.secondpass.gtf",
