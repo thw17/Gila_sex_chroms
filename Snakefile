@@ -134,7 +134,7 @@ rule all:
 			sample=sra_ids_liver,
 			genome=["galgal5"]),
 		expand(
-			"stats_sra/{sample}.{genome}.rna.sorted.bam.stats",
+			"stats_anolis/{sample}.{genome}.rna.sorted.bam.stats",
 			sample=anole_sra_ids,
 			genome=["anocar2"]),
 		expand(
@@ -868,7 +868,7 @@ rule bam_stats_rna_anolis:
 		bam = "processed_rna_bams_anolis/{sample}.{genome}.sorted.bam",
 		bai = "processed_rna_bams_anolis/{sample}.{genome}.sorted.bam.bai"
 	output:
-		"stats_sra/{sample}.{genome}.rna.sorted.bam.stats"
+		"stats_anolis/{sample}.{genome}.rna.sorted.bam.stats"
 	params:
 		samtools = samtools_path,
 		threads = 4,
