@@ -40,7 +40,7 @@ def main():
 				if parsed[2] == "gene":
 					scaff = parsed[0]
 					start = parsed[3]
-					gene = parsed[8].split(';')[1].split('=')[1]
+					gene = parsed[8].split(';')[1].split('=')[1].upper()
 					if gene != "None":
 						d[gene] = [scaff, start]
 
@@ -52,7 +52,7 @@ def main():
 			parsed = line.strip().split()
 			scaff = parsed[0]
 			start = parsed[3]
-			gene = parsed[8].split(';')[1].split('=')[1]
+			gene = parsed[8].split(';')[1].split('=')[1].upper()
 			if parsed[2] == "transcript":
 				if gene != "None":
 					if gene in d:
