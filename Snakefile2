@@ -55,11 +55,8 @@ rna_to_dna = {
 	"G_30_rna": "G_30_dna",
 	"G_35_rna": "G_35_dna",
 	"G_KI01_rna": "G_KI01_dna",
-	"G_L_rna": "G_L_dna"}
-
-fastq_prefixes = [
-	config[x]["fq1"][:-9] for x in samples] + [
-		config[x]["fq2"][:-9] for x in samples]
+	"G_L_rna": "G_L_dna"
+}
 
 sra_ids_liver = [
 	"SRR2889297", "SRR2889296", "SRR2889295",
@@ -69,6 +66,10 @@ sra_samples = sra_ids_liver
 
 anole_sra_ids = [
 	"SRR1502164","SRR1502169","SRR1502174","SRR1502179"]
+
+fastq_prefixes = [
+	config[x]["fq1"][:-9] for x in samples] + [
+		config[x]["fq2"][:-9] for x in samples]
 
 # Parameters for splitting reference
 num_chunks = 25
@@ -189,112 +190,8 @@ rule all:
 		# 	gff1 = ["gila2"],
 		# 	gff2 = ["galgal5"]),
 
-# Reference steps
 
-rule get_reference:
-	output:
-		"new_reference/{genome}.fa"
-	params:
-		web_address = lambda wildcards: config["genome_web"][wildcards.genome],
-		initial_output = "new_reference/{genome}.fa.gz",
-		threads = 1,
-		mem = 4,
-		t = very_short
-	run:
-		if wildcards.genome in web_reference:
-			shell("wget {params.web_address} -O {params.initial_output}")
-			shell("gunzip {params.initial_output}")
-		else:
-			ref = lambda wildcards: config["genome_paths"][wildcards.genome]
-			shell(
-				"ln -s ../{} {{output.new}} && touch -h {{output.new}}".format(ref))
-
-rule get_annotation_anolis:
-	output:
-		"web_annotation/{genome}.gff"
-	benchmark:
-		"benchmarks/{genome}.get_annotation.benchmark.txt"
-	params:
-		web_address = lambda wildcards: config["annotation_web"][wildcards.genome],
-		initial_output = "web_annotation/{genome}.gff.gz",
-		threads = 1,
-		mem = 4,
-		t = very_short
-	run:
-		shell("wget {params.web_address} -O {params.initial_output}")
-		shell("gunzip {params.initial_output}")
-
-rule reference_fai:
-	input:
-		"new_reference/{genome}.fa"
-	output:
-		"new_reference/{genome}.fa.fai"
-	params:
-		samtools = samtools_path,
-		threads = 4,
-		mem = 16,
-		t = medium
-	shell:
-		"{params.samtools} faidx {input}"
-
-rule reference_bwa:
-	input:
-		"new_reference/{genome}.fa"
-	output:
-		"new_reference/{genome}.fasta.amb"
-	params:
-		bwa = bwa_path,
-		threads = 4,
-		mem = 16,
-		t = medium
-	shell:
-		"{params.bwa} index {input}"
-
-rule reference_dict:
-	input:
-		"new_reference/{genome}.fa"
-	output:
-		"new_reference/{assembly}.dict"
-	params:
-		samtools = samtools_path,
-		threads = 4,
-		mem = 16,
-		t = medium
-	shell:
-		"{params.samtools} dict -o {output} {input}"
-
-rule chunk_reference:
-	input:
-		fai = "new_reference/{genome}.fa.fai"
-	output:
-		expand("new_reference/{{genome}}_split_chunk{num}.bed", num=chunk_range)
-	params:
-		chunks = num_chunks,
-		out_prefix = "new_reference/{genome}_split",
-		threads = 1,
-		mem = 4,
-		t = very_short
-	shell:
-		"python scripts/Chunk_fai.py --fai {input.fai} "
-		"--out_prefix {params.out_prefix} --chunks {params.chunks}"
-
-rule hisat2_reference_index:
-	input:
-		"new_reference/{genome}.fa"
-	output:
-		expand(
-			"new_reference/hisat2/{{genome}}.{suffix}.ht2",
-			suffix=[
-				"1", "2", "3", "4", "5", "6", "7", "8"])
-	params:
-		hisat2_build = hisat2_build_path,
-		threads = 4,
-		mem = 16,
-		t = medium
-	shell:
-		"{params.hisat2_build} {input} new_reference/hisat2/{wildcards.genome}"
-
-# SRA read download and processing
+# Steps to analyze comparative data from SRA
 
 rule prefetch_sra:
 	output:
@@ -373,6 +270,48 @@ rule multiqc_analysis_sra:
 		"{params.multiqc} --interactive -f "
 		"-o multiqc_results_sra fastqc_results_sra"
 
+rule get_reference_web:
+	output:
+		"new_reference/{genome}.fa"
+	params:
+		web_address = lambda wildcards: config["genome_web"][wildcards.genome],
+		initial_output = "new_reference/{genome}.fa.gz",
+		threads = 1,
+		mem = 4,
+		t = very_short
+	run:
+		shell("wget {params.web_address} -O {params.initial_output}")
+		shell("gunzip {params.initial_output}")
+
+rule fai_ref:
+	input:
+		"new_reference/{genome}.fa"
+	output:
+		"new_reference/{genome}.fa.fai"
+	params:
+		samtools = samtools_path,
+		threads = 4,
+		mem = 16,
+		t = medium
+	shell:
+		"{params.samtools} faidx {input}"
+
+rule hisat2_reference_index_sra:
+	input:
+		"new_reference/{genome}.fa"
+	output:
+		expand(
+			"new_reference_sra/hisat2/{{genome}}.{suffix}.ht2",
+			suffix=[
+				"1", "2", "3", "4", "5", "6", "7", "8"])
+	params:
+		hisat2_build = hisat2_build_path,
+		threads = 4,
+		mem = 16,
+		t = medium
+	shell:
+		"{params.hisat2_build} {input} new_reference_sra/hisat2/{wildcards.genome}"
+
 rule trim_adapters_paired_bbduk_rna_sra:
 	input:
 		fq1 = "renamed_fastqs/{sample}_fixed_1.fastq.gz",
@@ -420,18 +359,15 @@ rule multiqc_analysis_trimmed_sra:
 		"export LC_ALL=en_US.UTF-8 && export LANG=en_US.UTF-8 && "
 		"{params.multiqc} --interactive -f -o multiqc_trimmed_results_sra fastqc_trimmed_results_sra"
 
-####### Tim resume here
-# RNA steps
-
-rule hisat2_map_reads:
+rule hisat2_map_reads_sra:
 	input:
 		idx = expand(
-			"new_reference/hisat2/{{genome}}.{suffix}.ht2",
+			"new_reference_sra/hisat2/{{genome}}.{suffix}.ht2",
 			suffix=["1", "2", "3", "4", "5", "6", "7", "8"]),
 		fq1 = "trimmed_rna_fastqs_sra/{sample}_trimmed_read1.fastq.gz",
 		fq2 = "trimmed_rna_fastqs_sra/{sample}_trimmed_read2.fastq.gz"
 	output:
-		"processed_rna_bams/{sample}.{genome}.sorted.bam"
+		"processed_rna_bams_sra/{sample}.{genome}.sorted.bam"
 	params:
 		threads = 4,
 		mem = 16,
@@ -447,15 +383,15 @@ rule hisat2_map_reads:
 		"{params.hisat2} -p {params.threads} --dta "
 		"--rg-id {params.id} --rg SM:{params.sm} --rg LB:{params.lb} "
 		"--rg PU:{params.pu} --rg PL:{params.pl} "
-		"-x new_reference/hisat2/{wildcards.genome} "
+		"-x new_reference_sra/hisat2/{wildcards.genome} "
 		"-1 {input.fq1} -2 {input.fq2} | "
 		"{params.samtools} sort -O bam -o {output}"
 
-rule index_bam_rna:
+rule index_bam_rna_sra:
 	input:
-		"processed_rna_bams/{sample}.{genome}.sorted.bam"
+		"processed_rna_bams_sra/{sample}.{genome}.sorted.bam"
 	output:
-		"processed_rna_bams/{sample}.{genome}.sorted.bam.bai"
+		"processed_rna_bams_sra/{sample}.{genome}.sorted.bam.bai"
 	params:
 		samtools = samtools_path,
 		threads = 4,
@@ -464,12 +400,12 @@ rule index_bam_rna:
 	shell:
 		"{params.samtools} index {input}"
 
-rule bam_stats_rna:
+rule bam_stats_rna_sra:
 	input:
-		bam = "processed_rna_bams/{sample}.{genome}.sorted.bam",
-		bai = "processed_rna_bams/{sample}.{genome}.sorted.bam.bai"
+		bam = "processed_rna_bams_sra/{sample}.{genome}.sorted.bam",
+		bai = "processed_rna_bams_sra/{sample}.{genome}.sorted.bam.bai"
 	output:
-		"stats_rna/{sample}.{genome}.rna.sorted.bam.stats"
+		"stats_sra/{sample}.{genome}.rna.sorted.bam.stats"
 	params:
 		samtools = samtools_path,
 		threads = 4,
@@ -478,7 +414,7 @@ rule bam_stats_rna:
 	shell:
 		"{params.samtools} stats {input.bam} | grep ^SN | cut -f 2- > {output}"
 
-#### Tim resume here
+# Steps specific to chicken liver SRA samples
 
 rule stringtie_refbased_sra:
 	input:
@@ -823,6 +759,21 @@ rule filter_ortho_correct_stringtie_exons_sra:
 		"python scripts/Filter_result_file_for_ortho.py {input.ortho} {input.res} {output} exon"
 
 # Steps specific to anole SRA
+
+rule get_annotation_anolis:
+	output:
+		"web_annotation/{genome}.gff"
+	benchmark:
+		"benchmarks/{genome}.get_annotation.benchmark.txt"
+	params:
+		web_address = lambda wildcards: config["annotation_web"][wildcards.genome],
+		initial_output = "web_annotation/{genome}.gff.gz",
+		threads = 1,
+		mem = 4,
+		t = very_short
+	run:
+		shell("wget {params.web_address} -O {params.initial_output}")
+		shell("gunzip {params.initial_output}")
 
 rule trim_adapters_paired_bbduk_rna_anolis:
 	input:
@@ -1271,9 +1222,63 @@ rule filter_ortho_correct_stringtie_exons_anolis:
 
 # Gila steps
 
+rule prepare_reference:
+	input:
+		ref = lambda wildcards: config["genome_paths"][wildcards.assembly]
+	output:
+		new = "new_reference/{assembly}.fasta",
+		fai = "new_reference/{assembly}.fasta.fai",
+		amb = "new_reference/{assembly}.fasta.amb",
+		dict = "new_reference/{assembly}.dict"
+	params:
+		samtools = samtools_path,
+		bwa = bwa_path,
+		threads = 4,
+		mem = 16,
+		t = medium
+	run:
+		shell(
+			"ln -s ../{} {{output.new}} && touch -h {{output.new}}".format(input.ref))
+		# faidx
+		shell(
+			"{params.samtools} faidx {output.new}")
+		# .dict
+		shell(
+			"{params.samtools} dict -o {output.dict} {output.new}")
+		# bwa
+		shell(
+			"{params.bwa} index {output.new}")
 
+rule chunk_reference:
+	input:
+		fai = "new_reference/{assembly}.fasta.fai"
+	output:
+		expand("new_reference/{{assembly}}_split_chunk{num}.bed", num=chunk_range)
+	params:
+		chunks = num_chunks,
+		out_prefix = "new_reference/{assembly}_split",
+		threads = 1,
+		mem = 4,
+		t = very_short
+	shell:
+		"python scripts/Chunk_fai.py --fai {input.fai} "
+		"--out_prefix {params.out_prefix} --chunks {params.chunks}"
 
-
+rule hisat2_reference_index:
+	input:
+		"new_reference/{genome}.fasta"
+	output:
+		expand(
+			"new_reference/hisat2/{{genome}}.{suffix}.ht2",
+			suffix=[
+				"1", "2", "3", "4", "5", "6", "7", "8"])
+	params:
+		hisat2_build = hisat2_build_path,
+		threads = 4,
+		mem = 16,
+		t = medium
+	shell:
+		"{params.hisat2_build} {input} new_reference/hisat2/{wildcards.genome}"
 
 rule hisat2_map_reads:
 	input:
