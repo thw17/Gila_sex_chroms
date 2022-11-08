@@ -522,7 +522,7 @@ rule fastqc_analysis_trimmed:
 rule multiqc_analysis_trimmed_dna:
 	input:
 		expand(
-			"fastqc_trimmed_{type}/{sample}_trimmed_{read}_fastqc.html",
+			"fastqc_trimmed_{{type}}/{sample}_trimmed_{read}_fastqc.html",
 			sample=dna, read=["read1", "read2"])
 	output:
 		"multiqc_trimmed_{type}/multiqc_report.html"
