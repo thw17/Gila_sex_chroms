@@ -91,7 +91,9 @@ rule all:
 			"multiqc_{suffix}/multiqc_report.html",
 			suffix=["sra", "trimmed_sra"]),
 		"multiqc/multiqc_report.html",
-		"multiqc_trimmed/multiqc_report.html"
+		expand(
+			"multiqc_trimmed_{type}/multiqc_report.html",
+			type=["dna", "rna"])
 		# # expand(
 		# # 	"new_reference/{assembly}.fasta.fai",
 		# # 	assembly=assembly_list),
@@ -257,7 +259,7 @@ rule reference_bwa:
 	input:
 		"new_reference/{genome}.fa"
 	output:
-		"new_reference/{genome}.fasta.amb"
+		"new_reference/{genome}.fa.amb"
 	params:
 		bwa = bwa_path,
 		threads = 4,
