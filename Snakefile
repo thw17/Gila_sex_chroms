@@ -375,7 +375,7 @@ rule fastqc_analysis_sra:
 rule multiqc_analysis_sra:
 	input:
 		expand(
-			"fastqc_results_sra/{sample}_fixed_{read_num}_fastqc.html",
+			"fastqc_sra/{sample}_fixed_{read_num}_fastqc.html",
 			sample=sra_samples, read_num=["1", "2"])
 	output:
 		"multiqc_sra/multiqc_report.html"
@@ -387,7 +387,7 @@ rule multiqc_analysis_sra:
 	shell:
 		"export LC_ALL=en_US.UTF-8 && export LANG=en_US.UTF-8 && "
 		"{params.multiqc} --interactive -f "
-		"-o multiqc_sra fastqc_results_sra"
+		"-o multiqc_sra fastqc_sra"
 
 rule trim_adapters_paired_bbduk_rna_sra:
 	input:
@@ -434,7 +434,7 @@ rule multiqc_analysis_trimmed_sra:
 		t = very_short
 	shell:
 		"export LC_ALL=en_US.UTF-8 && export LANG=en_US.UTF-8 && "
-		"{params.multiqc} --interactive -f -o multiqc_trimmed_sra fastqc_trimmed_results_sra"
+		"{params.multiqc} --interactive -f -o multiqc_trimmed_sra fastqc_trimmed_sra"
 
 # Local fastq processing
 
