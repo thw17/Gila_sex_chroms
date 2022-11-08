@@ -270,7 +270,7 @@ rule reference_dict:
 	input:
 		"new_reference/{genome}.fa"
 	output:
-		"new_reference/{assembly}.dict"
+		"new_reference/{genome}.dict"
 	params:
 		samtools = samtools_path,
 		threads = 4,
