@@ -83,6 +83,10 @@ rule all:
 			"new_reference/{genome}.{suffix}",
 			genome=genome_list,
 			suffix=["fa.fai","fa.amb", "dict"]),
+		expand(
+			"new_reference/hisat2/{genome}.{suffix}.ht2",
+			genome=genome_list,
+			suffix=["1", "2", "3", "4", "5", "6", "7", "8"])
 		# # expand(
 		# # 	"new_reference/{assembly}.fasta.fai",
 		# # 	assembly=assembly_list),
