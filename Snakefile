@@ -39,6 +39,9 @@ lastz_path = "lastz_32"
 
 # assembly_list = ["gila1", "gila2"]
 assembly_list = ["gila2"]
+web_reference = ["galgal5", "anocar2"]
+genome_list = web_reference + assembly_list
+
 scaffolds_to_analyze = ["157", "218", "304", "398", "674", "0", "1", "2", "3"]
 
 samples = [
@@ -76,118 +79,122 @@ chunk_range = [x for x in range(1, num_chunks + 1)]
 
 rule all:
 	input:
+		expand(
+			"new_reference/{genome}.{suffix}",
+			genome=genome_list,
+			suffix=["fa.fai","fa.amb", "dict"]),
+		# # expand(
+		# # 	"new_reference/{assembly}.fasta.fai",
+		# # 	assembly=assembly_list),
+		# # "multiqc/multiqc_report.html",
+		# # "multiqc_trimmed_dna/multiqc_report.html",
+		# # expand(
+		# # 	"processed_bams/{sample}.{genome}.mkdup.sorted.bam.bai",
+		# # 	sample=dna, genome=assembly_list),
+		# # expand(
+		# # 	"stats/{sample}.{genome}.dna.mkdup.sorted.bam.stats",
+		# # 	sample=dna, genome=assembly_list),
+		# # expand(
+		# # 	"xyalign_analyses/{genome}/results/{genome}_chrom_stats_count.txt",
+		# # 	genome=assembly_list),
+		# # expand(
+		# #  	"xyalign_analyses/{sample}.{genome}/logfiles/{sample}.{genome}_xyalign.log",
+		# #  	sample=dna, genome=assembly_list),
+		# # expand(
+		# # 	"genotyped_vcfs/{genome}.{chunk}.gatk.called.raw.vcf.gz",
+		# # 	genome=assembly_list, chunk=chunk_range),
+		# # expand(
+		# # 	"stringtie_gtfs_{strategy}/{sample}_{genome}/{sample}.{genome}.secondpass.gtf",
+		# # 	strategy=["mixed", "denovo", "refbased"], genome=assembly_list, sample=rna),
+		# # expand(
+		# # 	"stats/{sample}.{genome}.rna.sorted.bam.stats",
+		# # 	genome=assembly_list, sample=rna),
+		# # expand(
+		# # 	"results/{genome}.{strategy}.stringtie_compiled_per_{region_type}.txt",
+		# #  	strategy=["mixed", "denovo", "refbased"],
+		# #  	genome=assembly_list,
+		# # 	region_type=["exon", "transcript"]),
+		# # expand(
+		# # 	"results/corrected.{genome}.{strategy}.stringtie_compiled_per_{region_type}_separate_individuals.txt",
+		# #  	strategy=["mixed", "denovo", "refbased"],
+		# #  	genome=assembly_list,
+		# # 	region_type=["exon", "transcript"]),
+		# # expand(
+		# # 	"results/all_compiled.{genome}.{strategy}.txt",
+		# # 	strategy=["mixed", "denovo", "refbased"],
+		# # 	genome=assembly_list),
+		# # expand(
+		# # 	"par_results/scaffold{scaff}_{genome}.txt",
+		# # 	genome=assembly_list,
+		# # 	scaff=scaffolds_to_analyze),
 		# expand(
-		# 	"new_reference/{assembly}.fasta.fai",
+		# 	"komodo/komodo_scaff218_{assembly}_align.maf",
 		# 	assembly=assembly_list),
-		# "multiqc/multiqc_report.html",
-		# "multiqc_trimmed_dna/multiqc_report.html",
 		# expand(
-		# 	"processed_bams/{sample}.{genome}.mkdup.sorted.bam.bai",
-		# 	sample=dna, genome=assembly_list),
+		# 	"komodo/scaff218_komodo_{assembly}_align.maf",
+		# 	assembly=assembly_list),
+		# "multiqc_results_sra/multiqc_report.html",
+		# "multiqc_trimmed_results_sra/multiqc_report.html",
 		# expand(
-		# 	"stats/{sample}.{genome}.dna.mkdup.sorted.bam.stats",
-		# 	sample=dna, genome=assembly_list),
+		# 	"stats_sra/{sample}.{genome}.rna.sorted.bam.stats",
+		# 	sample=sra_ids_liver,
+		# 	genome=["galgal5"]),
 		# expand(
-		# 	"xyalign_analyses/{genome}/results/{genome}_chrom_stats_count.txt",
-		# 	genome=assembly_list),
+		# 	"stats_anolis/{sample}.{genome}.rna.sorted.bam.stats",
+		# 	sample=anole_sra_ids,
+		# 	genome=["anocar2"]),
 		# expand(
-		#  	"xyalign_analyses/{sample}.{genome}/logfiles/{sample}.{genome}_xyalign.log",
-		#  	sample=dna, genome=assembly_list),
-		# expand(
-		# 	"genotyped_vcfs/{genome}.{chunk}.gatk.called.raw.vcf.gz",
-		# 	genome=assembly_list, chunk=chunk_range),
-		# expand(
-		# 	"stringtie_gtfs_{strategy}/{sample}_{genome}/{sample}.{genome}.secondpass.gtf",
-		# 	strategy=["mixed", "denovo", "refbased"], genome=assembly_list, sample=rna),
-		# expand(
-		# 	"stats/{sample}.{genome}.rna.sorted.bam.stats",
-		# 	genome=assembly_list, sample=rna),
-		# expand(
-		# 	"results/{genome}.{strategy}.stringtie_compiled_per_{region_type}.txt",
-		#  	strategy=["mixed", "denovo", "refbased"],
-		#  	genome=assembly_list,
-		# 	region_type=["exon", "transcript"]),
-		# expand(
-		# 	"results/corrected.{genome}.{strategy}.stringtie_compiled_per_{region_type}_separate_individuals.txt",
-		#  	strategy=["mixed", "denovo", "refbased"],
-		#  	genome=assembly_list,
-		# 	region_type=["exon", "transcript"]),
-		# expand(
-		# 	"results/all_compiled.{genome}.{strategy}.txt",
-		# 	strategy=["mixed", "denovo", "refbased"],
-		# 	genome=assembly_list),
-		# expand(
-		# 	"par_results/scaffold{scaff}_{genome}.txt",
-		# 	genome=assembly_list,
-		# 	scaff=scaffolds_to_analyze),
-		expand(
-			"komodo/komodo_scaff218_{assembly}_align.maf",
-			assembly=assembly_list),
-		expand(
-			"komodo/scaff218_komodo_{assembly}_align.maf",
-			assembly=assembly_list),
-		"multiqc_results_sra/multiqc_report.html",
-		"multiqc_trimmed_results_sra/multiqc_report.html",
-		expand(
-			"stats_sra/{sample}.{genome}.rna.sorted.bam.stats",
-			sample=sra_ids_liver,
-			genome=["galgal5"]),
-		expand(
-			"stats_anolis/{sample}.{genome}.rna.sorted.bam.stats",
-			sample=anole_sra_ids,
-			genome=["anocar2"]),
-		expand(
-			"results_sra_filtered/z_ortho_filtered.corrected.stringtie_compiled_per_{region_type}_separate_individuals.{gff1}_{gff2}.{genome}_{strategy}.txt",
-		 	strategy=["mixed", "refbased"],
-		 	genome=["galgal5"],
-			region_type=["exon", "transcript"],
-			gff1 = ["gila2"],
-			gff2 = ["galgal5"]),
-		expand(
-			"results_sra_filtered/z_ortho_filtered-{gff1}_{gff2}-{genome}_{strategy}.stringtie_compiled_per_{region_type}_separate_individuals.txt",
-		 	strategy=["mixed", "refbased"],
-		 	genome=["galgal5"],
-			region_type=["exon", "transcript"],
-			gff1 = ["gila2"],
-			gff2 = ["galgal5"]),
-		expand(
-			"results_sra_filtered/z_ortho_filtered-{gff1}_{gff2}-{genome}.{strategy}.stringtie_compiled_per_{region_type}.txt",
-		 	strategy=["mixed", "refbased"],
-		 	genome=["galgal5"],
-			region_type=["exon", "transcript"],
-			gff1 = ["gila2"],
-			gff2 = ["galgal5"]),
-		expand(
-			"results_anolis_filtered/z_ortho_filtered.corrected.stringtie_compiled_per_{region_type}_separate_individuals.{gff1}_{gff2}.{genome}_{strategy}.txt",
-		 	strategy=["mixed", "refbased"],
-		 	genome=["anocar2"],
-			region_type=["exon", "transcript"],
-			gff1 = ["gila2"],
-			gff2 = ["anocar2"]),
-		expand(
-			"results_anolis_filtered/z_ortho_filtered-{gff1}_{gff2}-{genome}_{strategy}.stringtie_compiled_per_{region_type}_separate_individuals.txt",
-		 	strategy=["mixed", "refbased"],
-		 	genome=["anocar2"],
-			region_type=["exon", "transcript"],
-			gff1 = ["gila2"],
-			gff2 = ["anocar2"]),
-		expand(
-			"results_anolis_filtered/z_ortho_filtered-{gff1}_{gff2}-{genome}.{strategy}.stringtie_compiled_per_{region_type}.txt",
-		 	strategy=["mixed", "refbased"],
-		 	genome=["anocar2"],
-			region_type=["exon", "transcript"],
-			gff1 = ["gila2"],
-			gff2 = ["anocar2"])
-		# expand(
-		# 	"results_sra_filtered/z_ortho_filtered-{gff1}_{gff2}-{genome}.{strategy}.stringtie_compiled.txt",
-		#  	strategy=["mixed", "denovo", "refbased"],
+		# 	"results_sra_filtered/z_ortho_filtered.corrected.stringtie_compiled_per_{region_type}_separate_individuals.{gff1}_{gff2}.{genome}_{strategy}.txt",
+		#  	strategy=["mixed", "refbased"],
 		#  	genome=["galgal5"],
+		# 	region_type=["exon", "transcript"],
 		# 	gff1 = ["gila2"],
 		# 	gff2 = ["galgal5"]),
 		# expand(
-		# 	"reference/{gff1}_{gff2}_gff_comparison.txt",
+		# 	"results_sra_filtered/z_ortho_filtered-{gff1}_{gff2}-{genome}_{strategy}.stringtie_compiled_per_{region_type}_separate_individuals.txt",
+		#  	strategy=["mixed", "refbased"],
+		#  	genome=["galgal5"],
+		# 	region_type=["exon", "transcript"],
 		# 	gff1 = ["gila2"],
 		# 	gff2 = ["galgal5"]),
+		# expand(
+		# 	"results_sra_filtered/z_ortho_filtered-{gff1}_{gff2}-{genome}.{strategy}.stringtie_compiled_per_{region_type}.txt",
+		#  	strategy=["mixed", "refbased"],
+		#  	genome=["galgal5"],
+		# 	region_type=["exon", "transcript"],
+		# 	gff1 = ["gila2"],
+		# 	gff2 = ["galgal5"]),
+		# expand(
+		# 	"results_anolis_filtered/z_ortho_filtered.corrected.stringtie_compiled_per_{region_type}_separate_individuals.{gff1}_{gff2}.{genome}_{strategy}.txt",
+		#  	strategy=["mixed", "refbased"],
+		#  	genome=["anocar2"],
+		# 	region_type=["exon", "transcript"],
+		# 	gff1 = ["gila2"],
+		# 	gff2 = ["anocar2"]),
+		# expand(
+		# 	"results_anolis_filtered/z_ortho_filtered-{gff1}_{gff2}-{genome}_{strategy}.stringtie_compiled_per_{region_type}_separate_individuals.txt",
+		#  	strategy=["mixed", "refbased"],
+		#  	genome=["anocar2"],
+		# 	region_type=["exon", "transcript"],
+		# 	gff1 = ["gila2"],
+		# 	gff2 = ["anocar2"]),
+		# expand(
+		# 	"results_anolis_filtered/z_ortho_filtered-{gff1}_{gff2}-{genome}.{strategy}.stringtie_compiled_per_{region_type}.txt",
+		#  	strategy=["mixed", "refbased"],
+		#  	genome=["anocar2"],
+		# 	region_type=["exon", "transcript"],
+		# 	gff1 = ["gila2"],
+		# 	gff2 = ["anocar2"])
+		# # expand(
+		# # 	"results_sra_filtered/z_ortho_filtered-{gff1}_{gff2}-{genome}.{strategy}.stringtie_compiled.txt",
+		# #  	strategy=["mixed", "denovo", "refbased"],
+		# #  	genome=["galgal5"],
+		# # 	gff1 = ["gila2"],
+		# # 	gff2 = ["galgal5"]),
+		# # expand(
+		# # 	"reference/{gff1}_{gff2}_gff_comparison.txt",
+		# # 	gff1 = ["gila2"],
+		# # 	gff2 = ["galgal5"])
 
 # Reference steps
 
