@@ -87,8 +87,8 @@ for i in sra_ids_liver:
 	rna_dict_link_bam_to_fastq_2[i] = "trimmed_rna_fastqs_sra/{}_trimmed_read2.fastq.gz".format(i)
 
 for i in rna:
-	rna_dict_link_bam_to_fastq_1[i] = "trimmed_rna_fastqs/{sample}_trimmed_1.fastq.gz".format(i)
-	rna_dict_link_bam_to_fastq_2[i] = "trimmed_rna_fastqs/{sample}_trimmed_2.fastq.gz".format(i)
+	rna_dict_link_bam_to_fastq_1[i] = "trimmed_rna_fastqs/{}_trimmed_1.fastq.gz".format(i)
+	rna_dict_link_bam_to_fastq_2[i] = "trimmed_rna_fastqs/{}_trimmed_2.fastq.gz".format(i)
 
 map_samples = {}
 map_samples["gila2"] = rna
