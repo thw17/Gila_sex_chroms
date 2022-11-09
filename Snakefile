@@ -269,7 +269,7 @@ rule get_annotation:
 		mem = 4,
 		t = very_short
 	run:
-		if wildcards.genome in annotation_web:
+		if wildcards.genome in config["annotation_web"]:
 			web_address = lambda wildcards: config["annotation_web"][wildcards.genome]
 			shell("wget {web_address} -O {params.initial_output}")
 			shell("gunzip {params.initial_output}")
