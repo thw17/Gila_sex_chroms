@@ -659,7 +659,7 @@ rule compile_stringtie_results_overall_transcripts:
 			strat=wildcards.strategy,
 			sample=map_samples[wildcards.genome])
 	output:
-		"results_sra/{genome}.{strategy}.stringtie_compiled.txt"
+		"results/{genome}.{strategy}.stringtie_compiled.txt"
 	params:
 		strat = "{strategy}",
 		threads = 4,
@@ -684,7 +684,7 @@ rule compile_stringtie_results_per_transcript:
 			strat=wildcards.strategy,
 			sample=map_samples[wildcards.genome])
 	output:
-		"results_sra/{assembly}.{strategy}.stringtie_compiled_per_transcript.txt"
+		"results/{assembly}.{strategy}.stringtie_compiled_per_transcript.txt"
 	params:
 		strat = "{strategy}",
 		threads = 4,
