@@ -73,6 +73,28 @@ sra_samples = sra_ids_liver
 anole_sra_ids = [
 	"SRR1502164","SRR1502169","SRR1502174","SRR1502179"]
 
+all_rna_samples = anole_sra_ids + sra_ids_liver + rna
+
+rna_dict_link_bam_to_fastq_1 = {}
+rna_dict_link_bam_to_fastq_2 = {}
+
+for i in anole_sra_ids:
+	rna_dict_link_bam_to_fastq_1[i] = "trimmed_rna_fastqs_sra/{}_trimmed_read1.fastq.gz".format(i)
+	rna_dict_link_bam_to_fastq_2[i] = "trimmed_rna_fastqs_sra/{}_trimmed_read2.fastq.gz".format(i)
+
+for i in sra_ids_liver:
+	rna_dict_link_bam_to_fastq_1[i] = "trimmed_rna_fastqs_sra/{}_trimmed_read1.fastq.gz".format(i)
+	rna_dict_link_bam_to_fastq_2[i] = "trimmed_rna_fastqs_sra/{}_trimmed_read2.fastq.gz".format(i)
+
+for i in rna:
+	rna_dict_link_bam_to_fastq_1[i] = "trimmed_rna_fastqs/{sample}_trimmed_1.fastq.gz".format(i)
+	rna_dict_link_bam_to_fastq_2[i] = "trimmed_rna_fastqs/{sample}_trimmed_2.fastq.gz".format(i)
+
+map_samples = {}
+map_samples["gila2"] = rna
+map_samples["galgal5"] = sra_ids_liver
+map_samples["anocar2"] = anole_sra_ids
+
 # Parameters for splitting reference
 num_chunks = 25
 chunk_range = [x for x in range(1, num_chunks + 1)]
@@ -84,16 +106,25 @@ rule all:
 			genome=genome_list,
 			suffix=["fa.fai","fa.amb", "dict"]),
 		expand(
-			"new_reference/hisat2/{genome}.{suffix}.ht2",
-			genome=genome_list,
-			suffix=["1", "2", "3", "4", "5", "6", "7", "8"]),
-		expand(
 			"multiqc_{suffix}/multiqc_report.html",
 			suffix=["sra", "trimmed_sra"]),
 		"multiqc/multiqc_report.html",
 		expand(
 			"multiqc_trimmed_{type}/multiqc_report.html",
-			type=["dna", "rna"])
+			type=["dna", "rna"]),
+		expand(
+			"stats_rna/{sample}.gila2.rna.sorted.bam.stats",
+			sample=all_rna_samples),
+		expand(
+			"stats_rna/{sample}.anocar2.rna.sorted.bam.stats",
+			sample=all_rna_samples),
+		expand(
+			"stats_rna/{sample}.galgal5.rna.sorted.bam.stats",
+			sample=all_rna_samples),
+		expand(
+			"results/{genome}.{strategy}.stringtie_compiled.txt",
+			genome=genome_list,
+			strategy=["refbased"])
 		# # expand(
 		# # 	"new_reference/{assembly}.fasta.fai",
 		# # 	assembly=assembly_list),
@@ -213,34 +244,39 @@ rule get_reference:
 	output:
 		"new_reference/{genome}.fa"
 	params:
-		web_address = lambda wildcards: config["genome_web"][wildcards.genome],
 		initial_output = "new_reference/{genome}.fa.gz",
 		threads = 1,
 		mem = 4,
 		t = very_short
 	run:
 		if wildcards.genome in web_reference:
-			shell("wget {params.web_address} -O {params.initial_output}")
+			web_address = lambda wildcards: config["genome_web"][wildcards.genome]
+			shell("wget {web_address} -O {params.initial_output}")
 			shell("gunzip {params.initial_output}")
 		else:
 			ref = lambda wildcards: config["genome_paths"][wildcards.genome]
 			shell(
 				"ln -s ../{} {{output.new}} && touch -h {{output.new}}".format(ref))
 
-rule get_annotation_anolis:
+rule get_annotation:
 	output:
-		"web_annotation/{genome}.gff"
+		"annotation/{genome}.gff"
 	benchmark:
 		"benchmarks/{genome}.get_annotation.benchmark.txt"
 	params:
-		web_address = lambda wildcards: config["annotation_web"][wildcards.genome],
 		initial_output = "web_annotation/{genome}.gff.gz",
 		threads = 1,
 		mem = 4,
 		t = very_short
 	run:
-		shell("wget {params.web_address} -O {params.initial_output}")
-		shell("gunzip {params.initial_output}")
+		if wildcards.genome in annotation_web:
+			web_address = lambda wildcards: config["annotation_web"][wildcards.genome]
+			shell("wget {web_address} -O {params.initial_output}")
+			shell("gunzip {params.initial_output}")
+		else:
+			anno = lambda wildcards: config["annotation"][wildcards.genome]
+			shell(
+				"ln -s ../{} {{output.new}} && touch -h {{output.new}}".format(anno))
 
 rule reference_fai:
 	input:
@@ -538,84 +574,133 @@ rule multiqc_analysis_trimmed_dna:
 		"export LC_ALL=en_US.UTF-8 && export LANG=en_US.UTF-8 && "
 		"{params.multiqc} -o multiqc_trimmed_{params.data_type} fastqc_trimmed_dna"
 
-####### Tim resume here
 # RNA steps
 
-# rule hisat2_map_reads:
-# 	input:
-# 		idx = expand(
-# 			"new_reference/hisat2/{{genome}}.{suffix}.ht2",
-# 			suffix=["1", "2", "3", "4", "5", "6", "7", "8"]),
-# 		fq1 = "trimmed_rna_fastqs_sra/{sample}_trimmed_read1.fastq.gz",
-# 		fq2 = "trimmed_rna_fastqs_sra/{sample}_trimmed_read2.fastq.gz"
-# 	output:
-# 		"processed_rna_bams/{sample}.{genome}.sorted.bam"
-# 	params:
-# 		threads = 4,
-# 		mem = 16,
-# 		t = long,
-# 		hisat2 = hisat2_path,
-# 		samtools = samtools_path,
-# 		id = lambda wildcards: config[wildcards.sample]["ID"],
-# 		sm = lambda wildcards: config[wildcards.sample]["SM"],
-# 		lb = lambda wildcards: config[wildcards.sample]["LB"],
-# 		pu = lambda wildcards: config[wildcards.sample]["PU"],
-# 		pl = lambda wildcards: config[wildcards.sample]["PL"]
-# 	shell:
-# 		"{params.hisat2} -p {params.threads} --dta "
-# 		"--rg-id {params.id} --rg SM:{params.sm} --rg LB:{params.lb} "
-# 		"--rg PU:{params.pu} --rg PL:{params.pl} "
-# 		"-x new_reference/hisat2/{wildcards.genome} "
-# 		"-1 {input.fq1} -2 {input.fq2} | "
-# 		"{params.samtools} sort -O bam -o {output}"
+rule hisat2_map_reads:
+	input:
+		idx = expand(
+			"new_reference/hisat2/{{genome}}.{suffix}.ht2",
+			suffix=["1", "2", "3", "4", "5", "6", "7", "8"]),
+		fq1 = lambda wildcards: rna_dict_link_bam_to_fastq_1[wildcards.sample],
+		fq2 = lambda wildcards: rna_dict_link_bam_to_fastq_2[wildcards.sample]
+	output:
+		"processed_rna_bams/{sample}.{genome}.sorted.bam"
+	params:
+		threads = 4,
+		mem = 16,
+		t = long,
+		hisat2 = hisat2_path,
+		samtools = samtools_path,
+		id = lambda wildcards: config[wildcards.sample]["ID"],
+		sm = lambda wildcards: config[wildcards.sample]["SM"],
+		lb = lambda wildcards: config[wildcards.sample]["LB"],
+		pu = lambda wildcards: config[wildcards.sample]["PU"],
+		pl = lambda wildcards: config[wildcards.sample]["PL"]
+	shell:
+		"{params.hisat2} -p {params.threads} --dta "
+		"--rg-id {params.id} --rg SM:{params.sm} --rg LB:{params.lb} "
+		"--rg PU:{params.pu} --rg PL:{params.pl} "
+		"-x new_reference/hisat2/{wildcards.genome} "
+		"-1 {input.fq1} -2 {input.fq2} | "
+		"{params.samtools} sort -O bam -o {output}"
 
-# rule index_bam_rna:
-# 	input:
-# 		"processed_rna_bams/{sample}.{genome}.sorted.bam"
-# 	output:
-# 		"processed_rna_bams/{sample}.{genome}.sorted.bam.bai"
-# 	params:
-# 		samtools = samtools_path,
-# 		threads = 4,
-# 		mem = 16,
-# 		t = very_short
-# 	shell:
-# 		"{params.samtools} index {input}"
+rule index_bam_rna:
+	input:
+		"processed_rna_bams/{sample}.{genome}.sorted.bam"
+	output:
+		"processed_rna_bams/{sample}.{genome}.sorted.bam.bai"
+	params:
+		samtools = samtools_path,
+		threads = 4,
+		mem = 16,
+		t = very_short
+	shell:
+		"{params.samtools} index {input}"
 
-# rule bam_stats_rna:
-# 	input:
-# 		bam = "processed_rna_bams/{sample}.{genome}.sorted.bam",
-# 		bai = "processed_rna_bams/{sample}.{genome}.sorted.bam.bai"
-# 	output:
-# 		"stats_rna/{sample}.{genome}.rna.sorted.bam.stats"
-# 	params:
-# 		samtools = samtools_path,
-# 		threads = 4,
-# 		mem = 16,
-# 		t = very_short
-# 	shell:
-# 		"{params.samtools} stats {input.bam} | grep ^SN | cut -f 2- > {output}"
+rule bam_stats_rna:
+	input:
+		bam = "processed_rna_bams/{sample}.{genome}.sorted.bam",
+		bai = "processed_rna_bams/{sample}.{genome}.sorted.bam.bai"
+	output:
+		"stats_rna/{sample}.{genome}.rna.sorted.bam.stats"
+	params:
+		samtools = samtools_path,
+		threads = 4,
+		mem = 16,
+		t = very_short
+	shell:
+		"{params.samtools} stats {input.bam} | grep ^SN | cut -f 2- > {output}"
 
-# #### Tim resume here
+rule stringtie_refbased:
+	input:
+		bam = "processed_rna_bams/{sample}.{genome}.sorted.bam",
+		gff = "annotation/{genome}.gff"
+	output:
+		gtf = "stringtie_gtfs_refbased/{sample}_{genome}/{sample}.{genome}.secondpass.gtf",
+		ctab = "stringtie_gtfs_refbased/{sample}_{genome}/t_data.ctab",
+		edata = "stringtie_gtfs_refbased/{sample}_{genome}/e_data.ctab"
+	threads:
+		4
+	params:
+		stringtie = stringtie_path,
+		threads = 4,
+		mem = 16,
+		t = long
+	shell:
+		"{params.stringtie} {input.bam} -o {output.gtf} -p {params.threads} "
+		"-G {input.gff} -B -e"
 
-# rule stringtie_refbased_sra:
-# 	input:
-# 		bam = "processed_rna_bams_sra/{sample}.{genome}.sorted.bam",
-# 		gff = lambda wildcards: config["annotation"][wildcards.genome]
-# 	output:
-# 		gtf = "stringtie_gtfs_refbased_sra/{sample}_{genome}/{sample}.{genome}.secondpass.gtf",
-# 		ctab = "stringtie_gtfs_refbased_sra/{sample}_{genome}/t_data.ctab",
-# 		edata = "stringtie_gtfs_refbased_sra/{sample}_{genome}/e_data.ctab"
-# 	threads:
-# 		4
-# 	params:
-# 		stringtie = stringtie_path,
-# 		threads = 4,
-# 		mem = 16,
-# 		t = long
-# 	shell:
-# 		"{params.stringtie} {input.bam} -o {output.gtf} -p {params.threads} "
-# 		"-G {input.gff} -B -e"
+rule compile_stringtie_results_overall_transcripts:
+	input:
+		fai = "new_reference/{genome}.fa.fai",
+		ctabs = lambda wildcards: expand(
+			"stringtie_gtfs_{strat}/{sample}_{genome}/t_data.ctab",
+			assembly=wildcards.genome,
+			strat=wildcards.strategy,
+			sample=map_samples[wildcards.genome])
+	output:
+		"results_sra/{genome}.{strategy}.stringtie_compiled.txt"
+	params:
+		strat = "{strategy}",
+		threads = 4,
+		mem = 16,
+		t = long
+	run:
+		ctab_sexes = []
+		for i in input.ctabs:
+			i_split = i.split("/")[1]
+			sample_id = i_split.split("_")[0]
+			ctab_sexes.append(config["all_sexes"][sample_id])
+		shell(
+			"python scripts/Compile_stringtie_results.py --fai {input.fai} "
+			"--output_file {output} --input_files {input.ctabs} "
+			"--sex {ctab_sexes} --suffix {params.strat}")
+
+rule compile_stringtie_results_per_transcript:
+	input:
+		ctabs = lambda wildcards: expand(
+			"stringtie_gtfs_{strat}/{sample}_{genome}/t_data.ctab",
+			assembly=wildcards.genome,
+			strat=wildcards.strategy,
+			sample=map_samples[wildcards.genome])
+	output:
+		"results_sra/{assembly}.{strategy}.stringtie_compiled_per_transcript.txt"
+	params:
+		strat = "{strategy}",
+		threads = 4,
+		mem = 16,
+		t = long
+	run:
+		ctab_sexes = []
+		for i in input.ctabs:
+			i_split = i.split("/")[1]
+			sample_id = i_split.split("_")[0]
+			ctab_sexes.append(config["all_sexes"][sample_id])
+		shell(
+			"python scripts/Compile_stringtie_per_transcript.py "
+			"--output_file {output} --input_files {input.ctabs} "
+			"--sex {ctab_sexes} --suffix {params.strat}")
+
 
 # rule stringtie_first_pass_mixed_sra:
 # 	input:
@@ -679,56 +764,7 @@ rule multiqc_analysis_trimmed_dna:
 # 		"{params.stringtie} {input.bam} -o {output.gtf} -p {params.threads} "
 # 		"-G {input.gtf} -B -e"
 
-# rule compile_stringtie_results_sra:
-# 	input:
-# 		fai = "new_reference/{assembly}.fa.fai",
-# 		ctabs = lambda wildcards: expand(
-# 			"stringtie_gtfs_{strat}_sra/{sample}_{genome}/t_data.ctab",
-# 			genome=wildcards.assembly,
-# 			strat=wildcards.strategy,
-# 			sample=sra_ids_liver)
-# 	output:
-# 		"results_sra/{assembly}.{strategy}.stringtie_compiled.txt"
-# 	params:
-# 		strat = "{strategy}",
-# 		threads = 4,
-# 		mem = 16,
-# 		t = long
-# 	run:
-# 		ctab_sexes = []
-# 		for i in input.ctabs:
-# 			i_split = i.split("/")[1]
-# 			sample_id = i_split.split("_")[0]
-# 			ctab_sexes.append(config["sra_sexes"][sample_id])
-# 		shell(
-# 			"python scripts/Compile_stringtie_results.py --fai {input.fai} "
-# 			"--output_file {output} --input_files {input.ctabs} "
-# 			"--sex {ctab_sexes} --suffix {params.strat}")
 
-# rule compile_stringtie_results_per_transcript_sra:
-# 	input:
-# 		ctabs = lambda wildcards: expand(
-# 			"stringtie_gtfs_{strat}_sra/{sample}_{genome}/t_data.ctab",
-# 			genome=wildcards.assembly,
-# 			strat=wildcards.strategy,
-# 			sample=sra_ids_liver)
-# 	output:
-# 		"results_sra/{assembly}.{strategy}.stringtie_compiled_per_transcript.txt"
-# 	params:
-# 		strat = "{strategy}",
-# 		threads = 4,
-# 		mem = 16,
-# 		t = long
-# 	run:
-# 		ctab_sexes = []
-# 		for i in input.ctabs:
-# 			i_split = i.split("/")[1]
-# 			sample_id = i_split.split("_")[0]
-# 			ctab_sexes.append(config["sra_sexes"][sample_id])
-# 		shell(
-# 			"python scripts/Compile_stringtie_per_transcript.py "
-# 			"--output_file {output} --input_files {input.ctabs} "
-# 			"--sex {ctab_sexes} --suffix {params.strat}")
 
 # rule compile_stringtie_results_per_exon_sra:
 # 	input:

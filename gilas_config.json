@@ -69,6 +69,41 @@
 		"SRR1502179": "female"
 	},
 
+	"all_sexes": {
+		"G_10_dna": "male",
+		"G_10_rna": "male",
+		"G_16_dna": "male",
+		"G_16_rna": "male",
+		"G_30_dna": "female",
+		"G_30_rna": "female",
+		"G_35_dna": "female",
+		"G_35_rna": "female",
+		"G_KI01_dna": "male",
+		"G_KI01_rna": "male",
+		"G_L_dna": "female",
+		"G_L_rna": "female",
+		"SRR1502164": "male",
+		"SRR1502169": "male",
+		"SRR1502174": "female",
+		"SRR1502179": "female",
+		"d15": "male",
+		"d26": "male",
+		"d47": "female",
+		"d61": "female",
+		"SRR2889297": "male",
+		"SRR2889296": "male",
+		"SRR2889295": "male",
+		"SRR2889293": "female",
+		"SRR2889292": "female",
+		"SRR2889291": "female",
+		"WLM35": "male",
+		"WLM21": "male",
+		"WLM33": "male",
+		"WLF25": "female",
+		"WLF19": "female",
+		"WLF27": "female"
+	}
+
 	"SRR1502164": {
 		"ID": "SRR1502164",
 		"SM": "d15",
