@@ -654,7 +654,7 @@ rule compile_stringtie_results_overall_transcripts:
 	input:
 		fai = "new_reference/{genome}.fa.fai",
 		ctabs = lambda wildcards: expand(
-			"stringtie_gtfs_{strat}/{sample}_{genome}/t_data.ctab",
+			"stringtie_gtfs_{strat}/{sample}_{assembly}/t_data.ctab",
 			assembly=wildcards.genome,
 			strat=wildcards.strategy,
 			sample=map_samples[wildcards.genome])
@@ -679,7 +679,7 @@ rule compile_stringtie_results_overall_transcripts:
 rule compile_stringtie_results_per_transcript:
 	input:
 		ctabs = lambda wildcards: expand(
-			"stringtie_gtfs_{strat}/{sample}_{genome}/t_data.ctab",
+			"stringtie_gtfs_{strat}/{sample}_{assembly}/t_data.ctab",
 			assembly=wildcards.genome,
 			strat=wildcards.strategy,
 			sample=map_samples[wildcards.genome])
