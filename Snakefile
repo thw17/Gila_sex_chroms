@@ -138,7 +138,7 @@ rule all:
 			gff1 = ["gila2"],
 			gff2 = ["galgal5", "anocar2"])
 
-		)
+
 		# # expand(
 		# # 	"new_reference/{assembly}.fasta.fai",
 		# # 	assembly=assembly_list),
