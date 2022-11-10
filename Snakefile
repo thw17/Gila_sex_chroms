@@ -520,10 +520,8 @@ rule multiqc_analysis:
 
 rule trim_adapters_paired_bbduk_dna:
 	input:
-		fq1 = lambda wildcards: os.path.join(
-			fastq_directory, config[wildcards.sample]["fq1"]),
-		fq2 = lambda wildcards: os.path.join(
-			fastq_directory, config[wildcards.sample]["fq2"])
+		fq1 = lambda wildcards: os.path.join(fastq_directory, config[wildcards.sample]["fq1"]),
+		fq2 = lambda wildcards: os.path.join(fastq_directory, config[wildcards.sample]["fq2"])
 	output:
 		out_fq1 = "trimmed_dna_fastqs/{sample}_trimmed_read1.fastq.gz",
 		out_fq2 = "trimmed_dna_fastqs/{sample}_trimmed_read2.fastq.gz"
@@ -540,10 +538,8 @@ rule trim_adapters_paired_bbduk_dna:
 
 rule trim_adapters_paired_bbduk_rna:
 	input:
-		fq1 = lambda wildcards: os.path.join(
-			fastq_directory, config[wildcards.sample]["fq1"]),
-		fq2 = lambda wildcards: os.path.join(
-			fastq_directory, config[wildcards.sample]["fq2"])
+		fq1 = lambda wildcards: os.path.join(fastq_directory, config[wildcards.sample]["fq1"]),
+		fq2 = lambda wildcards: os.path.join(fastq_directory, config[wildcards.sample]["fq2"])
 	output:
 		out_fq1 = "trimmed_rna_fastqs/{sample}_trimmed_read1.fastq.gz",
 		out_fq2 = "trimmed_rna_fastqs/{sample}_trimmed_read2.fastq.gz"
@@ -591,9 +587,7 @@ rule multiqc_analysis_trimmed_dna:
 
 rule hisat2_map_reads:
 	input:
-		idx = expand(
-			"new_reference/hisat2/{{genome}}.{suffix}.ht2",
-			suffix=["1", "2", "3", "4", "5", "6", "7", "8"]),
+		idx = expand("new_reference/hisat2/{{genome}}.{suffix}.ht2", suffix=["1", "2", "3", "4", "5", "6", "7", "8"]),
 		fq1 = lambda wildcards: rna_dict_link_bam_to_fastq_1[wildcards.sample],
 		fq2 = lambda wildcards: rna_dict_link_bam_to_fastq_2[wildcards.sample]
 	output:
