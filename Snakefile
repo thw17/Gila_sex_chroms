@@ -661,10 +661,10 @@ rule compile_stringtie_results_overall_transcripts:
 	input:
 		fai = "new_reference/{genome}.fa.fai",
 		ctabs = lambda wildcards: expand(
-											"stringtie_gtfs_{strat}/{sample}_{assembly}/t_data.ctab",
-											assembly=wildcards.genome,
-											strat=wildcards.strategy,
-											sample=map_samples[wildcards.genome])
+			"stringtie_gtfs_{strat}/{sample}_{assembly}/t_data.ctab",
+			assembly=wildcards.genome,
+			strat=wildcards.strategy,
+			sample=map_samples[wildcards.genome])
 	output:
 		"results/{genome}.{strategy}.stringtie_compiled.txt"
 	params:
@@ -679,9 +679,9 @@ rule compile_stringtie_results_overall_transcripts:
 			sample_id = i_split.split("_")[0]
 			ctab_sexes.append(config["all_sexes"][sample_id])
 		shell(
-				"python scripts/Compile_stringtie_results.py --fai {input.fai} "
-				"--output_file {output} --input_files {input.ctabs} "
-				"--sex {ctab_sexes} --suffix {params.strat}")
+			"python scripts/Compile_stringtie_results.py --fai {input.fai} "
+			"--output_file {output} --input_files {input.ctabs} "
+			"--sex {ctab_sexes} --suffix {params.strat}")
 
 rule compile_stringtie_results_per_transcript:
 	input:
@@ -691,7 +691,7 @@ rule compile_stringtie_results_per_transcript:
 				strat=wildcards.strategy,
 				sample=map_samples[wildcards.genome])
 	output:
-		"results/{assembly}.{strategy}.stringtie_compiled_per_transcript.txt"
+		"results/{genome}.{strategy}.stringtie_compiled_per_transcript.txt"
 	params:
 		strat = "{strategy}",
 		threads = 4,
