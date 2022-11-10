@@ -423,9 +423,7 @@ rule fastqc_analysis_sra:
 
 rule multiqc_analysis_sra:
 	input:
-		expand(
-			"fastqc_sra/{sample}_fixed_{read_num}_fastqc.html",
-			sample=sra_samples, read_num=["1", "2"])
+		expand("fastqc_sra/{sample}_fixed_{read_num}_fastqc.html", sample=sra_samples, read_num=["1", "2"])
 	output:
 		"multiqc_sra/multiqc_report.html"
 	params:
