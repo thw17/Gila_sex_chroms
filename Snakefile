@@ -767,6 +767,10 @@ rule find_orthologs_all:
 		"python scripts/Compare_gffs.py --gff1 {input.gff1} --gff2 {input.gff2} "
 		"--output_file {output}"
 
+
+
+
+
 ##### Tim fix these three rules after checking output of previous rule
 
 # # rule filter_ortho_compiled_stringtie:
