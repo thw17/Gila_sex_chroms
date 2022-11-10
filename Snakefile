@@ -477,9 +477,7 @@ rule fastqc_analysis_trimmed_sra:
 
 rule multiqc_analysis_trimmed_sra:
 	input:
-		expand(
-			"fastqc_trimmed_sra/{sample}_trimmed_read{read_num}_fastqc.html",
-			sample=sra_samples, read_num=["1", "2"])
+		expand("fastqc_trimmed_sra/{sample}_trimmed_read{read_num}_fastqc.html", sample=sra_samples, read_num=["1", "2"])
 	output:
 		"multiqc_trimmed_sra/multiqc_report.html"
 	params:
@@ -576,9 +574,7 @@ rule fastqc_analysis_trimmed:
 
 rule multiqc_analysis_trimmed_dna:
 	input:
-		expand(
-			"fastqc_trimmed_{{type}}/{sample}_trimmed_{read}_fastqc.html",
-			sample=dna, read=["read1", "read2"])
+		expand("fastqc_trimmed_{{type}}/{sample}_trimmed_{read}_fastqc.html", sample=dna, read=["read1", "read2"])
 	output:
 		"multiqc_trimmed_{type}/multiqc_report.html"
 	params:
