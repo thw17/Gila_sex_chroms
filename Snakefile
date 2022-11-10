@@ -124,7 +124,21 @@ rule all:
 		expand(
 			"results/{genome}.{strategy}.stringtie_compiled.txt",
 			genome=genome_list,
-			strategy=["refbased"])
+			strategy=["refbased"]),
+		expand(
+			"results/{genome}.{strategy}.stringtie_compiled_per_transcript.txt",
+			genome=genome_list,
+			strategy=["refbased"]),
+		expand(
+			"results/{genome}.{strategy}.stringtie_compiled_per_transcript_separate_individuals.txt",
+			genome=genome_list,
+			strategy=["refbased"]),
+		expand(
+			"annotation/{gff1}_{gff2}_gff_comparison.txt",
+			gff1 = ["gila2"],
+			gff2 = ["galgal5", "anocar2"])
+
+		)
 		# # expand(
 		# # 	"new_reference/{assembly}.fasta.fai",
 		# # 	assembly=assembly_list),
@@ -439,11 +453,19 @@ rule trim_adapters_paired_bbduk_rna_sra:
 		threads = 2,
 		mem = 8,
 		t = very_short
-	shell:
-		"{params.bbduksh} -Xmx3g in1={input.fq1} in2={input.fq2} "
-		"out1={output.out_fq1} out2={output.out_fq2} "
-		"ref=misc/adapter_sequence.fa ktrim=r k=21 mink=11 hdist=2 tbo tpe "
-		"qtrim=rl trimq=15 minlen=60 maq=20"
+	run:
+		if wildcards.sample in anole_sra_ids:
+			shell(
+				"{params.bbduksh} -Xmx3g in1={input.fq1} in2={input.fq2} "
+				"out1={output.out_fq1} out2={output.out_fq2} "
+				"ref=misc/adapter_sequence.fa ktrim=r k=21 mink=11 hdist=2 tbo tpe "
+				"qtrim=rl trimq=15 minlen=30 maq=20")
+		else:
+			shell(
+				"{params.bbduksh} -Xmx3g in1={input.fq1} in2={input.fq2} "
+				"out1={output.out_fq1} out2={output.out_fq2} "
+				"ref=misc/adapter_sequence.fa ktrim=r k=21 mink=11 hdist=2 tbo tpe "
+				"qtrim=rl trimq=15 minlen=60 maq=20")
 
 rule fastqc_analysis_trimmed_sra:
 	input:
@@ -701,6 +723,110 @@ rule compile_stringtie_results_per_transcript:
 			"--output_file {output} --input_files {input.ctabs} "
 			"--sex {ctab_sexes} --suffix {params.strat}")
 
+rule compile_stringtie_results_per_transcript_separate_individuals:
+	input:
+		ctabs = lambda wildcards: expand(
+			"stringtie_gtfs_{strat}/{sample}_{assembly}/t_data.ctab",
+			assembly=wildcards.genome,
+			strat=wildcards.strategy,
+			sample=map_samples[wildcards.genome])
+	output:
+		"results/{genome}.{strategy}.stringtie_compiled_per_transcript_separate_individuals.txt"
+	params:
+		strat = "{strategy}",
+		threads = 4,
+		mem = 16,
+		t = long
+	run:
+		ctab_sexes = []
+		for i in input.ctabs:
+			i_split = i.split("/")[1]
+			sample_id = i_split.split("_")[0]
+			ctab_sexes.append(config["all_sexes"][sample_id])
+		if wildcards.genome == "anocar2":
+			shell(
+				"python scripts/Compile_stringtie_per_transcript_separate_individuals_anolis.py "
+				"--output_file {output} --input_files {input.ctabs} "
+				"--sex {ctab_sexes} --suffix {params.strat}")
+		else:
+			shell(
+				"python scripts/Compile_stringtie_per_transcript_separate_individuals.py "
+				"--output_file {output} --input_files {input.ctabs} "
+				"--sex {ctab_sexes} --suffix {params.strat}")
+
+rule find_orthologs_gilaz_only:
+	input:
+		gff1 = "annotation/{gff1}.gff",
+		gff2 = "annotation/{gff2}.gff"
+	output:
+		"annotation/gilaz_{gff1}_{gff2}_gff_comparison.txt"
+	params:
+		threads = 4,
+		mem = 16,
+		t = medium
+	shell:
+		"python scripts/Compare_gffs.py --gff1 {input.gff1} --gff2 {input.gff2} "
+		"--chroms 157 218 304 398 --output_file {output}"
+
+rule find_orthologs_all:
+	input:
+		gff1 = "annotation/{gff1}.gff",
+		gff2 = "annotation/{gff2}.gff"
+	output:
+		"annotation/{gff1}_{gff2}_gff_comparison.txt"
+	params:
+		threads = 4,
+		mem = 16,
+		t = medium
+	shell:
+		"python scripts/Compare_gffs.py --gff1 {input.gff1} --gff2 {input.gff2} "
+		"--output_file {output}"
+
+##### Tim fix these three rules after checking output of previous rule
+
+# # rule filter_ortho_compiled_stringtie:
+# # 	input:
+# # 		ortho = "reference/{gff1}_{gff2}_gff_comparison.txt",
+# # 		res = "results_sra/{assembly}.{strategy}.stringtie_compiled.txt"
+# # 	output:
+# # 		"results_sra_filtered/z_ortho_filtered-{gff1}_{gff2}-{assembly}.{strategy}.stringtie_compiled.txt"
+# # 	params:
+# # 		threads = 4,
+# # 		mem = 16,
+# # 		t = medium
+# # 	shell:
+# # 		"python scripts/Filter_result_file_for_ortho.py {input.ortho} {input.res} {output}"
+
+# rule filter_ortho_compiled_stringtie_per_transcript:
+# 	input:
+# 		ortho = "reference/{gff1}_{gff2}_gff_comparison.txt",
+# 		res = "results_sra/{assembly}.{strategy}.stringtie_compiled_per_transcript.txt"
+# 	output:
+# 		"results_sra_filtered/z_ortho_filtered-{gff1}_{gff2}-{assembly}.{strategy}.stringtie_compiled_per_transcript.txt"
+# 	params:
+# 		threads = 4,
+# 		mem = 16,
+# 		t = medium
+# 	shell:
+# 		"python scripts/Filter_result_file_for_ortho.py {input.ortho} {input.res} {output} transcript"
+
+# rule filter_ortho_compiled_stringtie_per_transcript_separate_individuals_sra:
+# 	input:
+# 		ortho = "reference/{gff1}_{gff2}_gff_comparison.txt",
+# 		res = "results_sra/{assembly}.{strategy}.stringtie_compiled_per_transcript_separate_individuals.txt"
+# 	output:
+# 		"results_sra_filtered/z_ortho_filtered-{gff1}_{gff2}-{assembly}_{strategy}.stringtie_compiled_per_transcript_separate_individuals.txt"
+# 	params:
+# 		threads = 4,
+# 		mem = 16,
+# 		t = medium
+# 	shell:
+# 		"python scripts/Filter_result_file_for_ortho.py {input.ortho} {input.res} {output} transcript"
+
+###############
+
+
+
 
 # rule stringtie_first_pass_mixed_sra:
 # 	input:
@@ -793,30 +919,7 @@ rule compile_stringtie_results_per_transcript:
 # 		shell(
 # 			"sed -i -e 's/transcript/exon/g' {output}")
 
-# rule compile_stringtie_results_per_transcript_separate_individuals_sra:
-# 	input:
-# 		ctabs = lambda wildcards: expand(
-# 			"stringtie_gtfs_{strat}_sra/{sample}_{genome}/t_data.ctab",
-# 			genome=wildcards.assembly,
-# 			strat=wildcards.strategy,
-# 			sample=sra_ids_liver)
-# 	output:
-# 		"results_sra/{assembly}.{strategy}.stringtie_compiled_per_transcript_separate_individuals.txt"
-# 	params:
-# 		strat = "{strategy}",
-# 		threads = 4,
-# 		mem = 16,
-# 		t = long
-# 	run:
-# 		ctab_sexes = []
-# 		for i in input.ctabs:
-# 			i_split = i.split("/")[1]
-# 			sample_id = i_split.split("_")[0]
-# 			ctab_sexes.append(config["sra_sexes"][sample_id])
-# 		shell(
-# 			"python scripts/Compile_stringtie_per_transcript_separate_individuals.py "
-# 			"--output_file {output} --input_files {input.ctabs} "
-# 			"--sex {ctab_sexes} --suffix {params.strat}")
+
 
 # rule compile_stringtie_results_per_exon_separate_individuals_sra:
 # 	input:

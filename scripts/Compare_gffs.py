@@ -36,7 +36,15 @@ def main():
 			if line[0] == "#":
 				continue
 			parsed = line.strip().split()
-			if str(parsed[0]) in args.chroms:
+			if args.chroms is not None:
+				if str(parsed[0]) in args.chroms:
+					if parsed[2] == "gene":
+						scaff = parsed[0]
+						start = parsed[3]
+						gene = parsed[8].split(';')[1].split('=')[1].upper()
+						if gene != "None":
+							d[gene] = [scaff, start]
+			else:
 				if parsed[2] == "gene":
 					scaff = parsed[0]
 					start = parsed[3]
