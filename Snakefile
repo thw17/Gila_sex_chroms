@@ -256,7 +256,7 @@ rule get_reference:
 		else:
 			ref = lambda wildcards: config["genome_paths"][wildcards.genome]
 			shell(
-				"ln -s ../{} {{output.new}} && touch -h {{output.new}}".format(ref))
+				"ln -s ../{} {{output}} && touch -h {{output}}".format(ref))
 
 rule get_annotation:
 	output:
@@ -276,7 +276,7 @@ rule get_annotation:
 		else:
 			anno = lambda wildcards: config["annotation"][wildcards.genome]
 			shell(
-				"ln -s ../{} {{output.new}} && touch -h {{output.new}}".format(anno))
+				"ln -s ../{} {{output}} && touch -h {{output}}".format(anno))
 
 rule reference_fai:
 	input:
