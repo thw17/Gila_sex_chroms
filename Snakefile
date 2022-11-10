@@ -350,10 +350,7 @@ rule hisat2_reference_index:
 	input:
 		"new_reference/{genome}.fa"
 	output:
-		expand(
-			"new_reference/hisat2/{{genome}}.{suffix}.ht2",
-			suffix=[
-				"1", "2", "3", "4", "5", "6", "7", "8"])
+		expand("new_reference/hisat2/{{genome}}.{suffix}.ht2", suffix=["1", "2", "3", "4", "5", "6", "7", "8"])
 	params:
 		hisat2_build = hisat2_build_path,
 		threads = 4,
