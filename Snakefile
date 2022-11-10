@@ -350,7 +350,10 @@ rule hisat2_reference_index:
 	input:
 		"new_reference/{genome}.fa"
 	output:
-		expand("new_reference/hisat2/{{genome}}.{suffix}.ht2", suffix=["1", "2", "3", "4", "5", "6", "7", "8"])
+		expand(
+			"new_reference/hisat2/{{genome}}.{suffix}.ht2",
+			suffix=[
+				"1", "2", "3", "4", "5", "6", "7", "8"])
 	params:
 		hisat2_build = hisat2_build_path,
 		threads = 4,
@@ -587,7 +590,10 @@ rule multiqc_analysis_trimmed_dna:
 
 rule hisat2_map_reads:
 	input:
-		idx = expand("new_reference/hisat2/{{genome}}.{suffix}.ht2", suffix=["1", "2", "3", "4", "5", "6", "7", "8"]),
+		idx = expand(
+			"new_reference/hisat2/{{genome}}.{suffix}.ht2",
+			suffix=[
+				"1", "2", "3", "4", "5", "6", "7", "8"]),
 		fq1 = lambda wildcards: rna_dict_link_bam_to_fastq_1[wildcards.sample],
 		fq2 = lambda wildcards: rna_dict_link_bam_to_fastq_2[wildcards.sample]
 	output:
@@ -686,10 +692,10 @@ rule compile_stringtie_results_overall_transcripts:
 rule compile_stringtie_results_per_transcript:
 	input:
 		ctabs = lambda wildcards: expand(
-				"stringtie_gtfs_{strat}/{sample}_{assembly}/t_data.ctab",
-				assembly=wildcards.genome,
-				strat=wildcards.strategy,
-				sample=map_samples[wildcards.genome])
+			"stringtie_gtfs_{strat}/{sample}_{assembly}/t_data.ctab",
+			assembly=wildcards.genome,
+			strat=wildcards.strategy,
+			sample=map_samples[wildcards.genome])
 	output:
 		"results/{genome}.{strategy}.stringtie_compiled_per_transcript.txt"
 	params:
@@ -704,17 +710,17 @@ rule compile_stringtie_results_per_transcript:
 			sample_id = i_split.split("_")[0]
 			ctab_sexes.append(config["all_sexes"][sample_id])
 		shell(
-				"python scripts/Compile_stringtie_per_transcript.py "
-				"--output_file {output} --input_files {input.ctabs} "
-				"--sex {ctab_sexes} --suffix {params.strat}")
+			"python scripts/Compile_stringtie_per_transcript.py "
+			"--output_file {output} --input_files {input.ctabs} "
+			"--sex {ctab_sexes} --suffix {params.strat}")
 
 rule compile_stringtie_results_per_transcript_separate_individuals:
 	input:
 		ctabs = lambda wildcards: expand(
-				"stringtie_gtfs_{strat}/{sample}_{assembly}/t_data.ctab",
-				assembly=wildcards.genome,
-				strat=wildcards.strategy,
-				sample=map_samples[wildcards.genome])
+			"stringtie_gtfs_{strat}/{sample}_{assembly}/t_data.ctab",
+			assembly=wildcards.genome,
+			strat=wildcards.strategy,
+			sample=map_samples[wildcards.genome])
 	output:
 		"results/{genome}.{strategy}.stringtie_compiled_per_transcript_separate_individuals.txt"
 	params:
@@ -730,14 +736,14 @@ rule compile_stringtie_results_per_transcript_separate_individuals:
 			ctab_sexes.append(config["all_sexes"][sample_id])
 		if wildcards.genome == "anocar2":
 			shell(
-					"python scripts/Compile_stringtie_per_transcript_separate_individuals_anolis.py "
-					"--output_file {output} --input_files {input.ctabs} "
-					"--sex {ctab_sexes} --suffix {params.strat}")
+				"python scripts/Compile_stringtie_per_transcript_separate_individuals_anolis.py "
+				"--output_file {output} --input_files {input.ctabs} "
+				"--sex {ctab_sexes} --suffix {params.strat}")
 		else:
 			shell(
-					"python scripts/Compile_stringtie_per_transcript_separate_individuals.py "
-					"--output_file {output} --input_files {input.ctabs} "
-					"--sex {ctab_sexes} --suffix {params.strat}")
+				"python scripts/Compile_stringtie_per_transcript_separate_individuals.py "
+				"--output_file {output} --input_files {input.ctabs} "
+				"--sex {ctab_sexes} --suffix {params.strat}")
 
 rule find_orthologs_gilaz_only:
 	input:
