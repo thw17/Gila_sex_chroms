@@ -15,7 +15,7 @@ def parse_args():
 		help="")
 
 	parser.add_argument(
-		"--chroms", required=True, nargs="+",
+		"--chroms", nargs="+",
 		help="")
 
 	parser.add_argument(
