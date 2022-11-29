@@ -115,13 +115,13 @@ rule all:
 			type=["dna", "rna"]),
 		expand(
 			"stats_rna/{sample}.gila2.rna.sorted.bam.stats",
-			sample=all_rna_samples),
+			sample=rna),
 		expand(
 			"stats_rna/{sample}.anocar2.rna.sorted.bam.stats",
-			sample=all_rna_samples),
+			sample=anole_sra_ids),
 		expand(
 			"stats_rna/{sample}.galgal5.rna.sorted.bam.stats",
-			sample=all_rna_samples),
+			sample=sra_ids_liver),
 		expand(
 			"results/{genome}.{strategy}.stringtie_compiled.txt",
 			genome=genome_list,
