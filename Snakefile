@@ -270,7 +270,7 @@ rule get_reference:
 			shell("gunzip {params.initial_output}")
 		else:
 			shell(
-				"ln -sr ../{} {{output}} && touch -h {{output}}".format(params.g))
+				"ln -sr {params.g} {{output}} && touch -h {{output}}")
 
 rule get_annotation:
 	output:
@@ -289,7 +289,7 @@ rule get_annotation:
 			shell("gunzip {params.initial_output}")
 		else:
 			shell(
-				"ln -sr ../{} {{output}} && touch -h {{output}}".format(params.g))
+				"ln -sr {params.g} {{output}} && touch -h {{output}}")
 
 rule reference_fai:
 	input:
