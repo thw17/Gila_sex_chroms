@@ -40,6 +40,7 @@ lastz_path = "lastz_32"
 # assembly_list = ["gila1", "gila2"]
 assembly_list = ["gila2"]
 web_reference = ["galgal5", "anocar2"]
+web_annotation = ["anocar2"]
 genome_list = web_reference + assembly_list
 
 scaffolds_to_analyze = ["157", "218", "304", "398", "674", "0", "1", "2", "3"]
@@ -261,16 +262,15 @@ rule get_reference:
 		initial_output = "new_reference/{genome}.fa.gz",
 		threads = 1,
 		mem = 4,
-		t = very_short
+		t = very_short,
+		g = lambda wildcards: config["genome_paths_combined"][wildcards.genome]
 	run:
 		if wildcards.genome in web_reference:
-			web_address = lambda wildcards: config["genome_web"][wildcards.genome]
-			shell("wget {web_address} -O {params.initial_output}")
+			shell("wget {params.g} -O {params.initial_output}")
 			shell("gunzip {params.initial_output}")
 		else:
-			ref = lambda wildcards: config["genome_paths"][wildcards.genome]
 			shell(
-				"ln -s ../{} {{output}} && touch -h {{output}}".format(ref))
+				"ln -s ../{} {{output}} && touch -h {{output}}".format(params.g))
 
 rule get_annotation:
 	output:
@@ -281,16 +281,15 @@ rule get_annotation:
 		initial_output = "web_annotation/{genome}.gff.gz",
 		threads = 1,
 		mem = 4,
-		t = very_short
+		t = very_short,
+		g = lambda wildcards: config["annotation_paths_combined"][wildcards.genome]
 	run:
-		if wildcards.genome in config["annotation_web"]:
-			web_address = lambda wildcards: config["annotation_web"][wildcards.genome]
-			shell("wget {web_address} -O {params.initial_output}")
+		if wildcards.genome in web_annotation:
+			shell("wget {params.g} -O {params.initial_output}")
 			shell("gunzip {params.initial_output}")
 		else:
-			anno = lambda wildcards: config["annotation"][wildcards.genome]
 			shell(
-				"ln -s ../{} {{output}} && touch -h {{output}}".format(anno))
+				"ln -s ../{} {{output}} && touch -h {{output}}".format(params.g))
 
 rule reference_fai:
 	input:
