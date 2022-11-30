@@ -10,12 +10,12 @@
 
 	"genome_web": {
 		"galgal5": "https://hgdownload.soe.ucsc.edu/goldenPath/galGal5/bigZips/galGal5.fa.gz",
-		"anocar2": "https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/000/090/745/GCF_000090745.1_AnoCar2.0/GCF_000090745.1_AnoCar2.0_genomic.fna.gz"
+		"anocar2": "https://ftp.ensembl.org/pub/release-108/fasta/anolis_carolinensis/dna/Anolis_carolinensis.AnoCar2.0v2.dna.toplevel.fa.gz"
 	},
 
 	"genome_paths_combined": {
 		"galgal5": "https://hgdownload.soe.ucsc.edu/goldenPath/galGal5/bigZips/galGal5.fa.gz",
-		"anocar2": "https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/000/090/745/GCF_000090745.1_AnoCar2.0/GCF_000090745.1_AnoCar2.0_genomic.fna.gz",
+		"anocar2": "https://ftp.ensembl.org/pub/release-108/fasta/anolis_carolinensis/dna/Anolis_carolinensis.AnoCar2.0v2.dna.toplevel.fa.gz",
 		"gila1": "reference/GilaMonster_fastas__assembly_pseudohap.fasta",
 		"gila2": "reference/assembly_pseudohap.fasta"
 	},
@@ -26,13 +26,13 @@
 	},
 
 	"annotation_web": {
-		"anocar2": "https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/000/090/745/GCF_000090745.1_AnoCar2.0/GCF_000090745.1_AnoCar2.0_genomic.gff.gz"
+		"anocar2": "https://ftp.ensembl.org/pub/release-107/gff3/anolis_carolinensis/Anolis_carolinensis.AnoCar2.0v2.107.gff3.gz"
 	},
 
 	"annotation_paths_combined": {
 		"gila2": "reference/Gila.gff3",
 		"galgal5": "reference/Chicken.gff3",
-		"anocar2": "https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/000/090/745/GCF_000090745.1_AnoCar2.0/GCF_000090745.1_AnoCar2.0_genomic.gff.gz"
+		"anocar2": "https://ftp.ensembl.org/pub/release-107/gff3/anolis_carolinensis/Anolis_carolinensis.AnoCar2.0v2.107.gff3.gz"
 	},
 
 	"sexes": {

@@ -278,7 +278,7 @@ rule get_annotation:
 	benchmark:
 		"benchmarks/{genome}.get_annotation.benchmark.txt"
 	params:
-		initial_output = "web_annotation/{genome}.gff.gz",
+		initial_output = "annotation/{genome}.gff.gz",
 		threads = 1,
 		mem = 4,
 		t = very_short,
