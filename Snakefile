@@ -133,11 +133,13 @@ rule all:
 		expand(
 			"results/{genome}.{strategy}.stringtie_compiled_per_transcript_separate_individuals.txt",
 			genome=genome_list,
-			strategy=["refbased"]),
-		expand(
-			"annotation/{gff1}_{gff2}_gff_comparison.txt",
-			gff1 = ["gila2"],
-			gff2 = ["galgal5", "anocar2"])
+			strategy=["refbased"])
+
+
+		# expand(
+		# 	"annotation/{gff1}_{gff2}_gff_comparison.txt",
+		# 	gff1 = ["gila2"],
+		# 	gff2 = ["galgal5", "anocar2"])
 
 
 		# # expand(
