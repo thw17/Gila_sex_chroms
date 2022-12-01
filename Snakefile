@@ -676,6 +676,7 @@ rule compile_stringtie_results_overall_transcripts:
 		"results/{genome}.{strategy}.stringtie_compiled.txt"
 	params:
 		strat = "{strategy}",
+		g = "{genome}",
 		threads = 4,
 		mem = 16,
 		t = long
@@ -683,7 +684,8 @@ rule compile_stringtie_results_overall_transcripts:
 		ctab_sexes = []
 		for i in input.ctabs:
 			i_split = i.split("/")[1]
-			sample_id = i_split.split("_")[0]
+			j_split = i_split.split("_")
+			sample_id = ("_").join(j_split[:-1])
 			ctab_sexes.append(config["all_sexes"][sample_id])
 		shell(
 			"python scripts/Compile_stringtie_results.py --fai {input.fai} "
@@ -708,7 +710,8 @@ rule compile_stringtie_results_per_transcript:
 		ctab_sexes = []
 		for i in input.ctabs:
 			i_split = i.split("/")[1]
-			sample_id = i_split.split("_")[0]
+			j_split = i_split.split("_")
+			sample_id = ("_").join(j_split[:-1])
 			ctab_sexes.append(config["all_sexes"][sample_id])
 		shell(
 			"python scripts/Compile_stringtie_per_transcript.py "
@@ -733,7 +736,8 @@ rule compile_stringtie_results_per_transcript_separate_individuals:
 		ctab_sexes = []
 		for i in input.ctabs:
 			i_split = i.split("/")[1]
-			sample_id = i_split.split("_")[0]
+			j_split = i_split.split("_")
+			sample_id = ("_").join(j_split[:-1])
 			ctab_sexes.append(config["all_sexes"][sample_id])
 		if wildcards.genome == "anocar2":
 			shell(
