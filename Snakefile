@@ -133,7 +133,19 @@ rule all:
 		expand(
 			"results/{genome}.{strategy}.stringtie_compiled_per_transcript_separate_individuals.txt",
 			genome=genome_list,
-			strategy=["refbased"])
+			strategy=["refbased"]),
+		expand(
+			"stats/{sample}.{genome}.dna.mkdup.sorted.bam.stats",
+			sample=dna, genome=assembly_list),
+		expand(
+			"xyalign_analyses/{genome}/results/{genome}_chrom_stats_count.txt",
+			genome=assembly_list),
+		expand(
+		 	"xyalign_analyses/{sample}.{genome}/logfiles/{sample}.{genome}_xyalign.log",
+		 	sample=dna, genome=assembly_list),
+		expand(
+			"results/{genome}.dna.het_rate.txt",
+			genome=assembly_list)
 
 
 		# expand(
@@ -825,8 +837,706 @@ rule find_orthologs_all:
 
 ###############
 
+rule map_and_process_trimmed_reads:
+	input:
+		fq1 = "trimmed_dna_fastqs/{sample}_trimmed_read1.fastq.gz",
+		fq2 = "trimmed_dna_fastqs/{sample}_trimmed_read2.fastq.gz",
+		amb = "new_reference/{genome}.fasta.amb",
+		ref = "new_reference/{genome}.fasta"
+	output:
+		"processed_bams/{sample}.{genome}.mkdup.sorted.bam"
+	params:
+		id = lambda wildcards: config[wildcards.sample]["ID"],
+		sm = lambda wildcards: config[wildcards.sample]["SM"],
+		lb = lambda wildcards: config[wildcards.sample]["LB"],
+		pu = lambda wildcards: config[wildcards.sample]["PU"],
+		pl = lambda wildcards: config[wildcards.sample]["PL"],
+		bwa = bwa_path,
+		samblaster = samblaster_path,
+		samtools = samtools_path,
+		threads = 4,
+		mem = 16,
+		t = very_long
+	shell:
+		"{params.bwa} mem -t {params.threads} -R "
+		"'@RG\\tID:{params.id}\\tSM:{params.sm}\\tLB:{params.lb}\\tPU:{params.pu}\\tPL:{params.pl}' "
+		"{input.ref} {input.fq1} {input.fq2}"
+		"| {params.samblaster} | {params.samtools} fixmate -O bam - - "
+		"| {params.samtools} sort -O bam -o {output}"
+
+rule index_bam:
+	input:
+		"processed_bams/{sample}.{genome}.mkdup.sorted.bam"
+	output:
+		"processed_bams/{sample}.{genome}.mkdup.sorted.bam.bai"
+	params:
+		samtools = samtools_path,
+		threads = 4,
+		mem = 16,
+		t = very_short
+	shell:
+		"{params.samtools} index {input}"
+
+rule bam_stats_dna:
+	input:
+		bam = "processed_bams/{sample}.{genome}.mkdup.sorted.bam",
+		bai = "processed_bams/{sample}.{genome}.mkdup.sorted.bam.bai"
+	output:
+		"stats/{sample}.{genome}.dna.mkdup.sorted.bam.stats"
+	params:
+		samtools = samtools_path,
+		threads = 4,
+		mem = 16,
+		t = very_short
+	shell:
+		"{params.samtools} stats {input.bam} | grep ^SN | cut -f 2- > {output}"
+
+rule chrom_stats_dna:
+	input:
+		bams = lambda wildcards: expand(
+			"processed_bams/{sample}.{genome}.mkdup.sorted.bam",
+			sample=dna, genome=[wildcards.genome]),
+		bais = lambda wildcards: expand(
+			"processed_bams/{sample}.{genome}.mkdup.sorted.bam.bai",
+			sample=dna, genome=[wildcards.genome])
+	output:
+		counts = "xyalign_analyses/{genome}/results/{genome}_chrom_stats_count.txt"
+	params:
+		xyalign = xyalign_path,
+		sample_id = "{genome}",
+		xyalign_env = xyalign_anaconda_env,
+		threads = 4,
+		mem = 16,
+		t = long
+	conda:
+		"envs/gila_xyalign_environment.yaml"
+	shell:
+		"{params.xyalign} --CHROM_STATS --use_counts "
+		"--chromosomes ALL --bam {input.bams} --ref null "
+		"--sample_id {params.sample_id} "
+		"--output_dir xyalign_analyses/{params.sample_id}"
+
+rule bam_analysis_dna:
+	input:
+		bam = "processed_bams/{sample}.{genome}.mkdup.sorted.bam",
+		bai = "processed_bams/{sample}.{genome}.mkdup.sorted.bam.bai",
+		ref = "new_reference/{genome}.fasta",
+		fai = "new_reference/{genome}.fasta.fai",
+	output:
+		bed = "xyalign_analyses/{sample}.{genome}/bed/{sample}.{genome}_full_dataframe_depth_mapq_preprocessing.csv",
+		log = "xyalign_analyses/{sample}.{genome}/logfiles/{sample}.{genome}_xyalign.log"
+	params:
+		xyalign = xyalign_path,
+		sample_id = "{sample}.{genome}",
+		xyalign_env = xyalign_anaconda_env,
+		threads = 4,
+		mem = 16,
+		t = long
+	conda:
+		"envs/gila_xyalign_environment.yaml"
+	shell:
+		"{params.xyalign} --ANALYZE_BAM "
+		"--chromosomes 0 1 2 3 157 218 304 398 "
+		"--bam {input.bam} --ref {input.ref} "
+		"--sample_id {params.sample_id} "
+		"--output_dir xyalign_analyses/{params.sample_id} "
+		"--cpus 4 --window_size 5000"
+
+rule gatk_gvcf_per_chunk:
+	input:
+		ref = "new_reference/{genome}.fasta",
+		bam = "processed_bams/{sample}.{genome}.mkdup.sorted.bam",
+		bai = "processed_bams/{sample}.{genome}.mkdup.sorted.bam.bai",
+		chunkfile = "new_reference/{genome}_split_chunk{chunk}.bed"
+	output:
+		"gvcfs/{sample}.{genome}.{chunk}.g.vcf.gz"
+	params:
+		temp_dir = temp_directory,
+		gatk = gatk_path,
+		threads = 4,
+		mem = 16,
+		t = very_long
+	shell:
+		"""{params.gatk} --java-options "-Xmx15g -Djava.io.tmpdir={params.temp_dir}" """
+		"""HaplotypeCaller -R {input.ref} -I {input.bam} -L {input.chunkfile} """
+		"""-ERC GVCF --do-not-run-physical-phasing -O {output}"""
+
+rule gatk_combinegvcfs_per_chunk:
+	input:
+		ref = "new_reference/{genome}.fasta",
+		gvcfs = expand(
+			"gvcfs/{sample}.{{genome}}.{{chunk}}.g.vcf.gz", sample=dna)
+	output:
+		"combined_gvcfs/{genome}.{chunk}.gatk.combinegvcf.g.vcf.gz"
+	params:
+		temp_dir = temp_directory,
+		gatk = gatk_path,
+		threads = 4,
+		mem = 16,
+		t = very_long
+	run:
+		variant_files = []
+		for i in input.gvcfs:
+			variant_files.append("--variant " + i)
+		variant_files = " ".join(variant_files)
+		shell(
+			"""{params.gatk} --java-options "-Xmx15g -Djava.io.tmpdir={params.temp_dir}" """
+			"""CombineGVCFs -R {input.ref} {variant_files} -O {output}""")
+
+rule gatk_genotypegvcf_per_chunk:
+	input:
+		ref = "new_reference/{genome}.fasta",
+		gvcf = "combined_gvcfs/{genome}.{chunk}.gatk.combinegvcf.g.vcf.gz"
+	output:
+		"genotyped_vcfs/{genome}.{chunk}.gatk.called.raw.vcf.gz"
+	params:
+		temp_dir = temp_directory,
+		gatk = gatk_path,
+		threads = 4,
+		mem = 16,
+		t = very_long
+	shell:
+		"""{params.gatk} --java-options "-Xmx15g -Djava.io.tmpdir={params.temp_dir}" """
+		"""GenotypeGVCFs -R {input.ref} -V {input.gvcf} -O {output}"""
+
+rule concatenate_split_vcfs:
+	input:
+		vcf = lambda wildcards: expand(
+			"genotyped_vcfs/{gen}.{chunk}.gatk.called.raw.vcf.gz",
+			gen=wildcards.genome,
+			chunk=chunk_range)
+	output:
+		"combined_vcfs/combined.{genome}.raw.vcf.gz"
+	params:
+		bcftools = bcftools_path,
+		threads = 2,
+		mem = 8,
+		t = medium
+	shell:
+		"{params.bcftools} concat -O z -o {output} {input.vcf}"
+
+rule index_concatenated_vcf:
+	input:
+		"combined_vcfs/combined.{genome}.raw.vcf.gz"
+	output:
+		"combined_vcfs/combined.{genome}.raw.vcf.gz.tbi"
+	params:
+		tabix = tabix_path,
+		threads = 4,
+		mem = 16,
+		t = very_short
+	shell:
+		"{params.tabix} -p vcf {input}"
+
+rule filter_concatenated_vcf:
+	input:
+		vcf = "combined_vcfs/combined.{genome}.raw.vcf.gz",
+		idx = "combined_vcfs/combined.{genome}.raw.vcf.gz.tbi"
+	output:
+		"combined_vcfs/combined.{genome}.filtered.vcf.gz"
+	params:
+		bgzip = bgzip_path,
+		bcftools = bcftools_path,
+		threads = 4,
+		mem = 16,
+		t = long
+	shell:
+		"{params.bcftools} filter -i "
+		"'QUAL >= 30 && MQ >= 30 && QD > 2' {input.vcf} | "
+		"{params.bcftools} filter -i 'FMT/DP >= 10 & FMT/GQ >= 30' -S . - | "
+		"{params.bgzip} > {output}"
+
+rule index_filtered_vcf:
+	input:
+		"combined_vcfs/combined.{genome}.filtered.vcf.gz"
+	output:
+		"combined_vcfs/combined.{genome}.filtered.vcf.gz.tbi"
+	params:
+		tabix = tabix_path,
+		threads = 4,
+		mem = 16,
+		t = medium
+	shell:
+		"{params.tabix} -p vcf {input}"
+
+rule calc_het_rate_dna:
+	input:
+		"combined_vcfs/combined.{genome}.filtered.vcf.gz"
+	output:
+		"results/{genome}.dna.het_rate.txt"
+	params:
+		suf = "dna",
+		threads = 4,
+		mem = 16,
+		t = long
+	shell:
+		"python scripts/Calc_het_vcf.py "
+		"--vcf {input} "
+		"--sexes misc/sample_sexes.txt "
+		"--min_sites 5 "
+		"--min_ind 1 "
+		"--output_file {output} "
+		"--suffix {params.suf}"
+
+# rule create_rna_bam_header:
+# 	input:
+# 		rbam = "processed_rna_bams/{sample}.{genome}.sorted.bam",
+# 		rbai = "processed_rna_bams/{sample}.{genome}.sorted.bam.bai",
+# 		gbam = lambda wildcards: expand(
+# 			"processed_bams/{gsample}.{assembly}.mkdup.sorted.bam",
+# 			gsample=[rna_to_dna[wildcards.sample]],
+# 			assembly=wildcards.genome),
+# 		gbai = lambda wildcards: expand(
+# 			"processed_bams/{gsample}.{assembly}.mkdup.sorted.bam.bai",
+# 			gsample=[rna_to_dna[wildcards.sample]],
+# 			assembly=wildcards.genome)
+# 	output:
+# 		"processed_rna_bams/{sample}.{genome}.newheader.sam"
+# 	params:
+# 		samtools = samtools_path,
+# 		threads = 4,
+# 		mem = 16,
+# 		t = long
+# 	run:
+# 		shell("{params.samtools} view -H {input.rbam} | grep '@HD' > {output}")
+# 		shell("{params.samtools} view -H {input.gbam} | grep '@SQ' >> {output}")
+# 		shell("{params.samtools} view -H {input.rbam} | grep '@RG' >> {output}")
+# 		shell("{params.samtools} view -H {input.rbam} | grep '@PG' >> {output}")
+
+# rule rna_bam_reheader:
+# 	input:
+# 		rbam = "processed_rna_bams/{sample}.{genome}.sorted.bam",
+# 		header = "processed_rna_bams/{sample}.{genome}.newheader.sam"
+# 	output:
+# 		"processed_rna_bams/{sample}.{genome}.sorted.reheadered.bam"
+# 	params:
+# 		samtools = samtools_path,
+# 		threads = 4,
+# 		mem = 16,
+# 		t = long
+# 	shell:
+# 		"{params.samtools} reheader -P {input.header} {input.rbam} > {output}"
+
+# rule index_reheadered_bam:
+# 	input:
+# 		"processed_rna_bams/{sample}.{genome}.sorted.reheadered.bam"
+# 	output:
+# 		"processed_rna_bams/{sample}.{genome}.sorted.reheadered.bam.bai"
+# 	params:
+# 		samtools = samtools_path,
+# 		threads = 4,
+# 		mem = 16,
+# 		t = very_short
+# 	shell:
+# 		"{params.samtools} index {input}"
+
+# rule gatk_gvcf_per_scaff_rna:
+# 	input:
+# 		ref = "new_reference/{genome}.fasta",
+# 		bam = "processed_rna_bams/{sample}.{genome}.sorted.reheadered.bam",
+# 		bai = "processed_rna_bams/{sample}.{genome}.sorted.reheadered.bam.bai"
+# 	output:
+# 		"gvcfs_rna/{sample}.{genome}.{scaffold}.g.vcf.gz"
+# 	params:
+# 		temp_dir = temp_directory,
+# 		gatk = gatk_path,
+# 		scaff = "{scaffold}",
+# 		threads = 4,
+# 		mem = 16,
+# 		t = very_long
+# 	shell:
+# 		"""{params.gatk} --java-options "-Xmx15g -Djava.io.tmpdir={params.temp_dir}" """
+# 		"""HaplotypeCaller -R {input.ref} -I {input.bam} -L {params.scaff} """
+# 		"""-ERC GVCF --do-not-run-physical-phasing -O {output}"""
+
+# rule gatk_combinegvcfs_per_scaffold_rna:
+# 	input:
+# 		ref = "new_reference/{genome}.fasta",
+# 		gvcfs = expand(
+# 			"gvcfs_rna/{sample}.{{genome}}.{{scaffold}}.g.vcf.gz", sample=rna)
+# 	output:
+# 		"combined_gvcfs_rna/{genome}.{scaffold}.gatk.combinegvcf.g.vcf.gz"
+# 	params:
+# 		temp_dir = temp_directory,
+# 		gatk = gatk_path,
+# 		threads = 4,
+# 		mem = 16,
+# 		t = very_long
+# 	run:
+# 		variant_files = []
+# 		for i in input.gvcfs:
+# 			variant_files.append("--variant " + i)
+# 		variant_files = " ".join(variant_files)
+# 		shell(
+# 			"""{params.gatk} --java-options "-Xmx15g -Djava.io.tmpdir={params.temp_dir}" """
+# 			"""CombineGVCFs -R {input.ref} {variant_files} -O {output}""")
+
+# rule gatk_genotypegvcf_per_scaffold_rna:
+# 	input:
+# 		ref = "new_reference/{genome}.fasta",
+# 		gvcf = "combined_gvcfs_rna/{genome}.{scaffold}.gatk.combinegvcf.g.vcf.gz"
+# 	output:
+# 		"genotyped_vcfs_rna/{genome}.{scaffold}.gatk.called.raw.vcf.gz"
+# 	params:
+# 		temp_dir = temp_directory,
+# 		gatk = gatk_path,
+# 		threads = 4,
+# 		mem = 16,
+# 		t = very_long
+# 	shell:
+# 		"""{params.gatk} --java-options "-Xmx15g -Djava.io.tmpdir={params.temp_dir}" """
+# 		"""GenotypeGVCFs -R {input.ref} -V {input.gvcf} -O {output}"""
+
+# rule concatenate_split_vcfs_rna:
+# 	input:
+# 		vcf = lambda wildcards: expand(
+# 			"genotyped_vcfs_rna/{gen}.{scaffold}.gatk.called.raw.vcf.gz",
+# 			gen=wildcards.genome,
+# 			scaffold=config["100kb_scaffolds"])
+# 	output:
+# 		"combined_vcfs_rna/combined.{genome}.raw.vcf.gz"
+# 	params:
+# 		bcftools = bcftools_path,
+# 		threads = 4,
+# 		mem = 16,
+# 		t = medium
+# 	shell:
+# 		"{params.bcftools} concat -O z -o {output} {input.vcf}"
+
+# rule index_concatenated_vcf_rna:
+# 	input:
+# 		"combined_vcfs_rna/combined.{genome}.raw.vcf.gz"
+# 	output:
+# 		"combined_vcfs_rna/combined.{genome}.raw.vcf.gz.tbi"
+# 	params:
+# 		tabix = tabix_path,
+# 		threads = 4,
+# 		mem = 16,
+# 		t = medium
+# 	shell:
+# 		"{params.tabix} -p vcf {input}"
+
+# rule filter_concatenated_vcf_rna:
+# 	input:
+# 		vcf = "combined_vcfs_rna/combined.{genome}.raw.vcf.gz",
+# 		idx = "combined_vcfs_rna/combined.{genome}.raw.vcf.gz.tbi"
+# 	output:
+# 		"combined_vcfs_rna/combined.{genome}.filtered.vcf.gz"
+# 	params:
+# 		bgzip = bgzip_path,
+# 		bcftools = bcftools_path,
+# 		threads = 4,
+# 		mem = 16,
+# 		t = medium
+# 	shell:
+# 		"{params.bcftools} filter -i "
+# 		"'QUAL >= 30 && MQ >= 30 && QD > 2' {input.vcf} | "
+# 		"{params.bcftools} filter -i 'FMT/DP >= 10 & FMT/GQ >= 30' -S . - | "
+# 		"{params.bgzip} > {output}"
+
+# rule index_filtered_vcf_rna:
+# 	input:
+# 		"combined_vcfs_rna/combined.{genome}.filtered.vcf.gz"
+# 	output:
+# 		"combined_vcfs_rna/combined.{genome}.filtered.vcf.gz.tbi"
+# 	params:
+# 		tabix = tabix_path,
+# 		threads = 4,
+# 		mem = 16,
+# 		t = medium
+# 	shell:
+# 		"{params.tabix} -p vcf {input}"
+
+# rule calc_het_rate_rna:
+# 	input:
+# 		"combined_vcfs_rna/combined.{genome}.filtered.vcf.gz"
+# 	output:
+# 		"results/{genome}.rna.het_rate.txt"
+# 	params:
+# 		suf = "rna",
+# 		threads = 4,
+# 		mem = 16,
+# 		t = long
+# 	shell:
+# 		"python scripts/Calc_het_vcf.py "
+# 		"--vcf {input} "
+# 		"--sexes misc/sample_sexes.txt "
+# 		"--min_sites 5 "
+# 		"--min_ind 1 "
+# 		"--output_file {output} "
+# 		"--suffix {params.suf}"
 
 
+# rule compile_stringtie_results:
+# 	input:
+# 		fai = "new_reference/{assembly}.fasta.fai",
+# 		ctabs = lambda wildcards: expand(
+# 			"stringtie_gtfs_{strat}/{sample}_{genome}/t_data.ctab",
+# 			genome=wildcards.assembly,
+# 			strat=wildcards.strategy,
+# 			sample=rna)
+# 	output:
+# 		"results/{assembly}.{strategy}.stringtie_compiled.txt"
+# 	params:
+# 		strat = "{strategy}",
+# 		threads = 4,
+# 		mem = 16,
+# 		t = long
+# 	run:
+# 		ctab_sexes = []
+# 		for i in input.ctabs:
+# 			i_split = i.split("/")[1]
+# 			sample_id = "{}_{}_{}".format(
+# 				i_split.split("_")[0], i_split.split("_")[1], i_split.split("_")[2])
+# 			ctab_sexes.append(config["sexes"][sample_id])
+# 		shell(
+# 			"python scripts/Compile_stringtie_results.py --fai {input.fai} "
+# 			"--output_file {output} --input_files {input.ctabs} "
+# 			"--sex {ctab_sexes} --suffix {params.strat}")
+
+# rule compile_stringtie_results_per_transcript:
+# 	input:
+# 		ctabs = lambda wildcards: expand(
+# 			"stringtie_gtfs_{strat}/{sample}_{genome}/t_data.ctab",
+# 			genome=wildcards.assembly,
+# 			strat=wildcards.strategy,
+# 			sample=rna)
+# 	output:
+# 		"results/{assembly}.{strategy}.stringtie_compiled_per_transcript.txt"
+# 	params:
+# 		strat = "{strategy}",
+# 		threads = 4,
+# 		mem = 16,
+# 		t = long
+# 	run:
+# 		ctab_sexes = []
+# 		for i in input.ctabs:
+# 			i_split = i.split("/")[1]
+# 			sample_id = "{}_{}_{}".format(
+# 				i_split.split("_")[0], i_split.split("_")[1], i_split.split("_")[2])
+# 			ctab_sexes.append(config["sexes"][sample_id])
+# 		shell(
+# 			"python scripts/Compile_stringtie_per_transcript.py "
+# 			"--output_file {output} --input_files {input.ctabs} "
+# 			"--sex {ctab_sexes} --suffix {params.strat}")
+
+# rule compile_chrom_stats:
+# 	input:
+# 		stats = "xyalign_analyses/{assembly}/results/{assembly}_chrom_stats_count.txt"
+# 	output:
+# 		df = "results/{assembly}.chromstats_compiled.txt",
+# 		html = "results/{assembly}.chromstats_compiled.html",
+# 		html_no_nan = "results/{assembly}.chromstats_compiled.html_nonan.html",
+# 		html_cutoff = "results/{assembly}.chromstats_compiled.html_cutoff.html",
+# 		plot = "results/{assembly}.chromstats_compiled.png",
+# 	params:
+# 		cov_cutoff = "0.95",
+# 		males = lambda wildcards: expand(
+# 			"{sample}.{genome}.mkdup.sorted.bam",
+# 			sample=[x for x in dna if config["sexes"][x] == "male"],
+# 			genome=[wildcards.assembly]),
+# 		females = lambda wildcards: expand(
+# 			"{sample}.{genome}.mkdup.sorted.bam",
+# 			sample=[x for x in dna if config["sexes"][x] == "female"],
+# 			genome=[wildcards.assembly]),
+# 		threads = 4,
+# 		mem = 16,
+# 		t = long
+# 	shell:
+# 		"python scripts/Compile_chromstats_results.py "
+# 		"--input_file {input.stats} "
+# 		"--male_list {params.males} "
+# 		"--female_list {params.females} "
+# 		"--output_dataframe {output.df} "
+# 		"--output_html {output.html} "
+# 		"--output_html_no_nan {output.html_no_nan} "
+# 		"--output_html_cutoff_df {output.html_cutoff} "
+# 		"--coverage_cutoff {params.cov_cutoff} "
+# 		"--plot_title {output.plot}"
+
+# rule combine_into_big_dataframe:
+# 	input:
+# 		expr = "results/{assembly}.{strategy}.stringtie_compiled.txt",
+# 		cov = "results/{assembly}.chromstats_compiled.txt",
+# 		het_dna = "results/{assembly}.dna.het_rate.txt",
+# 		het_rna = "results/{assembly}.rna.het_rate.txt"
+# 	output:
+# 		txt = "results/all_compiled.{assembly}.{strategy}.txt"
+# 	params:
+# 		html = "results/all_compiled.{assembly}.{strategy}.html",
+# 		threads = 4,
+# 		mem = 16,
+# 		t = medium
+# 	shell:
+# 		"python scripts/Compile_big_dataframe.py "
+# 		"--input_files {input.cov} {input.expr} {input.het_dna} {input.het_rna} "
+# 		"--output_html_df {params.html} "
+# 		"--output_csv_df {output.txt}"
+
+# rule get_komodo:
+# 	output:
+# 		"komodo/komodov1.fa"
+# 	params:
+# 		web_address = lambda wildcards: config["komodo_paths"]["komodov1"],
+# 		initial_output = "komodo/komodov1.fa.gz",
+# 		threads = 1,
+# 		mem = 4,
+# 		t = very_short
+# 	run:
+# 		shell("wget {params.web_address} -O {params.initial_output}")
+# 		shell("gunzip {params.initial_output}")
+
+# rule extract_218:
+# 	input:
+# 		ref = "new_reference/{assembly}.fasta",
+# 		fai = "new_reference/{assembly}.fasta.fai"
+# 	output:
+# 		"komodo/{assembly}.scaff218.fasta"
+# 	params:
+# 		scaffold = "218",
+# 		samtools = samtools_path,
+# 		threads = 2,
+# 		mem = 8,
+# 		t = medium
+# 	shell:
+# 		"{params.samtools} faidx {input.ref} {params.scaffold} > {output}"
+
+# rule lastz_alignment:
+# 	input:
+# 		scaff = "komodo/{assembly}.scaff218.fasta",
+# 		komodo = "komodo/komodov1.fa"
+# 	output:
+# 		"komodo/komodo_scaff218_{assembly}_align.maf"
+# 	params:
+# 		lastz = lastz_path,
+# 		threads = 4,
+# 		mem = 16,
+# 		t = long
+# 	shell:
+# 		"{params.lastz} {input.komodo}[multiple] {input.scaff} --ambiguous=iupac "
+# 		"--queryhspbest=20 --gfextend --chain --gapped --format=maf > {output}"
+
+# rule lastz_alignment_reversed:
+# 	input:
+# 		scaff = "komodo/{assembly}.scaff218.fasta",
+# 		komodo = "komodo/komodov1.fa"
+# 	output:
+# 		"komodo/scaff218_komodo_{assembly}_align.maf"
+# 	params:
+# 		lastz = lastz_path,
+# 		threads = 4,
+# 		mem = 16,
+# 		t = long
+# 	shell:
+# 		"{params.lastz} {input.scaff} {input.komodo} --ambiguous=iupac "
+# 		"--queryhspbest=20 --gfextend --chain --gapped --format=maf > {output}"
+
+# rule create_lastdb:
+# 	input:
+# 		target = "komodo/komodov1.fa"
+# 	output:
+# 		"komodo/komodoDb.tis"
+# 	params:
+# 		lastdb = lastdb_path,
+# 		database_prefix = "komodo/komodoDb",
+# 		threads = 4,
+# 		mem = 16,
+# 		t = long
+# 	shell:
+# 		"{params.lastdb} {params.database_prefix} {input.target}"
+
+# # rule run_lastal:
+# # 	input:
+# # 		t = "komodo/komodoDb.tis",
+# # 		q = "komodo/{assembly}.scaff218.fasta"
+# # 	output:
+# # 		"komodo/komodo_scaff218_{assembly}_align.maf"
+# # 	params:
+# # 		lastal = lastal_path,
+# # 		database_prefix = "komodo/komodoDb",
+# # 		threads = 8,
+# # 		mem = 32,
+# # 		t = very_long
+# # 	shell:
+# # 		"{params.lastal} -a 400 -b 30 -e 4500 {params.database_prefix} {input.q} > {output}"
+
+# rule find_par:
+# 	input:
+# 		males = lambda wildcards: expand(
+# 			"xyalign_analyses/{sample}.{genome}/bed/{sample}.{genome}_full_dataframe_depth_mapq_preprocessing.csv",
+# 			genome=wildcards.genome,
+# 			sample=[x for x in dna if config["sexes"][x] == "male"]),
+# 		females = lambda wildcards: expand(
+# 			"xyalign_analyses/{sample}.{genome}/bed/{sample}.{genome}_full_dataframe_depth_mapq_preprocessing.csv",
+# 			genome=wildcards.genome,
+# 			sample=[x for x in dna if config["sexes"][x] == "female"])
+# 	output:
+# 		"par_results/scaffold{scaff}_{genome}.txt"
+# 	params:
+# 		scaffold = "{scaff}",
+# 		threads = 4,
+# 		mem = 16,
+# 		t = medium
+# 	shell:
+# 		"python scripts/Find_par.py --male_list {input.males} "
+# 		"--female_list {input.females} --scaffold {params.scaffold} --output {output}"
+
+# rule compile_stringtie_results_per_exon:
+# 	input:
+# 		ctabs = lambda wildcards: expand(
+# 			"stringtie_gtfs_{strat}/{sample}_{genome}/e_data.ctab",
+# 			genome=wildcards.assembly,
+# 			strat=wildcards.strategy,
+# 			sample=rna)
+# 	output:
+# 		"results/{assembly}.{strategy}.stringtie_compiled_per_exon.txt"
+# 	params:
+# 		strat = "{strategy}",
+# 		threads = 4,
+# 		mem = 16,
+# 		t = long
+# 	run:
+# 		ctab_sexes = []
+# 		for i in input.ctabs:
+# 			i_split = i.split("/")[1]
+# 			sample_id = "{}_{}_{}".format(
+# 				i_split.split("_")[0], i_split.split("_")[1], i_split.split("_")[2])
+# 			ctab_sexes.append(config["sexes"][sample_id])
+# 		shell(
+# 			"python scripts/Compile_stringtie_per_transcript.py "
+# 			"--output_file {output} --input_files {input.ctabs} "
+# 			"--sex {ctab_sexes} --suffix {params.strat}")
+# 		shell(
+# 			"sed -i -e 's/transcript/exon/g' {output}")
+
+# # Compile per individual tables
+# rule compile_stringtie_results_per_transcript_separate_individuals:
+# 	input:
+# 		ctabs = lambda wildcards: expand(
+# 			"stringtie_gtfs_{strat}/{sample}_{genome}/t_data.ctab",
+# 			genome=wildcards.assembly,
+# 			strat=wildcards.strategy,
+# 			sample=rna)
+# 	output:
+# 		"results/{assembly}.{strategy}.stringtie_compiled_per_transcript_separate_individuals.txt"
+# 	params:
+# 		strat = "{strategy}",
+# 		threads = 4,
+# 		mem = 16,
+# 		t = long
+# 	run:
+# 		ctab_sexes = []
+# 		for i in input.ctabs:
+# 			i_split = i.split("/")[1]
+# 			sample_id = "{}_{}_{}".format(
+# 				i_split.split("_")[0], i_split.split("_")[1], i_split.split("_")[2])
+# 			ctab_sexes.append(config["sexes"][sample_id])
+# 		shell(
+# 			"python scripts/Compile_stringtie_per_transcript_separate_individuals.py "
+# 			"--output_file {output} --input_files {input.ctabs} "
+# 			"--sex {ctab_sexes} --suffix {params.strat}")
+
+###############
 
 # rule stringtie_first_pass_mixed_sra:
 # 	input:
@@ -2146,24 +2856,7 @@ rule find_orthologs_all:
 # 		"--output_file {output} "
 # 		"--suffix {params.suf}"
 
-# rule calc_het_rate_dna:
-# 	input:
-# 		"combined_vcfs/combined.{genome}.filtered.vcf.gz"
-# 	output:
-# 		"results/{genome}.dna.het_rate.txt"
-# 	params:
-# 		suf = "dna",
-# 		threads = 4,
-# 		mem = 16,
-# 		t = long
-# 	shell:
-# 		"python scripts/Calc_het_vcf.py "
-# 		"--vcf {input} "
-# 		"--sexes misc/sample_sexes.txt "
-# 		"--min_sites 5 "
-# 		"--min_ind 1 "
-# 		"--output_file {output} "
-# 		"--suffix {params.suf}"
+
 
 # rule compile_stringtie_results:
 # 	input:
