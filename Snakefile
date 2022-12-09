@@ -944,7 +944,7 @@ rule bam_analysis_dna:
 
 rule gatk_gvcf_per_chunk:
 	input:
-		ref = "new_reference/{genome}.fasta",
+		ref = "new_reference/{genome}.fa",
 		bam = "processed_bams/{sample}.{genome}.mkdup.sorted.bam",
 		bai = "processed_bams/{sample}.{genome}.mkdup.sorted.bam.bai",
 		chunkfile = "new_reference/{genome}_split_chunk{chunk}.bed"
@@ -963,7 +963,7 @@ rule gatk_gvcf_per_chunk:
 
 rule gatk_combinegvcfs_per_chunk:
 	input:
-		ref = "new_reference/{genome}.fasta",
+		ref = "new_reference/{genome}.fa",
 		gvcfs = expand(
 			"gvcfs/{sample}.{{genome}}.{{chunk}}.g.vcf.gz", sample=dna)
 	output:
@@ -985,7 +985,7 @@ rule gatk_combinegvcfs_per_chunk:
 
 rule gatk_genotypegvcf_per_chunk:
 	input:
-		ref = "new_reference/{genome}.fasta",
+		ref = "new_reference/{genome}.fa",
 		gvcf = "combined_gvcfs/{genome}.{chunk}.gatk.combinegvcf.g.vcf.gz"
 	output:
 		"genotyped_vcfs/{genome}.{chunk}.gatk.called.raw.vcf.gz"
