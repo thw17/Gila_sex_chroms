@@ -841,8 +841,8 @@ rule map_and_process_trimmed_reads:
 	input:
 		fq1 = "trimmed_dna_fastqs/{sample}_trimmed_read1.fastq.gz",
 		fq2 = "trimmed_dna_fastqs/{sample}_trimmed_read2.fastq.gz",
-		amb = "new_reference/{genome}.fasta.amb",
-		ref = "new_reference/{genome}.fasta"
+		amb = "new_reference/{genome}.fa.amb",
+		ref = "new_reference/{genome}.fa"
 	output:
 		"processed_bams/{sample}.{genome}.mkdup.sorted.bam"
 	params:
@@ -920,8 +920,8 @@ rule bam_analysis_dna:
 	input:
 		bam = "processed_bams/{sample}.{genome}.mkdup.sorted.bam",
 		bai = "processed_bams/{sample}.{genome}.mkdup.sorted.bam.bai",
-		ref = "new_reference/{genome}.fasta",
-		fai = "new_reference/{genome}.fasta.fai",
+		ref = "new_reference/{genome}.fa",
+		fai = "new_reference/{genome}.fa.fai",
 	output:
 		bed = "xyalign_analyses/{sample}.{genome}/bed/{sample}.{genome}_full_dataframe_depth_mapq_preprocessing.csv",
 		log = "xyalign_analyses/{sample}.{genome}/logfiles/{sample}.{genome}_xyalign.log"
