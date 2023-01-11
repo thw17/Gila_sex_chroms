@@ -37,6 +37,11 @@ with open(ortho, "r") as f:
 			else:
 				continue
 
+for k in gff2_gff1_lookup:
+	if gff2_gff1_lookup[k] in gff1_mult:
+		gff2_mult.append(k)
+		del gff2_gff1_lookup[k]
+
 print("Multiple hits in gff1: {}".format(gff1_mult))
 print("")
 print("Multiple hits in gff2: {}".format(gff2_mult))
