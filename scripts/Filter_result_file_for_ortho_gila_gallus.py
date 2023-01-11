@@ -9,7 +9,7 @@ region_type = sys.argv[5]
 gff1_coords = {}
 gff2_gff1_lookup = {}
 gff1_mult = []
-gff2_mult : []
+gff2_mult = []
 with open(ortho, "r") as f:
 	for line in f:
 		stripped = line.rstrip()
