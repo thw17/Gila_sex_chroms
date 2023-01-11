@@ -805,7 +805,7 @@ rule filter_ortho_compiled_stringtie_per_transcript_separate_individuals_chicken
 		mem = 16,
 		t = medium
 	shell:
-		"python scripts/Filter_result_file_for_ortho.py {input.ortho} {input.res_1} {input.res_2} {output} transcript"
+		"python scripts/Filter_result_file_for_ortho_gila_gallus.py {input.ortho} {input.res_1} {input.res_2} {output} transcript"
 
 
 
