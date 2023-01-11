@@ -8,6 +8,8 @@ region_type = sys.argv[5]
 
 gff1_coords = {}
 gff2_gff1_lookup = {}
+gff1_mult = []
+gff2_mult : []
 with open(ortho, "r") as f:
 	for line in f:
 		stripped = line.rstrip()
@@ -18,12 +20,26 @@ with open(ortho, "r") as f:
 				start_1 = split[5]
 				chrom_2 = split[1]
 				start_2 = split[2]
+				if (chrom_1, start_1) in gff1_coords[(chrom_1, start_1)]:
+					del gff1_coords[(chrom_1, start_1)]
+					gff1_mult.append((chrom_1, start_1))
+					continue
+				if (chrom_1, start_1) in gff1_mult:
+					continue
 				gff1_coords[(chrom_1, start_1)] = (chrom_1, start_1)
 				if (chrom_2, start_2) in gff2_gff1_lookup:
-					print(line)
+					del gff2_gff1_lookup[(chrom_2, start_2)]
+					gff2_mult.append((chrom_2, start_2))
+					continue
+				if (chrom_2, start_2) in gff2_mult:
+					continue
 				gff2_gff1_lookup[(chrom_2, start_2)] = (chrom_1, start_1)
 			else:
 				continue
+
+print("Multiple hits in gff1: {}".format(gff1_mult))
+print("")
+print("Multiple hits in gff2: {}".format(gff2_mult))
 
 gff2_in_gff1 = {}
 with open(gff2_result, "r") as g:
