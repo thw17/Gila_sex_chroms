@@ -29,7 +29,6 @@ with open(ortho, "r") as f:
 					continue
 				if (chrom_1, start_1) in gff1_mult:
 					continue
-				gff1_coords[(chrom_1, start_1)] = (chrom_1, start_1)
 				if (chrom_2, start_2) in gff2_gff1_lookup:
 					for k in list(gff1_coords):
 						if gff1_coords[k] == gff2_gff1_lookup[(chrom_2, start_2)]:
@@ -42,6 +41,7 @@ with open(ortho, "r") as f:
 						if gff1_coords[k] == gff2_gff1_lookup[(chrom_2, start_2)]:
 							del gff1_coords[k]
 					continue
+				gff1_coords[(chrom_1, start_1)] = (chrom_1, start_1)
 				gff2_gff1_lookup[(chrom_2, start_2)] = (chrom_1, start_1)
 			else:
 				continue
