@@ -20,7 +20,7 @@ with open(ortho, "r") as f:
 				start_1 = split[5]
 				chrom_2 = split[1]
 				start_2 = split[2]
-				if (chrom_1, start_1) in gff1_coords[(chrom_1, start_1)]:
+				if (chrom_1, start_1) in gff1_coords:
 					del gff1_coords[(chrom_1, start_1)]
 					gff1_mult.append((chrom_1, start_1))
 					continue
