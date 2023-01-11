@@ -30,6 +30,7 @@ with open(ortho, "r") as f:
 				if (chrom_2, start_2) in gff2_gff1_lookup:
 					del gff2_gff1_lookup[(chrom_2, start_2)]
 					gff2_mult.append((chrom_2, start_2))
+					del gff1_coords[(chrom_1, start_1)]
 					continue
 				if (chrom_2, start_2) in gff2_mult:
 					continue
