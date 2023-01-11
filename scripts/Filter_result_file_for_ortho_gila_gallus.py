@@ -38,7 +38,7 @@ with open(gff2_result, "r") as g:
 			gff2_in_gff1[gff2_gff1_lookup[(chrom, start)]] = (male, female)
 
 print("gff1_coords", len(gff1_coords))
-print("gff2_gff1_lookup", len(gff2_gff1_lookup)))
+print("gff2_gff1_lookup", len(gff2_gff1_lookup))
 print("gff2_in_gff1", len(gff2_in_gff1))
 
 with open(outfile, "w") as o:
