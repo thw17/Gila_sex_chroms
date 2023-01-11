@@ -47,7 +47,8 @@ with open(outfile, "w") as o:
 				chrom = split[1]
 				start = split[2]
 				if (chrom, start) in gff1_coords:
-					m1, f1 = gff2_in_gff1[(chrom, start)]
+					m1 = gff2_in_gff1[(chrom, start)][0]
+					f1 = gff2_in_gff1[(chrom, start)][1]
 					o.write(line + "\t{}\t{}".format(m1, f1))
 				else:
 					continue
