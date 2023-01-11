@@ -22,6 +22,9 @@ with open(ortho, "r") as f:
 				start_2 = split[2]
 				if (chrom_1, start_1) in gff1_coords:
 					del gff1_coords[(chrom_1, start_1)]
+					for k in list(gff2_gff1_lookup):
+						if gff2_gff1_lookup[k] == (chrom_2, start_2):
+							del gff2_gff1_lookup[k]
 					gff1_mult.append((chrom_1, start_1))
 					continue
 				if (chrom_1, start_1) in gff1_mult:
@@ -30,9 +33,14 @@ with open(ortho, "r") as f:
 				if (chrom_2, start_2) in gff2_gff1_lookup:
 					del gff2_gff1_lookup[(chrom_2, start_2)]
 					gff2_mult.append((chrom_2, start_2))
-					del gff1_coords[(chrom_1, start_1)]
+					for k in list(gff1_coords):
+						if gff1_coords[k] == gff2_gff1_lookup[(chrom_2, start_2)]:
+							del gff1_coords[k]
 					continue
 				if (chrom_2, start_2) in gff2_mult:
+					for k in list(gff1_coords):
+						if gff1_coords[k] == gff2_gff1_lookup[(chrom_2, start_2)]:
+							del gff1_coords[k]
 					continue
 				gff2_gff1_lookup[(chrom_2, start_2)] = (chrom_1, start_1)
 			else:
