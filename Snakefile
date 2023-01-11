@@ -135,6 +135,9 @@ rule all:
 			genome=genome_list,
 			strategy=["refbased"]),
 		expand(
+			"results_filtered/chicken_ancestral-gila2_galgal5-gila2_{strategy}.stringtie_compiled_per_transcript_separate_individuals.txt",
+			strategy=["refbased"]),
+		expand(
 			"stats/{sample}.{genome}.dna.mkdup.sorted.bam.stats",
 			sample=dna, genome=assembly_list),
 		expand(
@@ -790,7 +793,19 @@ rule find_orthologs_all:
 		"python scripts/Compare_gffs.py --gff1 {input.gff1} --gff2 {input.gff2} "
 		"--output_file {output}"
 
-
+rule filter_ortho_compiled_stringtie_per_transcript_separate_individuals_chicken:
+	input:
+		ortho = "reference/{gff1}_{gff2}_gff_comparison.txt",
+		res_1 = "results_sra/{gff1}.{strategy}.stringtie_compiled_per_transcript_separate_individuals.txt",
+		res_2 = "results_sra/{gff2}.{strategy}.stringtie_compiled_per_transcript_separate_individuals.txt"
+	output:
+		"results_filtered/chicken_ancestral-{gff1}_{gff2}-{gff1}_{strategy}.stringtie_compiled_per_transcript_separate_individuals.txt"
+	params:
+		threads = 4,
+		mem = 16,
+		t = medium
+	shell:
+		"python scripts/Filter_result_file_for_ortho.py {input.ortho} {input.res_1} {input.res_2} {output} transcript"
 
 
 

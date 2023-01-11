@@ -10,7 +10,7 @@ with open(ortho, "r") as f:
 	for line in f:
 		stripped = line.rstrip()
 		split = stripped.split()
-		if split[0] != "gene":
+		if split[0] not in ["gene", "NONE"]:
 			if split[3] == region_type:
 				chrom = split[1]
 				start = split[2]
