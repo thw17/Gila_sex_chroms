@@ -19,6 +19,8 @@ with open(ortho, "r") as f:
 				chrom_2 = split[1]
 				start_2 = split[2]
 				gff1_coords[(chrom_1, start_1)] = (chrom_1, start_1)
+				if (chrom_2, start_2) in gff2_gff1_lookup:
+					print(line)
 				gff2_gff1_lookup[(chrom_2, start_2)] = (chrom_1, start_1)
 			else:
 				continue
@@ -34,6 +36,10 @@ with open(gff2_result, "r") as g:
 		female = split[4]
 		if (chrom, start) in gff2_gff1_lookup:
 			gff2_in_gff1[gff2_gff1_lookup[(chrom, start)]] = (male, female)
+
+print("gff1_coords", len(gff1_coords))
+print("gff2_gff1_lookup", len(gff2_gff1_lookup)))
+print("gff2_in_gff1", len(gff2_in_gff1))
 
 with open(outfile, "w") as o:
 
