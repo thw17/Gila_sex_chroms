@@ -37,15 +37,16 @@ with open(ortho, "r") as f:
 			else:
 				continue
 
-for k in gff2_gff1_lookup:
+for k in list(gff2_gff1_lookup):
 	if gff2_gff1_lookup[k] in gff1_mult:
 		gff2_mult.append(k)
+		del gff2_gff1_lookup[k]
 
-gff2_gff1_lookup_final = {key: val for key, val in gff2_gff1_lookup if key not in gff2_mult}
+# gff2_gff1_lookup_final = {key: val for key, val in gff2_gff1_lookup if key not in gff2_mult}
 
-print("Multiple hits in gff1: {}".format(gff1_mult))
+print("Multiple hits in gff1: {}".format(gff1_mult), len(gff1_mult))
 print("")
-print("Multiple hits in gff2: {}".format(gff2_mult))
+print("Multiple hits in gff2: {}".format(gff2_mult), len(gff2_mult))
 
 gff2_in_gff1 = {}
 with open(gff2_result, "r") as g:
@@ -56,11 +57,11 @@ with open(gff2_result, "r") as g:
 		start = split[2]
 		male = split[3]
 		female = split[4]
-		if (chrom, start) in gff2_gff1_lookup_final:
-			gff2_in_gff1[gff2_gff1_lookup_final[(chrom, start)]] = (male, female)
+		if (chrom, start) in gff2_gff1_lookup:
+			gff2_in_gff1[gff2_gff1_lookup[(chrom, start)]] = (male, female)
 
 print("gff1_coords", len(gff1_coords))
-print("gff2_gff1_lookup_final", len(gff2_gff1_lookup_final))
+print("gff2_gff1_lookup", len(gff2_gff1_lookup))
 print("gff2_in_gff1", len(gff2_in_gff1))
 
 with open(outfile, "w") as o:
