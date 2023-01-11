@@ -796,8 +796,8 @@ rule find_orthologs_all:
 rule filter_ortho_compiled_stringtie_per_transcript_separate_individuals_chicken:
 	input:
 		ortho = "reference/{gff1}_{gff2}_gff_comparison.txt",
-		res_1 = "results_sra/{gff1}.{strategy}.stringtie_compiled_per_transcript_separate_individuals.txt",
-		res_2 = "results_sra/{gff2}.{strategy}.stringtie_compiled_per_transcript_separate_individuals.txt"
+		res_1 = "results_/{gff1}.{strategy}.stringtie_compiled_per_transcript_separate_individuals.txt",
+		res_2 = "results_/{gff2}.{strategy}.stringtie_compiled_per_transcript_separate_individuals.txt"
 	output:
 		"results_filtered/chicken_ancestral-{gff1}_{gff2}-{gff1}_{strategy}.stringtie_compiled_per_transcript_separate_individuals.txt"
 	params:
