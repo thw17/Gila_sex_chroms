@@ -59,7 +59,7 @@ with open(ortho, "r") as f:
 		if split[0] == "Orthogroup":
 			continue
 		gila = ''.join(split[1].rstrip().split()).split(',')
-		anolis = ''.join(split[2].rstrip().split()).split('')
+		anolis = ''.join(split[2].rstrip().split()).split(',')
 		if len(gila) != 1:
 			g_ex.append(gila)
 			continue
