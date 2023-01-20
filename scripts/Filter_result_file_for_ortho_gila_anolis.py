@@ -32,7 +32,7 @@ with open(gff_a, "r") as f:
 				if i[0:3] == "ID=":
 					id = i.split(':')[1]
 				if i[0:3] == "Par":
-					gene = i.split(:)[1]
+					gene = i.split(':')[1]
 			if id is not None and gene is not None:
 				transcripts[id] == gene
 				chrom = split[0]
