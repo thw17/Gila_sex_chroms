@@ -71,6 +71,8 @@ with open(ortho, "r") as f:
 		if len(anolis) > 1:
 			a_genes = []
 			for k in anolis:
+				if k == '':
+					print(line)
 				a_genes.append(transcripts[k])
 			if len(set(a_genes)) != 1:
 				a_ex.append(a_genes)
