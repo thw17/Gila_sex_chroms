@@ -129,10 +129,13 @@ with open(outfile, "w") as o:
 				chrom = str(split[1])
 				start = str(split[2])
 				if (chrom, start) in g_coords:
-					mf = a_results[a_coords[a_flipped[orthologs[g_coords[(chrom, start)]]]]]
-					m1 = mf[0]
-					f1 = mf[1]
-					o.write(line + "\t{}\t{}\n".format(m1, f1))
+					try:
+						mf = a_results[a_coords[a_flipped[orthologs[g_coords[(chrom, start)]]]]]
+						m1 = mf[0]
+						f1 = mf[1]
+						o.write(line + "\t{}\t{}\n".format(m1, f1))
+					except:
+						print(a_results[a_coords[a_flipped[orthologs[g_coords[(chrom, start)]]]]])
 				else:
 					continue
 
