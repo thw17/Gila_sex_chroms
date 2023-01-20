@@ -7,6 +7,7 @@ gff_g = sys.argv[2]
 result_a = sys.argv[3]
 result_g = sys.argv[4]
 ortho = sys.argv[5]
+outfile = sys.argv[6]
 
 gene_list = {}
 transcripts = {}
