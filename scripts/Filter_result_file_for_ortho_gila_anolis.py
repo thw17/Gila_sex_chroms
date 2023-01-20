@@ -58,8 +58,8 @@ with open(ortho, "r") as f:
 		split = stripped.split()
 		if split[0] == "Orthogroup":
 			continue
-		gila = ''.join(split[1].rstrip().split()).split(',')
-		anolis = ''.join(split[2].rstrip().split()).split(',')
+		gila = ''.join(split[1].rstrip().split('\t')).split(',')
+		anolis = ''.join(split[2].rstrip().split('\t')).split(',')
 		if len(gila) != 1:
 			g_ex.append(gila)
 			continue
@@ -69,7 +69,6 @@ with open(ortho, "r") as f:
 		if gila[0] in g_ex:
 			continue
 		if len(anolis) > 1:
-			print(anolis)
 			a_genes = []
 			for k in anolis:
 				if k == '':
