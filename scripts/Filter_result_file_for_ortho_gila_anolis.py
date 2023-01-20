@@ -109,6 +109,13 @@ with open(result_a, "r") as f:
 		if (chrom, start) in a_coords:
 			a_results[(chrom, start)] = (male, female)
 
+print(len(transcripts))
+print(len(a_coords))
+print(len(g_coords))
+print(len(a_flipped))
+print(len(a_results))
+print(len(orthologs))
+
 with open(outfile, "w") as o:
 	with open(result_g, "r") as j:
 		for idx, line in enumerate(j):
