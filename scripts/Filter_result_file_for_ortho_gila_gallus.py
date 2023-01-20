@@ -16,10 +16,10 @@ with open(ortho, "r") as f:
 		split = stripped.split()
 		if split[0] not in ["gene", "NONE"]:
 			if split[3] == region_type:
-				chrom_1 = split[4]
-				start_1 = split[5]
-				chrom_2 = split[1]
-				start_2 = split[2]
+				chrom_1 = str(split[4])
+				start_1 = str(split[5])
+				chrom_2 = str(split[1])
+				start_2 = str(split[2])
 				if (chrom_1, start_1) in gff1_coords:
 					del gff1_coords[(chrom_1, start_1)]
 					for k in list(gff2_gff1_lookup):
@@ -62,10 +62,10 @@ with open(gff2_result, "r") as g:
 	for line in g:
 		stripped = line.rstrip()
 		split = stripped.split()
-		chrom = split[1]
-		start = split[2]
-		male = split[3]
-		female = split[4]
+		chrom = str(split[1])
+		start = str(split[2])
+		male = str(split[3])
+		female = str(split[4])
 		if (chrom, start) in gff2_gff1_lookup:
 			gff2_in_gff1[gff2_gff1_lookup[(chrom, start)]] = (male, female)
 
@@ -82,8 +82,8 @@ with open(outfile, "w") as o:
 			else:
 				stripped = line.rstrip()
 				split = stripped.split()
-				chrom = split[1]
-				start = split[2]
+				chrom = str(split[1])
+				start = str(split[2])
 				if (chrom, start) in gff1_coords:
 					m1 = gff2_in_gff1[(chrom, start)][0]
 					f1 = gff2_in_gff1[(chrom, start)][1]

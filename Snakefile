@@ -138,6 +138,9 @@ rule all:
 			"results_filtered/chicken_ancestral-gila2_galgal5-gila2_{strategy}.stringtie_compiled_per_transcript_separate_individuals.txt",
 			strategy=["refbased"]),
 		expand(
+			"results_filtered/anolis_ancestral-gila2_anocar2-gila2_{strategy}.stringtie_compiled_per_transcript_separate_individuals.txt",
+			strategy=["refbased"]),
+		expand(
 			"stats/{sample}.{genome}.dna.mkdup.sorted.bam.stats",
 			sample=dna, genome=assembly_list),
 		expand(
@@ -807,7 +810,21 @@ rule filter_ortho_compiled_stringtie_per_transcript_separate_individuals_chicken
 	shell:
 		"python scripts/Filter_result_file_for_ortho_gila_gallus.py {input.ortho} {input.res_1} {input.res_2} {output} transcript"
 
-
+rule filter_ortho_compiled_stringtie_per_transcript_separate_individuals_anolis:
+	input:
+		ortho = "annotation/{gff1}_{gff2}_gff_comparison.txt",
+		res_1 = "results/{gff1}.{strategy}.stringtie_compiled_per_transcript_separate_individuals.txt",
+		res_2 = "results/{gff2}.{strategy}.stringtie_compiled_per_transcript_separate_individuals.txt",
+		gff1 = "annotation/{gff1}.gff",
+		gff2 = "annotation/{gff2}.gff"
+	output:
+		"results_filtered/anolis_ancestral-{gff1}_{gff2}-{gff1}_{strategy}.stringtie_compiled_per_transcript_separate_individuals.txt"
+	params:
+		threads = 4,
+		mem = 16,
+		t = medium
+	shell:
+		"python scripts/Filter_result_file_for_ortho_gila_anolis.py {input.gff2} {input.gff1} {input.res_2} {input.res_1} {input.ortho}"
 
 ##### Tim fix these three rules after checking output of previous rule
 
