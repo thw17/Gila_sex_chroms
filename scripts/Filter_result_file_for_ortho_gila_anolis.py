@@ -58,8 +58,8 @@ with open(ortho, "r") as f:
 		split = stripped.split()
 		if split[0] == "Orthogroup":
 			continue
-		gila = split[1].rstrip().split(", ")
-		anolis = split[2].rstrip().split(", ")
+		gila = ''.join(split[1].rstrip().split()).split(',')
+		anolis = ''.join(split[2].rstrip().split()).split('')
 		if len(gila) != 1:
 			g_ex.append(gila)
 			continue
