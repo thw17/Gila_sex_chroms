@@ -92,6 +92,7 @@ with open(gff_g, "r") as f:
 		if split[2] == "transcript":
 			info = split[8].split(';')
 			id = info[0].split('=')[1]
+			print(id)
 			chrom = split[0]
 			start = split[3]
 			if id in orthologs:
