@@ -87,6 +87,8 @@ with open(ortho, "r") as f:
 g_coords = {}
 with open(gff_g, "r") as f:
 	for line in f:
+		if line[0] == "#":
+			continue
 		stripped = line.rstrip()
 		split = stripped.split()
 		if split[2] == "transcript":
