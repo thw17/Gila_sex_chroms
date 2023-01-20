@@ -91,7 +91,7 @@ with open(gff_g, "r") as f:
 		split = stripped.split()
 		if split[2] == "transcript":
 			info = split[8].split(';')
-			id = info[0].split('=')
+			id = info[0].split('=')[1]
 			chrom = split[0]
 			start = split[3]
 			if id in orthologs:
