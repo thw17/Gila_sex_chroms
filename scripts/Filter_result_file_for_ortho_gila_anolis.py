@@ -90,6 +90,7 @@ with open(gff_g, "r") as f:
 		stripped = line.rstrip()
 		split = stripped.split()
 		if split[2] == "transcript":
+			print(split)
 			info = split[8].split(';')
 			id = info[0].split('=')[1]
 			print(id)
