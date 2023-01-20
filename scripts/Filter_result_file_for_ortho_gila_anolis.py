@@ -26,7 +26,7 @@ with open(gff_a, "r") as f:
 				id = info[0].split(':')[1]
 				if info[1][0:5] == "Name":
 					gene = info[1].split('=')[1]
-					gene_list[id] == gene
+					gene_list[id] = gene
 			continue
 		if split[2] == "mRNA":
 			for i in info:
@@ -35,7 +35,7 @@ with open(gff_a, "r") as f:
 				if i[0:3] == "Par":
 					gene = i.split(':')[1]
 			if id is not None and gene is not None:
-				transcripts[id] == gene
+				transcripts[id] = gene
 				chrom = split[0]
 				start = split[3]
 				a_coords[(chrom, start)] = id
