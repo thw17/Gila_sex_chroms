@@ -812,7 +812,7 @@ rule filter_ortho_compiled_stringtie_per_transcript_separate_individuals_chicken
 
 rule filter_ortho_compiled_stringtie_per_transcript_separate_individuals_anolis:
 	input:
-		ortho = "annotation/{gff1}_{gff2}_gff_comparison.txt",
+		ortho = "misc/gila__v__anole.tsv",
 		res_1 = "results/{gff1}.{strategy}.stringtie_compiled_per_transcript_separate_individuals.txt",
 		res_2 = "results/{gff2}.{strategy}.stringtie_compiled_per_transcript_separate_individuals.txt",
 		gff1 = "annotation/{gff1}.gff",
