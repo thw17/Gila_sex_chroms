@@ -824,7 +824,7 @@ rule filter_ortho_compiled_stringtie_per_transcript_separate_individuals_anolis:
 		mem = 16,
 		t = medium
 	shell:
-		"python scripts/Filter_result_file_for_ortho_gila_anolis.py {input.gff2} {input.gff1} {input.res_2} {input.res_1} {input.ortho}"
+		"python scripts/Filter_result_file_for_ortho_gila_anolis.py {input.gff2} {input.gff1} {input.res_2} {input.res_1} {input.ortho} {output}"
 
 ##### Tim fix these three rules after checking output of previous rule
 
