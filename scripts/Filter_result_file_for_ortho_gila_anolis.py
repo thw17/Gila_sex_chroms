@@ -69,6 +69,7 @@ with open(ortho, "r") as f:
 		if gila[0] in g_ex:
 			continue
 		if len(anolis) > 1:
+			print(anolis)
 			a_genes = []
 			for k in anolis:
 				if k == '':
