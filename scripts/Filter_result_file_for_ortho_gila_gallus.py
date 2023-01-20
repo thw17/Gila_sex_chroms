@@ -78,7 +78,7 @@ with open(outfile, "w") as o:
 	with open(gff1_result, "r") as j:
 		for idx, line in enumerate(j):
 			if idx == 0:
-				o.write(line + "\tanc_male\tanc_female")
+				o.write(line.rstrip() + "\tanc_male\tanc_female\n")
 			else:
 				stripped = line.rstrip()
 				split = stripped.split()
@@ -87,6 +87,6 @@ with open(outfile, "w") as o:
 				if (chrom, start) in gff1_coords:
 					m1 = gff2_in_gff1[(chrom, start)][0]
 					f1 = gff2_in_gff1[(chrom, start)][1]
-					o.write(line + "\t{}\t{}".format(m1, f1))
+					o.write(line.rstrip() + "\t{}\t{}\n".format(m1, f1))
 				else:
 					continue

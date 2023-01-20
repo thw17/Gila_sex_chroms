@@ -122,7 +122,7 @@ with open(outfile, "w") as o:
 	with open(result_g, "r") as j:
 		for idx, line in enumerate(j):
 			if idx == 0:
-				o.write(line + "\tanc_male\tanc_female")
+				o.write(line.rstrip() + "\tanc_male\tanc_female\n")
 			else:
 				stripped = line.rstrip()
 				split = stripped.split()
@@ -132,7 +132,7 @@ with open(outfile, "w") as o:
 					mf = a_coords[a_flipped[orthologs[g_coords[(chrom, start)]]]]
 					m1 = mf[0]
 					f1 = mf[1]
-					o.write(line + "\t{}\t{}".format(m1, f1))
+					o.write(line + "\t{}\t{}\n".format(m1, f1))
 				else:
 					continue
 
