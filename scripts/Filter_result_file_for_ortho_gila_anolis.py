@@ -24,8 +24,9 @@ with open(gff_a, "r") as f:
 		if split[2] == "gene":
 			if info[0][0:3] == "ID=":
 				id = info[0].split(':')[1]
-				gene = info[1].split(':')[1]
-				gene_list[id] == gene
+				if info[1][0:5] == "Name"
+					gene = info[1].split('=')[1]
+					gene_list[id] == gene
 			continue
 		if split[2] == "mRNA":
 			for i in info:
