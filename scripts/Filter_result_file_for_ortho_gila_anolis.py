@@ -135,7 +135,10 @@ with open(outfile, "w") as o:
 						f1 = mf[1]
 						o.write(line + "\t{}\t{}\n".format(m1, f1))
 					except:
-						print(a_results[a_coords[a_flipped[orthologs[g_coords[(chrom, start)]]]]])
+						print(g_coords[(chrom, start)])
+						print(orthologs[g_coords[(chrom, start)]])
+						print(a_flipped[orthologs[g_coords[(chrom, start)]]])
+						print(a_coords[a_flipped[orthologs[g_coords[(chrom, start)]]]])
 				else:
 					continue
 
