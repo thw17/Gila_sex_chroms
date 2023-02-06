@@ -133,7 +133,7 @@ with open(outfile, "w") as o:
 						mf = a_results[a_flipped[orthologs[g_coords[(chrom, start)]]]]
 						m1 = mf[0]
 						f1 = mf[1]
-						o.write(line + "\t{}\t{}\n".format(m1, f1))
+						o.write(line.rstrip() + "\t{}\t{}\n".format(m1, f1))
 					except:
 						print(g_coords[(chrom, start)])
 						print(orthologs[g_coords[(chrom, start)]])
