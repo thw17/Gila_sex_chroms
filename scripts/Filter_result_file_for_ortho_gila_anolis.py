@@ -101,15 +101,18 @@ with open(gff_g, "r") as f:
 
 a_results = {}
 with open(result_a, "r") as f:
-	for line in f:
+	for idx, line in f:
 		stripped = line.rstrip()
 		split = stripped.split()
+		if idx == 0:
+			result_a_ids = split[5:]
+			continue
 		chrom = str(split[1])
 		start = str(split[2])
 		male = str(split[3])
 		female = str(split[4])
 		if (chrom, start) in a_coords:
-			a_results[(chrom, start)] = (male, female)
+			a_results[(chrom, start)] = (male, female, split[5:])
 
 print(len(transcripts))
 print(len(a_coords))
@@ -122,7 +125,7 @@ with open(outfile, "w") as o:
 	with open(result_g, "r") as j:
 		for idx, line in enumerate(j):
 			if idx == 0:
-				o.write(line.rstrip() + "\tanc_male\tanc_female\n")
+				o.write(line.rstrip() + "\tanc_male\tanc_female\t{}\n".format("\t".join([str(z) for z in gff2_ids])))
 			else:
 				stripped = line.rstrip()
 				split = stripped.split()
@@ -133,7 +136,8 @@ with open(outfile, "w") as o:
 						mf = a_results[a_flipped[orthologs[g_coords[(chrom, start)]]]]
 						m1 = mf[0]
 						f1 = mf[1]
-						o.write(line.rstrip() + "\t{}\t{}\n".format(m1, f1))
+						v1 = mf[2]
+						o.write(line.rstrip() + "\t{}\t{}\t{}\n".format(m1, f1,"\t".join([str(z) for z in v1]))
 					except:
 						print(g_coords[(chrom, start)])
 						print(orthologs[g_coords[(chrom, start)]])

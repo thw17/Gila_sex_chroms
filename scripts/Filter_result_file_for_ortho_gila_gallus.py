@@ -59,15 +59,18 @@ print("Multiple hits in gff2: {}".format(gff2_mult), len(gff2_mult))
 
 gff2_in_gff1 = {}
 with open(gff2_result, "r") as g:
-	for line in g:
+	for idx, line in g:
 		stripped = line.rstrip()
 		split = stripped.split()
+		if idx == 0:
+			gff2_ids = split[5:]
+			continue
 		chrom = str(split[1])
 		start = str(split[2])
 		male = str(split[3])
 		female = str(split[4])
 		if (chrom, start) in gff2_gff1_lookup:
-			gff2_in_gff1[gff2_gff1_lookup[(chrom, start)]] = (male, female)
+			gff2_in_gff1[gff2_gff1_lookup[(chrom, start)]] = (male, female, split[5:])
 
 print("gff1_coords", len(gff1_coords))
 print("gff2_gff1_lookup", len(gff2_gff1_lookup))
@@ -78,7 +81,7 @@ with open(outfile, "w") as o:
 	with open(gff1_result, "r") as j:
 		for idx, line in enumerate(j):
 			if idx == 0:
-				o.write(line.rstrip() + "\tanc_male\tanc_female\n")
+				o.write(line.rstrip() + "\tanc_male\tanc_female\t{}\n".format("\t".join([str(z) for z in gff2_ids])))
 			else:
 				stripped = line.rstrip()
 				split = stripped.split()
@@ -87,6 +90,7 @@ with open(outfile, "w") as o:
 				if (chrom, start) in gff1_coords:
 					m1 = gff2_in_gff1[(chrom, start)][0]
 					f1 = gff2_in_gff1[(chrom, start)][1]
-					o.write(line.rstrip() + "\t{}\t{}\n".format(m1, f1))
+					v1 = gff2_in_gff1[(chrom, start)][2]
+					o.write(line.rstrip() + "\t{}\t{}\t{}\n".format(m1, f1, "\t".join([str(z) for z in v1])))
 				else:
 					continue
