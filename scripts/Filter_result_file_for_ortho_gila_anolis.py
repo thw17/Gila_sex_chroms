@@ -125,7 +125,7 @@ with open(outfile, "w") as o:
 	with open(result_g, "r") as j:
 		for idx, line in enumerate(j):
 			if idx == 0:
-				o.write(line.rstrip() + "\tanc_male\tanc_female\t{}\n".format("\t".join([str(z) for z in gff2_ids])))
+				o.write(line.rstrip() + "\tanc_male\tanc_female\t{}\n".format("\t".join([str(z) for z in result_a_ids])))
 			else:
 				stripped = line.rstrip()
 				split = stripped.split()
