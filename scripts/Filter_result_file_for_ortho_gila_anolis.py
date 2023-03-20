@@ -101,7 +101,7 @@ with open(gff_g, "r") as f:
 
 a_results = {}
 with open(result_a, "r") as f:
-	for idx, line in f:
+	for idx, line in enumerate(f):
 		stripped = line.rstrip()
 		split = stripped.split()
 		if idx == 0:

@@ -59,7 +59,7 @@ print("Multiple hits in gff2: {}".format(gff2_mult), len(gff2_mult))
 
 gff2_in_gff1 = {}
 with open(gff2_result, "r") as g:
-	for idx, line in g:
+	for idx, line in enumerate(g):
 		stripped = line.rstrip()
 		split = stripped.split()
 		if idx == 0:
