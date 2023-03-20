@@ -63,14 +63,14 @@ with open(gff2_result, "r") as g:
 		stripped = line.rstrip()
 		split = stripped.split()
 		if idx == 0:
-			gff2_ids = split[5:]
+			gff2_ids = split[5:-1]
 			continue
 		chrom = str(split[1])
 		start = str(split[2])
 		male = str(split[3])
 		female = str(split[4])
 		if (chrom, start) in gff2_gff1_lookup:
-			gff2_in_gff1[gff2_gff1_lookup[(chrom, start)]] = (male, female, split[5:])
+			gff2_in_gff1[gff2_gff1_lookup[(chrom, start)]] = (male, female, split[5:-1])
 
 print("gff1_coords", len(gff1_coords))
 print("gff2_gff1_lookup", len(gff2_gff1_lookup))
