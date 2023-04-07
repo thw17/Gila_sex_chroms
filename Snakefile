@@ -832,11 +832,11 @@ rule filter_ortho_compiled_stringtie_per_transcript_separate_individuals_anolis:
 rule htseq_read_counts:
 	input:
 		bams = lambda wildcards: expand(
-			"processed_rna_bams/{sample}.{genome}.sorted.bam",
+			"processed_rna_bams/{sample}.{assembly}.sorted.bam",
 			assembly=wildcards.genome,
 			sample=map_samples[wildcards.genome]),
 		bais = lambda wildcards: expand(
-			"processed_rna_bams/{sample}.{genome}.sorted.bam.bai",
+			"processed_rna_bams/{sample}.{assembly}.sorted.bam.bai",
 			assembly=wildcards.genome,
 			sample=map_samples[wildcards.genome]),
 		gff = "annotation/{genome}.gff"
