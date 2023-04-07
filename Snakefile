@@ -102,56 +102,56 @@ chunk_range = [x for x in range(1, num_chunks + 1)]
 
 rule all:
 	input:
-		expand(
-			"new_reference/{genome}.{suffix}",
-			genome=genome_list,
-			suffix=["fa.fai","fa.amb", "dict"]),
-		expand(
-			"multiqc_{suffix}/multiqc_report.html",
-			suffix=["sra", "trimmed_sra"]),
-		"multiqc/multiqc_report.html",
-		expand(
-			"multiqc_trimmed_{type}/multiqc_report.html",
-			type=["dna", "rna"]),
-		expand(
-			"stats_rna/{sample}.gila2.rna.sorted.bam.stats",
-			sample=rna),
-		expand(
-			"stats_rna/{sample}.anocar2.rna.sorted.bam.stats",
-			sample=anole_sra_ids),
-		expand(
-			"stats_rna/{sample}.galgal5.rna.sorted.bam.stats",
-			sample=sra_ids_liver),
-		expand(
-			"results/{genome}.{strategy}.stringtie_compiled.txt",
-			genome=genome_list,
-			strategy=["refbased"]),
-		expand(
-			"results/{genome}.{strategy}.stringtie_compiled_per_transcript.txt",
-			genome=genome_list,
-			strategy=["refbased"]),
-		expand(
-			"results/{genome}.{strategy}.stringtie_compiled_per_transcript_separate_individuals.txt",
-			genome=genome_list,
-			strategy=["refbased"]),
-		expand(
-			"results_filtered/chicken_ancestral-gila2_galgal5-gila2_{strategy}.stringtie_compiled_per_transcript_separate_individuals.txt",
-			strategy=["refbased"]),
-		expand(
-			"results_filtered/anolis_ancestral-gila2_anocar2-gila2_{strategy}.stringtie_compiled_per_transcript_separate_individuals.txt",
-			strategy=["refbased"]),
-		expand(
-			"stats/{sample}.{genome}.dna.mkdup.sorted.bam.stats",
-			sample=dna, genome=assembly_list),
-		expand(
-			"xyalign_analyses/{genome}/results/{genome}_chrom_stats_count.txt",
-			genome=assembly_list),
-		expand(
-		 	"xyalign_analyses/{sample}.{genome}/logfiles/{sample}.{genome}_xyalign.log",
-		 	sample=dna, genome=assembly_list),
-		expand(
-			"results/{genome}.dna.het_rate.txt",
-			genome=assembly_list),
+		# expand(
+		# 	"new_reference/{genome}.{suffix}",
+		# 	genome=genome_list,
+		# 	suffix=["fa.fai","fa.amb", "dict"]),
+		# expand(
+		# 	"multiqc_{suffix}/multiqc_report.html",
+		# 	suffix=["sra", "trimmed_sra"]),
+		# "multiqc/multiqc_report.html",
+		# expand(
+		# 	"multiqc_trimmed_{type}/multiqc_report.html",
+		# 	type=["dna", "rna"]),
+		# expand(
+		# 	"stats_rna/{sample}.gila2.rna.sorted.bam.stats",
+		# 	sample=rna),
+		# expand(
+		# 	"stats_rna/{sample}.anocar2.rna.sorted.bam.stats",
+		# 	sample=anole_sra_ids),
+		# expand(
+		# 	"stats_rna/{sample}.galgal5.rna.sorted.bam.stats",
+		# 	sample=sra_ids_liver),
+		# expand(
+		# 	"results/{genome}.{strategy}.stringtie_compiled.txt",
+		# 	genome=genome_list,
+		# 	strategy=["refbased"]),
+		# expand(
+		# 	"results/{genome}.{strategy}.stringtie_compiled_per_transcript.txt",
+		# 	genome=genome_list,
+		# 	strategy=["refbased"]),
+		# expand(
+		# 	"results/{genome}.{strategy}.stringtie_compiled_per_transcript_separate_individuals.txt",
+		# 	genome=genome_list,
+		# 	strategy=["refbased"]),
+		# expand(
+		# 	"results_filtered/chicken_ancestral-gila2_galgal5-gila2_{strategy}.stringtie_compiled_per_transcript_separate_individuals.txt",
+		# 	strategy=["refbased"]),
+		# expand(
+		# 	"results_filtered/anolis_ancestral-gila2_anocar2-gila2_{strategy}.stringtie_compiled_per_transcript_separate_individuals.txt",
+		# 	strategy=["refbased"]),
+		# expand(
+		# 	"stats/{sample}.{genome}.dna.mkdup.sorted.bam.stats",
+		# 	sample=dna, genome=assembly_list),
+		# expand(
+		# 	"xyalign_analyses/{genome}/results/{genome}_chrom_stats_count.txt",
+		# 	genome=assembly_list),
+		# expand(
+		#  	"xyalign_analyses/{sample}.{genome}/logfiles/{sample}.{genome}_xyalign.log",
+		#  	sample=dna, genome=assembly_list),
+		# expand(
+		# 	"results/{genome}.dna.het_rate.txt",
+		# 	genome=assembly_list),
 		expand(
 			"htseq_results/{genome}.htseq_counts.txt",
 			genome=assembly_list)
