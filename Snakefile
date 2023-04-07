@@ -835,7 +835,7 @@ rule htseq_read_counts:
 			"processed_rna_bams/{sample}.{genome}.sorted.bam",
 			assembly=wildcards.genome,
 			sample=map_samples[wildcards.genome]),
-		bams = lambda wildcards: expand(
+		bais = lambda wildcards: expand(
 			"processed_rna_bams/{sample}.{genome}.sorted.bam.bai",
 			assembly=wildcards.genome,
 			sample=map_samples[wildcards.genome]),
