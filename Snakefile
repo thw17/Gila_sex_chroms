@@ -849,7 +849,7 @@ rule htseq_read_counts:
 		mem = 16,
 		t = medium
 	shell:
-		"htseq-count -f bam -r pos -t transcript -i gene_id {input.bams} {input.gff} > {output}"
+		"htseq-count -f bam -r pos -t transcript -i gene_id --additional-attr=Name {input.bams} {input.gff} > {output}"
 
 ##### Tim fix these three rules after checking output of previous rule
 
