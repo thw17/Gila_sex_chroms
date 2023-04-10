@@ -845,9 +845,9 @@ rule htseq_read_counts:
 	conda:
 		"envs/htseq.yaml"
 	params:
-		threads = 4,
-		mem = 16,
-		t = medium
+		threads = 8,
+		mem = 32,
+		t = very_long
 	shell:
 		"htseq-count -f bam -r pos -t transcript -i gene_id --additional-attr=Name {input.bams} {input.gff} > {output}"
 
