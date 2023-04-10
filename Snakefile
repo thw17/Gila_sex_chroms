@@ -153,7 +153,8 @@ rule all:
 		# 	"results/{genome}.dna.het_rate.txt",
 		# 	genome=assembly_list),
 		expand(
-			"htseq_results/{genome}.htseq_counts.txt",
+			"htseq_results/{sample}.{genome}.htseq_counts.txt",
+			sample=rna,
 			genome=assembly_list)
 
 
@@ -831,17 +832,11 @@ rule filter_ortho_compiled_stringtie_per_transcript_separate_individuals_anolis:
 
 rule htseq_read_counts:
 	input:
-		bams = lambda wildcards: expand(
-			"processed_rna_bams/{sample}.{assembly}.sorted.bam",
-			assembly=wildcards.genome,
-			sample=map_samples[wildcards.genome]),
-		bais = lambda wildcards: expand(
-			"processed_rna_bams/{sample}.{assembly}.sorted.bam.bai",
-			assembly=wildcards.genome,
-			sample=map_samples[wildcards.genome]),
+		bam = "processed_rna_bams/{sample}.{genome}.sorted.bam",
+		bai = "processed_rna_bams/{sample}.{genome}.sorted.bam.bai",
 		gff = "annotation/{genome}.gff"
 	output:
-		"htseq_results/{genome}.htseq_counts.txt"
+		"htseq_results/{sample}.{genome}.htseq_counts.txt"
 	conda:
 		"envs/htseq.yaml"
 	params:
@@ -849,7 +844,7 @@ rule htseq_read_counts:
 		mem = 32,
 		t = very_long
 	shell:
-		"htseq-count -f bam -r pos -t transcript -i gene_id --additional-attr=Name {input.bams} {input.gff} > {output}"
+		"htseq-count -f bam -r pos -t transcript -i gene_id --additional-attr=Name {input.bam} {input.gff} > {output}"
 
 ##### Tim fix these three rules after checking output of previous rule
 
