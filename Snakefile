@@ -1220,7 +1220,7 @@ rule intergenic_vcf:
 		mem = 16,
 		t = medium
 	shell:
-		"{params.bedtools} intersect -a {input.vcf} -b (input.bed) -v -header | {params.bgzip} > {output}"
+		"{params.bedtools} intersect -a {input.vcf} -b {input.bed} -v -header | {params.bgzip} > {output}"
 
 rule index_intergenic_vcf:
 	input:
