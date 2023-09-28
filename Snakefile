@@ -156,6 +156,12 @@ rule all:
 			"results/{genome}.dna.het_rate.txt",
 			genome=assembly_list),
 		expand(
+			"results/{genome}.dna.exons.het_rate.txt",
+			genome=assembly_list),
+		expand(
+			"results/{genome}.dna.intergenic.het_rate.txt",
+			genome=assembly_list),
+		expand(
 			"combined_vcfs/combined.{genome}.filtered.{region}.vcf.gz.tbi",
 			genome=assembly_list, region=["exons", "intergenic"]),
 		expand(
@@ -1180,7 +1186,7 @@ rule intersect_exons_vcf:
 		vcf = "combined_vcfs/combined.{genome}.filtered.vcf.gz",
 		bed = "annotation/isolated.{genome}.exons.bed"
 	output:
-		"combined_vcfs/combined.{genome}.filtered.exons.vcf.gz.tbi"
+		"combined_vcfs/combined.{genome}.filtered.exons.vcf.gz"
 	conda:
 		"envs/bedtools.yaml"
 	params:
@@ -1234,6 +1240,44 @@ rule index_intergenic_vcf:
 		t = medium
 	shell:
 		"{params.tabix} -p vcf {input}"
+
+rule calc_het_rate_dna_exons:
+	input:
+		"combined_vcfs/combined.{genome}.filtered.exons.vcf.gz"
+	output:
+		"results/{genome}.dna.exons.het_rate.txt"
+	params:
+		suf = "dna",
+		threads = 4,
+		mem = 16,
+		t = long
+	shell:
+		"python scripts/Calc_het_vcf.py "
+		"--vcf {input} "
+		"--sexes misc/sample_sexes.txt "
+		"--min_sites 5 "
+		"--min_ind 1 "
+		"--output_file {output} "
+		"--suffix {params.suf}"
+
+rule calc_het_rate_dna_intergenic:
+	input:
+		"combined_vcfs/combined.{genome}.filtered.intergenic.vcf.gz"
+	output:
+		"results/{genome}.dna.intergenic.het_rate.txt"
+	params:
+		suf = "dna",
+		threads = 4,
+		mem = 16,
+		t = long
+	shell:
+		"python scripts/Calc_het_vcf.py "
+		"--vcf {input} "
+		"--sexes misc/sample_sexes.txt "
+		"--min_sites 5 "
+		"--min_ind 1 "
+		"--output_file {output} "
+		"--suffix {params.suf}"
 
 
 # rule create_rna_bam_header:
