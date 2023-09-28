@@ -1155,7 +1155,7 @@ rule isolate_exons_bed:
 	input:
 		"annotation/converted.{genome}.bed"
 	output:
-		"annotation/converted.{genome}.exons.bed"
+		"annotation/isolated.{genome}.exons.bed"
 	params:
 		threads = 4,
 		mem = 16,
@@ -1167,7 +1167,7 @@ rule isolate_genes_bed:
 	input:
 		"annotation/converted.{genome}.bed"
 	output:
-		"annotation/converted.{genome}.genes.bed"
+		"annotation/isolated.{genome}.genes.bed"
 	params:
 		threads = 4,
 		mem = 16,
@@ -1178,7 +1178,7 @@ rule isolate_genes_bed:
 rule intersect_exons_vcf:
 	input:
 		vcf = "combined_vcfs/combined.{genome}.filtered.vcf.gz",
-		bed = "annotation/converted.{genome}.exons.bed"
+		bed = "annotation/isolated.{genome}.exons.bed"
 	output:
 		"combined_vcfs/combined.{genome}.filtered.exons.vcf.gz.tbi"
 	conda:
@@ -1207,7 +1207,7 @@ rule index_exons_vcf:
 rule intergenic_vcf:
 	input:
 		vcf = "combined_vcfs/combined.{genome}.filtered.vcf.gz",
-		bed = "annotation/converted.{genome}.genes.bed"
+		bed = "annotation/isolated.{genome}.genes.bed"
 	output:
 		"combined_vcfs/combined.{genome}.filtered.intergenic.vcf.gz"
 	conda:
