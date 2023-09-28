@@ -156,8 +156,8 @@ rule all:
 			"results/{genome}.dna.het_rate.txt",
 			genome=assembly_list),
 		expand(
-			"combined_vcfs/combined.{genome}.filtered.intergenic.vcf.gz.tbi",
-			genome=assembly_list),
+			"combined_vcfs/combined.{genome}.filtered.{region}.vcf.gz.tbi",
+			genome=assembly_list, regions=["exons", "intergenic"]),
 		expand(
 			"htseq_results/{sample}.{genome}.htseq_counts.txt",
 			sample=rna,
