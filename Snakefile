@@ -1190,7 +1190,7 @@ rule intersect_exons_vcf:
 		mem = 16,
 		t = medium
 	shell:
-		"{params.bedtools} intersect -a {input.vcf} -b (input.bed) -header | {params.bgzip} > {output}"
+		"{params.bedtools} intersect -a {input.vcf} -b {input.bed} -header | {params.bgzip} > {output}"
 
 rule index_exons_vcf:
 	input:
