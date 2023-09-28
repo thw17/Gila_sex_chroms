@@ -29,6 +29,9 @@ hisat2_build_path = "hisat2-build"
 stringtie_path = "stringtie"
 xyalign_anaconda_env = "gila_xyalign_env"
 
+bedtools_path = "bedtools"
+gff2bed_path = "gff2bed"
+
 prefetch_path = "prefetch"
 fastq_dump_path = "fastq-dump"
 rename_sh_path = "rename.sh"
