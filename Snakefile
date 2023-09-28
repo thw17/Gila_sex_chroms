@@ -153,6 +153,9 @@ rule all:
 			"results/{genome}.dna.het_rate.txt",
 			genome=assembly_list),
 		expand(
+			"combined_vcfs/combined.{genome}.filtered.intergenic.vcf.gz.tbi",
+			genome=assembly_list),
+		expand(
 			"htseq_results/{sample}.{genome}.htseq_counts.txt",
 			sample=rna,
 			genome=assembly_list)
@@ -1129,6 +1132,104 @@ rule calc_het_rate_dna:
 		"--min_ind 1 "
 		"--output_file {output} "
 		"--suffix {params.suf}"
+
+rule convert_gff_to_bed:
+	input:
+		"annotation/{genome}.gff"
+	output:
+		"annotation/{genome}.bed"
+	conda:
+		"envs/bedtools.yaml"
+	params:
+		gff2bed = gff2bed_path,
+		threads = 4,
+		mem = 16,
+		t = medium
+	shell:
+		"{params.gff2bed} {input} > {output}"
+
+rule isolate_exons_bed:
+	input:
+		"annotation/{genome}.bed"
+	output:
+		"annotation/{genome}.exons.bed"
+	params:
+		threads = 4,
+		mem = 16,
+		t = medium
+	shell:
+		"""awk '$3 == "exon"' {input} > {output}"""
+
+rule isolate_genes_bed:
+	input:
+		"annotation/{genome}.bed"
+	output:
+		"annotation/{genome}.genes.bed"
+	params:
+		threads = 4,
+		mem = 16,
+		t = medium
+	shell:
+		"""awk '$3 == "gene"' {input} > {output}"""
+
+rule intersect_exons_vcf:
+	input:
+		vcf = "combined_vcfs/combined.{genome}.filtered.vcf.gz",
+		bed = "annotation/{genome}.exons.bed"
+	output:
+		"combined_vcfs/combined.{genome}.filtered.exons.vcf.gz.tbi"
+	conda:
+		"envs/bedtools.yaml"
+	params:
+		bedtools = bedtools_path,
+		threads = 4,
+		mem = 16,
+		t = medium
+	shell:
+		"{params.bedtools} intersect -a {input.vcf} -b (input.bed) -header | {params.bgzip} > {output}"
+
+rule index_exons_vcf:
+	input:
+		"combined_vcfs/combined.{genome}.filtered.exons.vcf.gz"
+	output:
+		"combined_vcfs/combined.{genome}.filtered.exons.vcf.gz.tbi"
+	params:
+		tabix = tabix_path,
+		threads = 4,
+		mem = 16,
+		t = medium
+	shell:
+		"{params.tabix} -p vcf {input}"
+
+rule intergenic_vcf:
+	input:
+		vcf = "combined_vcfs/combined.{genome}.filtered.vcf.gz",
+		bed = "annotation/{genome}.genes.bed"
+	output:
+		"combined_vcfs/combined.{genome}.filtered.intergenic.vcf.gz"
+	conda:
+		"envs/bedtools.yaml"
+	params:
+		bedtools = bedtools_path,
+		threads = 4,
+		mem = 16,
+		t = medium
+	shell:
+		"{params.bedtools} intersect -a {input.vcf} -b (input.bed) -v -header | {params.bgzip} > {output}"
+
+rule index_intergenic_vcf:
+	input:
+		"combined_vcfs/combined.{genome}.filtered.intergenic.vcf.gz"
+	output:
+		"combined_vcfs/combined.{genome}.filtered.intergenic.vcf.gz.tbi"
+	params:
+		tabix = tabix_path,
+		threads = 4,
+		mem = 16,
+		t = medium
+	shell:
+		"{params.tabix} -p vcf {input}"
+
 
 # rule create_rna_bam_header:
 # 	input:
