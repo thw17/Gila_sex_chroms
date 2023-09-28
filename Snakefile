@@ -157,7 +157,7 @@ rule all:
 			genome=assembly_list),
 		expand(
 			"combined_vcfs/combined.{genome}.filtered.{region}.vcf.gz.tbi",
-			genome=assembly_list, regions=["exons", "intergenic"]),
+			genome=assembly_list, region=["exons", "intergenic"]),
 		expand(
 			"htseq_results/{sample}.{genome}.htseq_counts.txt",
 			sample=rna,
