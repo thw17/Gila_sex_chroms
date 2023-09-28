@@ -1149,7 +1149,7 @@ rule convert_gff_to_bed:
 		mem = 16,
 		t = medium
 	shell:
-		"{params.gff2bed} {input} > {output}"
+		"cat {input} | {params.gff2bed} > {output}"
 
 rule isolate_exons_bed:
 	input:
