@@ -1185,6 +1185,7 @@ rule intersect_exons_vcf:
 		"envs/bedtools.yaml"
 	params:
 		bedtools = bedtools_path,
+		bgzip = bgzip_path,
 		threads = 4,
 		mem = 16,
 		t = medium
@@ -1214,6 +1215,7 @@ rule intergenic_vcf:
 		"envs/bedtools.yaml"
 	params:
 		bedtools = bedtools_path,
+		bgzip = bgzip_path,
 		threads = 4,
 		mem = 16,
 		t = medium
