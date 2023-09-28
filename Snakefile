@@ -1140,7 +1140,7 @@ rule convert_gff_to_bed:
 	input:
 		"annotation/{genome}.gff"
 	output:
-		"annotation/{genome}.bed"
+		"annotation/converted.{genome}.bed"
 	conda:
 		"envs/bedtools.yaml"
 	params:
@@ -1153,9 +1153,9 @@ rule convert_gff_to_bed:
 
 rule isolate_exons_bed:
 	input:
-		"annotation/{genome}.bed"
+		"annotation/converted.{genome}.bed"
 	output:
-		"annotation/{genome}.exons.bed"
+		"annotation/converted.{genome}.exons.bed"
 	params:
 		threads = 4,
 		mem = 16,
@@ -1165,9 +1165,9 @@ rule isolate_exons_bed:
 
 rule isolate_genes_bed:
 	input:
-		"annotation/{genome}.bed"
+		"annotation/converted.{genome}.bed"
 	output:
-		"annotation/{genome}.genes.bed"
+		"annotation/converted.{genome}.genes.bed"
 	params:
 		threads = 4,
 		mem = 16,
@@ -1178,7 +1178,7 @@ rule isolate_genes_bed:
 rule intersect_exons_vcf:
 	input:
 		vcf = "combined_vcfs/combined.{genome}.filtered.vcf.gz",
-		bed = "annotation/{genome}.exons.bed"
+		bed = "annotation/converted.{genome}.exons.bed"
 	output:
 		"combined_vcfs/combined.{genome}.filtered.exons.vcf.gz.tbi"
 	conda:
@@ -1207,7 +1207,7 @@ rule index_exons_vcf:
 rule intergenic_vcf:
 	input:
 		vcf = "combined_vcfs/combined.{genome}.filtered.vcf.gz",
-		bed = "annotation/{genome}.genes.bed"
+		bed = "annotation/converted.{genome}.genes.bed"
 	output:
 		"combined_vcfs/combined.{genome}.filtered.intergenic.vcf.gz"
 	conda:
