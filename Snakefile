@@ -1247,7 +1247,7 @@ rule calc_het_rate_dna_exons:
 	output:
 		"results/{genome}.dna.exons.het_rate.txt"
 	params:
-		suf = "dna",
+		suf = "dna_exons",
 		threads = 4,
 		mem = 16,
 		t = long
@@ -1266,7 +1266,7 @@ rule calc_het_rate_dna_intergenic:
 	output:
 		"results/{genome}.dna.intergenic.het_rate.txt"
 	params:
-		suf = "dna",
+		suf = "dna_intergenic",
 		threads = 4,
 		mem = 16,
 		t = long

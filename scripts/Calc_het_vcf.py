@@ -127,6 +127,7 @@ def main():
 			results_dict[i] = [i, -1, -1, -1, -1, -1, -1]
 
 	df = pd.DataFrame.from_dict(results_dict, orient='index')
+	print(df)
 	df.columns = [
 		"chrom",
 		"male_het_rate_{}".format(args.suffix),
