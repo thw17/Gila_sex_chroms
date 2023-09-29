@@ -136,7 +136,6 @@ def main():
 		"female_het_rate_{}".format(args.suffix),
 		"female_variant_count_{}".format(args.suffix),
 		"female_het_count_{}".format(args.suffix)]
-	print(df)
 	df = df.sort_values(["chrom"])
 	df.to_csv(args.output_file, sep='\t', index=False)
 

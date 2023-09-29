@@ -1167,7 +1167,7 @@ rule isolate_exons_bed:
 		mem = 16,
 		t = medium
 	shell:
-		"""awk '$3 == "exon"' {input} > {output}"""
+		"""awk '$8 == "exon"' {input} > {output}"""
 
 rule isolate_genes_bed:
 	input:
@@ -1179,7 +1179,7 @@ rule isolate_genes_bed:
 		mem = 16,
 		t = medium
 	shell:
-		"""awk '$3 == "gene"' {input} > {output}"""
+		"""awk '$8 == "gene"' {input} > {output}"""
 
 rule intersect_exons_vcf:
 	input:
